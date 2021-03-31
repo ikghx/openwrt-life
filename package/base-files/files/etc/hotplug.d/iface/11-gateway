@@ -1,0 +1,15 @@
+#!/bin/sh
+# by KGHX on https://iyzm.net/
+
+. /lib/functions.sh
+
+[ "$ACTION" = ifup ] || exit 0
+[ "$INTERFACE" = lan ] || exit 0
+LAN="$(uci_get network.lan.ipaddr)"
+URL="$(grep "/openwrt.xyz/" /etc/config/dhcp)"
+if [ -n "$URL" ]; then
+  sed -i "s@list address '/openwrt.xyz/.*'@list address '/openwrt.xyz/$LAN'@" /etc/config/dhcp
+  /etc/init.d/dnsmasq restart
+fi
+
+exit 0
