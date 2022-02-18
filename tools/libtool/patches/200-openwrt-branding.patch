@@ -1,0 +1,24 @@
+From 90707200efadc8e230635c7c204c9c272cbc8631 Mon Sep 17 00:00:00 2001
+From: Eneas U de Queiroz <cotequeiroz@gmail.com>
+Date: Tue, 20 Jul 2021 17:01:03 -0300
+Subject: openwrt: add openwrt branding
+
+This prepends program name with "OpenWrt-".
+
+This was originally commited to openwrt by Jo-Philipp Wich
+<jow@openwrt.org>.
+
+(adjusted to v2.4.6)
+Signed-off-by: Eneas U de Queiroz <cotequeiroz@gmail.com>
+
+--- a/build-aux/ltmain.in
++++ b/build-aux/ltmain.in
+@@ -82,7 +82,7 @@ func_echo ()
+     IFS=$nl
+     for _G_line in $_G_message; do
+       IFS=$func_echo_IFS
+-      $ECHO "$progname${opt_mode+: $opt_mode}: $_G_line"
++      $ECHO "OpenWrt-$progname${opt_mode+: $opt_mode}: $_G_line"
+     done
+     IFS=$func_echo_IFS
+ }

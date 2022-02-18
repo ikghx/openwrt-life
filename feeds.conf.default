@@ -1,0 +1,5 @@
+src-git packages https://github.com/ikghx/packages.git;openwrt-21.02
+src-git luci https://github.com/ikghx/luci.git;openwrt-21.02
+src-git routing https://github.com/ikghx/routing.git;openwrt-21.02
+#src-git telephony https://git.openwrt.org/feed/telephony.git;openwrt-21.02
+#src-link custom /usr/src/openwrt/custom-feed
