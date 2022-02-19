@@ -1,6 +1,7 @@
 define Device/generic
   DEVICE_TITLE := Generic x86/Geode
-  DEVICE_PACKAGES += kmod-crypto-cbc kmod-crypto-hw-geode kmod-ledtrig-gpio
+  DEVICE_PACKAGES += kmod-crypto-cbc kmod-crypto-ebc kmod-crypto-hw-geode \
+	kmod-ledtrig-gpio
   GRUB2_VARIANT := legacy
 endef
 TARGET_DEVICES += generic
