@@ -153,7 +153,7 @@ define Device/linksys_ea7500-v1
 	SOC := qcom-ipq8064
 	PAGESIZE := 2048
 	BLOCKSIZE := 128k
-	KERNEL_SIZE := 3072k
+	KERNEL_SIZE := 4096k
 	KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakehdr filesystem
 	UBINIZE_OPTS := -E 5
 	IMAGES := factory.bin sysupgrade.bin
@@ -169,7 +169,7 @@ define Device/linksys_ea8500
 	SOC := qcom-ipq8064
 	PAGESIZE := 2048
 	BLOCKSIZE := 128k
-	KERNEL_SIZE := 3072k
+	KERNEL_SIZE := 4096k
 	KERNEL = kernel-bin | append-dtb | uImage none | append-uImage-fakehdr filesystem
 	BOARD_NAME := ea8500
 	SUPPORTED_DEVICES += ea8500
