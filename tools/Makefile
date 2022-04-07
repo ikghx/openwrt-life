@@ -74,7 +74,7 @@ $(curdir)/sdcc/compile := $(curdir)/bison/compile
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
 $(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
 $(curdir)/zlib/compile := $(curdir)/cmake/compile
-$(curdir)/zstd/compile := $(curdir)/cmake/compile
+$(curdir)/zstd/compile := $(curdir)/meson/compile
 
 ifneq ($(HOST_OS),Linux)
   $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
@@ -84,7 +84,7 @@ endif
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)
 $(foreach tool, $(filter-out xz zstd pkgconf patch ninja meson libressl cmake,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/ccache/compile))
 tools-y += ccache
-$(curdir)/ccache/compile := $(curdir)/zstd/compile
+$(curdir)/ccache/compile := $(curdir)/cmake/compile $(curdir)/zstd/compile
 endif
 
 # in case there is no patch tool on the host we need to make patch tool a

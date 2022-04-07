@@ -578,6 +578,11 @@ dhcp_add() {
 	config_get ra_management "$cfg" ra_management
 	config_get ra_preference "$cfg" ra_preference
 	config_get dns "$cfg" dns
+	config_get domain "$cfg" domain
+
+	# Get only the first local domain for IPv4
+	# IPv6 supports a list of domains <https://openwrt.org/docs/techref/odhcpd#dhcp_section>
+	domain=${domain%% *}
 
 	config_list_foreach "$cfg" "interface_name" append_interface_name "$ifname"
 
@@ -609,6 +614,9 @@ dhcp_add() {
 
 	if [ "$dhcpv4" != "disabled" ] ; then
 		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
+		if [ "$domain" != "" ] ; then
+			xappend "--domain=$domain,$START,$END"
+		fi
 	fi
 
 
@@ -1194,6 +1202,11 @@ dnsmasq_start()
 	procd_set_param file $CONFIGFILE
 	[ -n "$user_dhcpscript" ] && procd_set_param env USER_DHCPSCRIPT="$user_dhcpscript"
 	procd_set_param respawn
+
+	local instance_ifc instance_netdev
+	config_get instance_ifc "$cfg" interface
+	[ -n "$instance_ifc" ] && network_get_device instance_netdev "$instance_ifc" &&
+		[ -n "$instance_netdev" ] && procd_set_param netdev $instance_netdev
 
 	procd_add_jail dnsmasq ubus log
 	for procd_ro in \
