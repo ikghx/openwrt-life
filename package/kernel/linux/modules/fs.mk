@@ -570,9 +570,9 @@ define KernelPackage/fs-virtiofs
   SUBMENU:=$(FS_MENU)
   TITLE:=Virtiofs filesystem support
   DEPENDS:=+kmod-fuse
-  KCONFIG:=\
-	CONFIG_VIRTIO_FS
+  KCONFIG:=CONFIG_VIRTIO_FS
   FILES:=$(LINUX_DIR)/fs/fuse/virtiofs.ko
+  DEPENDS:=@(x86_64||x86)
   AUTOLOAD:=$(call AutoLoad,30,virtiofs)
 endef
 
