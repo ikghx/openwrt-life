@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mdadm
-PKG_VERSION:=4.1
-PKG_RELEASE:=2
+PKG_VERSION:=4.2
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/utils/raid/mdadm
-PKG_HASH:=ab7688842908d3583a704d491956f31324c3a5fc9f6a04653cb75d19f1934f4a
+PKG_HASH:=461c215670864bb74a4d1a3620684aa2b2f8296dffa06743f26dda5557acf01d
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_CPE_ID:=cpe:/a:mdadm_project:mdadm
@@ -28,7 +28,7 @@ define Package/mdadm
   SUBMENU:=Disc
   TITLE:=A tool for managing Soft RAID under Linux
   URL:=https://www.kernel.org/pub/linux/utils/raid/mdadm/
-  DEPENDS:=+libpthread +kmod-md-mod +kmod-md-raid0 +kmod-md-raid10 +kmod-md-raid1
+  DEPENDS:=+libpthread +libudev +kmod-md-mod +kmod-md-raid0 +kmod-md-raid10 +kmod-md-raid1
 endef
 
 define Package/mdadm/description
@@ -48,7 +48,8 @@ TARGET_CFLAGS += \
 	-DCONFFILE='\"/var/etc/mdadm.conf\"' \
 	-DMAP_DIR='\"/var/run/mdadm\"' \
 	-DMDMON_DIR='\"/var/run/mdadm\"' \
-	-DFAILED_SLOTS_DIR='\"/var/run/mdadm/failed-slots\"'
+	-DFAILED_SLOTS_DIR='\"/var/run/mdadm/failed-slots\"' \
+	-DNO_LIBUDEV
 
 TARGET_LDFLAGS += -Wl,--gc-sections
 
