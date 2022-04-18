@@ -37,6 +37,17 @@
 		};
 	};
 
+        gpio_export {
+                compatible = "gpio-export";
+                #size-cells = <0>;
+
+                usb {
+                        gpio-export,name = "usb";
+                        gpio-export,output = <1>;
+                        gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
+                };
+        };
+
 	leds {
 		compatible = "gpio-leds";
 
