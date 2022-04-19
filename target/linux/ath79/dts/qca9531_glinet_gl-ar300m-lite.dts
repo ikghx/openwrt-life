@@ -7,8 +7,6 @@
 	model = "GL.iNet GL-AR300M-Lite";
 };
 
-/delete-node/ &gpio_export;
-
 /delete-node/ &nand_flash;
 
 &nor_firmware {

@@ -37,17 +37,6 @@
 		};
 	};
 
-        gpio_export {
-                compatible = "gpio-export";
-                #size-cells = <0>;
-
-                usb {
-                        gpio-export,name = "usb";
-                        gpio-export,output = <1>;
-                        gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
-                };
-        };
-
 	leds {
 		compatible = "gpio-leds";
 
@@ -67,6 +56,16 @@
 			label = "red:wlan";
 			gpios = <&gpio 14 GPIO_ACTIVE_LOW>;
 			linux,default-trigger = "phy0tpt";
+		};
+	};
+
+	gpio_export {
+		compatible = "gpio-export";
+
+		gpio_usb_power {
+			gpio-export,name = "usb_power";
+			gpio-export,output = <1>;
+			gpios = <&gpio 2 GPIO_ACTIVE_HIGH>;
 		};
 	};
 
