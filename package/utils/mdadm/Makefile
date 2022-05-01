@@ -51,9 +51,13 @@ TARGET_CFLAGS += \
 	-DFAILED_SLOTS_DIR='\"/var/run/mdadm/failed-slots\"' \
 	-DNO_LIBUDEV
 
+TARGET_CXFLAGS = -DNO_LIBUDEV
+
 TARGET_LDFLAGS += -Wl,--gc-sections
 
-MAKE_FLAGS += CHECK_RUN_DIR=0
+MAKE_FLAGS += \
+		CHECK_RUN_DIR=0 \
+		CXFLAGS="$(TARGET_CXFLAGS)"
 
 define Build/Compile
 	$(call Build/Compile/Default,mdadm)
