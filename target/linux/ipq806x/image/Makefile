@@ -202,7 +202,7 @@ define Device/nec_wg2600hp3
 	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
 	DEVICE_PACKAGES := -kmod-ata-ahci -kmod-ata-ahci-platform -kmod-usb-ohci -kmod-usb2 \
 		-kmod-usb-ledtrig-usbport -kmod-usb-phy-qcom-dwc3 -kmod-usb3 -kmod-usb-dwc3-qcom \
-		ath10k-firmware-qca9984-ct ipq-wifi-nec_wg2600hp3
+		ath10k-firmware-qca9984-ct
 endef
 TARGET_DEVICES += nec_wg2600hp3
 

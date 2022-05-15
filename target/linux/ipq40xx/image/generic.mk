@@ -95,7 +95,6 @@ define Device/8dev_habanero-dvk
 	DEVICE_MODEL := Habanero DVK
 	IMAGE_SIZE := 30976k
 	SOC := qcom-ipq4019
-	DEVICE_PACKAGES := ipq-wifi-8dev_habanero-dvk
 	IMAGE/sysupgrade.bin := append-kernel | pad-to 64k | append-rootfs | pad-rootfs | append-metadata | check-size
 endef
 TARGET_DEVICES += 8dev_habanero-dvk
@@ -134,7 +133,6 @@ define Device/aruba_glenmorangie
 	$(call Device/FitImageLzma)
 	DEVICE_VENDOR := Aruba
 	SOC := qcom-ipq4029
-	DEVICE_PACKAGES := ipq-wifi-aruba_ap-303
 endef
 
 define Device/aruba_ap-303
@@ -216,7 +214,7 @@ define Device/avm_fritzrepeater-1200
 	DEVICE_VENDOR := AVM
 	DEVICE_MODEL := FRITZ!Repeater 1200
 	SOC := qcom-ipq4019
-	DEVICE_PACKAGES := fritz-caldata fritz-tffs-nand ipq-wifi-avm_fritzrepeater-1200
+	DEVICE_PACKAGES := fritz-caldata fritz-tffs-nand
 endef
 TARGET_DEVICES += avm_fritzrepeater-1200
 
@@ -235,7 +233,7 @@ define Device/buffalo_wtr-m2133hp
 	DEVICE_VENDOR := Buffalo
 	DEVICE_MODEL := WTR-M2133HP
 	SOC := qcom-ipq4019
-	DEVICE_PACKAGES := ath10k-firmware-qca9984-ct ipq-wifi-buffalo_wtr-m2133hp
+	DEVICE_PACKAGES := ath10k-firmware-qca9984-ct
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
 endef
@@ -259,7 +257,7 @@ define Device/cellc_rtl30vw
 	IMAGE_SIZE := 57344k
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	DEVICE_PACKAGES := kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi ipq-wifi-cellc_rtl30vw
+	DEVICE_PACKAGES := kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi
 endef
 TARGET_DEVICES += cellc_rtl30vw
 
@@ -343,7 +341,6 @@ define Device/dlink_dap-2610
 	# append-rootfs must start on an erase block boundary.
 	IMAGE/factory.bin    := append-kernel | pad-offset 6144k 160 | append-rootfs | wrgg-image | check-size
 	IMAGE/sysupgrade.bin := append-kernel | wrgg-image | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size | append-metadata
-	DEVICE_PACKAGES := ipq-wifi-dlink_dap2610
 endef
 TARGET_DEVICES += dlink_dap-2610
 
@@ -395,7 +392,7 @@ define Device/engenius_eap2200
 	SOC := qcom-ipq4019
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct ipq-wifi-engenius_eap2200 -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
+	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += engenius_eap2200
 
@@ -409,7 +406,6 @@ define Device/engenius_emd1
 	IMAGES += factory.bin
 	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
 	IMAGE/factory.bin := qsdk-ipq-factory-nor | check-size
-	DEVICE_PACKAGES := ipq-wifi-engenius_emd1
 endef
 TARGET_DEVICES += engenius_emd1
 
@@ -424,7 +420,6 @@ define Device/engenius_emr3500
 	IMAGES += factory.bin
 	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata
 	IMAGE/factory.bin := qsdk-ipq-factory-nor | check-size
-	DEVICE_PACKAGES := ipq-wifi-engenius_emr3500
 endef
 TARGET_DEVICES += engenius_emr3500
 
@@ -464,8 +459,7 @@ define Device/ezviz_cs-w3-wd1200g-eup
 	SOC := qcom-ipq4018
 	IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | \
 		append-metadata
-	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers \
-		ipq-wifi-ezviz_cs-w3-wd1200g-eup
+	DEVICE_PACKAGES := -kmod-ath10k-ct kmod-ath10k-ct-smallbuffers
 endef
 TARGET_DEVICES += ezviz_cs-w3-wd1200g-eup
 
@@ -573,7 +567,7 @@ define Device/linksys_mr8300
 	UBINIZE_OPTS := -E 5    # EOD marks to "hide" factory sig at EOF
 	IMAGES += factory.bin
 	IMAGE/factory.bin  := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-ubi | linksys-image type=MR8300
-	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct ipq-wifi-linksys_mr8300-v0 kmod-usb-ledtrig-usbport
+	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += linksys_mr8300
 
@@ -582,7 +576,7 @@ define Device/luma_wrtq-329acn
 	DEVICE_VENDOR := Luma Home
 	DEVICE_MODEL := WRTQ-329ACN
 	SOC := qcom-ipq4018
-	DEVICE_PACKAGES := ipq-wifi-luma_wrtq-329acn kmod-ath3k kmod-eeprom-at24 kmod-i2c-gpio
+	DEVICE_PACKAGES := kmod-ath3k kmod-eeprom-at24 kmod-i2c-gpio
 	IMAGE_SIZE := 76632k
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
@@ -608,7 +602,7 @@ define Device/mobipromo_cm520-79f
 	SOC := qcom-ipq4019
 	BLOCKSIZE := 128k
 	PAGESIZE := 2048
-	DEVICE_PACKAGES := ipq-wifi-mobipromo_cm520-79f kmod-usb-ledtrig-usbport
+	DEVICE_PACKAGES := kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += mobipromo_cm520-79f
 
@@ -679,7 +673,6 @@ define Device/plasmacloud_pa1200
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=PA1200
 	IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-rootfs | sysupgrade-tar rootfs=$$$$@ | append-metadata
-	DEVICE_PACKAGES := ipq-wifi-plasmacloud_pa1200
 endef
 TARGET_DEVICES += plasmacloud_pa1200
 
@@ -695,7 +688,7 @@ define Device/plasmacloud_pa2200
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-rootfs | pad-rootfs | openmesh-image ce_type=PA2200
 	IMAGE/sysupgrade.bin/squashfs := append-rootfs | pad-rootfs | sysupgrade-tar rootfs=$$$$@ | append-metadata
-	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct ipq-wifi-plasmacloud_pa2200
+	DEVICE_PACKAGES := ath10k-firmware-qca9888-ct
 endef
 TARGET_DEVICES += plasmacloud_pa2200
 
