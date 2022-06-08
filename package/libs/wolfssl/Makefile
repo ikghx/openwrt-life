@@ -25,18 +25,27 @@ PKG_MAINTAINER:=Eneas U de Queiroz <cotequeiroz@gmail.com>
 PKG_CPE_ID:=cpe:/a:wolfssl:wolfssl
 
 PKG_CONFIG_DEPENDS:=\
-	CONFIG_WOLFSSL_HAS_AES_CCM CONFIG_WOLFSSL_HAS_ARC4 \
-	CONFIG_WOLFSSL_HAS_CHACHA_POLY CONFIG_WOLFSSL_HAS_DH \
-	CONFIG_WOLFSSL_HAS_DTLS CONFIG_WOLFSSL_HAS_ECC25519 CONFIG_WOLFSSL_HAS_OCSP \
-	CONFIG_WOLFSSL_HAS_SESSION_TICKET CONFIG_WOLFSSL_HAS_TLSV10 \
-	CONFIG_WOLFSSL_HAS_TLSV13 CONFIG_WOLFSSL_HAS_WPAS CONFIG_WOLFSSL_HAS_CERTGEN \
-	CONFIG_WOLFSSL_HAS_OPENVPN CONFIG_WOLFSSL_ALT_NAMES
+	CONFIG_WOLFSSL_HAS_AES_CCM \
+	CONFIG_WOLFSSL_HAS_ARC4 \
+	CONFIG_WOLFSSL_HAS_CERTGEN \
+	CONFIG_WOLFSSL_HAS_CHACHA_POLY \
+	CONFIG_WOLFSSL_HAS_DH \
+	CONFIG_WOLFSSL_HAS_DTLS \
+	CONFIG_WOLFSSL_HAS_ECC25519 \
+	CONFIG_WOLFSSL_HAS_OCSP \
+	CONFIG_WOLFSSL_HAS_OPENVPN CONFIG_WOLFSSL_ALT_NAMES \
+	CONFIG_WOLFSSL_HAS_SESSION_TICKET \
+	CONFIG_WOLFSSL_HAS_TLSV10 \
+	CONFIG_WOLFSSL_HAS_TLSV13 \
+	CONFIG_WOLFSSL_HAS_WPAS
 
 PKG_ABI_VERSION:=$(patsubst %-stable,%,$(PKG_VERSION)).$(call version_abbrev,$(call confvar,$(PKG_CONFIG_DEPENDS)))
 
 PKG_CONFIG_DEPENDS+=\
-	CONFIG_WOLFSSL_HAS_AFALG CONFIG_WOLFSSL_HAS_CPU_CRYPTO \
-	CONFIG_WOLFSSL_HAS_DEVCRYPTO_AES CONFIG_WOLFSSL_HAS_DEVCRYPTO_CBC \
+	CONFIG_WOLFSSL_HAS_AFALG \
+	CONFIG_WOLFSSL_HAS_CPU_CRYPTO \
+	CONFIG_WOLFSSL_HAS_DEVCRYPTO_AES \
+	CONFIG_WOLFSSL_HAS_DEVCRYPTO_CBC \
 	CONFIG_WOLFSSL_HAS_DEVCRYPTO_FULL
 
 include $(INCLUDE_DIR)/package.mk
@@ -46,7 +55,6 @@ define Package/libwolfssl/Default
   SUBMENU:=SSL
   CATEGORY:=Libraries
   URL:=http://www.wolfssl.com/
-  VARIANT:=regular
 endef
 
 define Package/libwolfssl
@@ -66,26 +74,6 @@ endef
 
 define Package/libwolfssl/config
 	source "$(SOURCE)/Config.in"
-endef
-
-define Package/libwolfssl-tmp-benchmark
-$(call Package/libwolfssl/Default)
-  TITLE:=Run wolfSSL benchmark without installing
-  DEPENDS:=@aarch64 @m
-  VARIANT:=temp
-  ABI_VERSION:=
-  DEFAULT:=n
-endef
-
-define Package/libwolfssl-tmp-benchmark/description
-This will build a wolfssl library and a benchmark binary, with armv8 CE
-asm code enabled.
-It is meant to be a temporary package that will copy itself to
-/tmp/wolfssl-benchmark/benchmark, then abort the installation.
-It is used to test support for armv8 crypto extensions without changing
-the system.
-It will use the options currently defined for the regular libwolfssl
-package, except Hardware Acceleration.  You can use this to try them out.
 endef
 
 define Package/libwolfssl-benchmark
@@ -116,7 +104,7 @@ CONFIGURE_ARGS += \
 	--enable-sni \
 	--enable-stunnel \
 	--enable-altcertchains \
-	--$(if $(CONFIG_PACKAGE_libwolfssl-benchmark)$(CONFIG_PACKAGE_libwolfssl-tmp-benchmark),enable,disable)-crypttests \
+	--$(if $(CONFIG_PACKAGE_libwolfssl-benchmark),enable,disable)-crypttests \
 	--disable-examples \
 	--disable-jobserver \
 	--$(if $(CONFIG_IPV6),enable,disable)-ipv6 \
@@ -147,21 +135,15 @@ CONFIGURE_ARGS += \
 	--enable-wpas --enable-fortress --enable-fastmath
 endif
 
-WOLFSSL_AARCH64_NO_CRYPTO = \
-	$(CONFIG_TARGET_bcm27xx)
-
-ifeq ($(BUILD_VARIANT),temp)
-	CONFIGURE_ARGS := $(filter-out --enable-devcrypto% --enable-afalg%,$(CONFIGURE_ARGS))
-endif
-
-ifeq ($(if $(CONFIG_aarch64),$(if $(CONFIG_WOLFSSL_HAS_CPU_CRYPTO),$(filter temp,$(BUILD_VARIANT)),y)),y)
+ifdef CONFIG_WOLFSSL_HAS_CPU_CRYPTO
+    ifdef CONFIG_aarch64
 	CONFIGURE_ARGS += --enable-armasm
 	TARGET_CFLAGS:=$(TARGET_CFLAGS:-mcpu%=-mcpu%+crypto)
-else ifeq ($(CONFIG_TARGET_x86_64),y)
+    else ifdef CONFIG_TARGET_x86_64
 	CONFIGURE_ARGS += --enable-intelasm
+    endif
 endif
 
-ifneq ($(BUILD_VARIANT),temp)
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include $(1)/usr/lib/pkgconfig
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
@@ -173,9 +155,6 @@ define Build/InstallDev
 
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/*.pc $(1)/usr/lib/pkgconfig
 endef
-else
-Build/InstallDev=
-endif
 
 define Package/libwolfssl/install
 	$(INSTALL_DIR) $(1)/usr/lib
@@ -187,33 +166,5 @@ define Package/libwolfssl-benchmark/install
 	$(CP) $(PKG_BUILD_DIR)/wolfcrypt/benchmark/.libs/benchmark $(1)/usr/bin/wolfssl-benchmark
 endef
 
-define Package/libwolfssl-tmp-benchmark/install
-	$(INSTALL_DIR) $(1)/tmp/wolfssl-benchmark/
-	$(CP) $(PKG_BUILD_DIR)/wolfcrypt/benchmark/.libs/benchmark $(1)/tmp/wolfssl-benchmark/benchmark.bin
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libwolfssl.so.* \
-	      ./files/benchmark \
-	      $(1)/tmp/wolfssl-benchmark/
-endef
-
-define Package/libwolfssl-tmp-benchmark/preinst
-#!/bin/sh
-IPKG_FILENAME="libwolfssl-tmp-benchmark_$(PKG_VERSION)-$(PKG_RELEASE)_$(PKGARCH).ipk"
-IPKG_TMP_FILE="$$(find /tmp/ -name $${IPKG_FILENAME})"
-tar xzf "$${IPKG_TMP_FILE}" -O ./data.tar.gz | tar xzf - -C / || {
-    echo Failed to unpack $${IPKG_TMP_FILE}
-    exit 1
-}
-[ -f /tmp/wolfssl-benchmark/benchmark ] || {
-    echo Could not find /tmp/wolfssl-benchmark/benchmark
-    exit 1
-}
-echo The benchmark binaries were installed to /tmp/wolfssl-benchmark/.
-echo To run it, type /tmp/wolfssl-benchmark/benchmark
-echo Now we intentionally abort the installation with status 125.
-exit 125
-endef
-
-
 $(eval $(call BuildPackage,libwolfssl))
 $(eval $(call BuildPackage,libwolfssl-benchmark))
-$(eval $(call BuildPackage,libwolfssl-tmp-benchmark))
