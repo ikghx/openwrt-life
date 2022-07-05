@@ -6,12 +6,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnl
-PKG_VERSION:=3.5.0
+PKG_VERSION:=3.6.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://codeload.github.com/thom311/libnl/tar.gz/libnl$(subst .,_,$(PKG_VERSION))?
-PKG_HASH:=9ae37418630d294e7e42cd9cc01b13f086f6eb6b96a3ab9c075f1d081121a807
+PKG_SOURCE_URL:=https://github.com/thom311/libnl/releases/download/libnl$(subst .,_,$(PKG_VERSION))
+PKG_HASH:=532155fd011e5a805bd67121b87a01c757e2bb24112ac17e69cb86013b970009
 
 PKG_LICENSE:=LGPL-2.1
 PKG_LICENSE_FILES:=COPYING
