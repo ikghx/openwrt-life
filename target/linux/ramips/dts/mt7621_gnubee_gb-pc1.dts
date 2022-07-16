@@ -27,6 +27,16 @@
 	leds {
 		compatible = "gpio-leds";
 
+		ethblack_act {
+			label = "green:ethblack_act";
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
+		};
+		
+		ethblue_act {
+			label = "green:ethblue_act";
+			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
+		};
+
 		system {
 			label = "green:system";
 			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
@@ -35,16 +45,6 @@
 		led_status: status {
 			label = "green:status";
 			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
-		};
-
-		lan1 {
-			label = "green:lan1";
-			gpios = <&gpio 24 GPIO_ACTIVE_LOW>;
-		};
-
-		lan2 {
-			label = "green:lan2";
-			gpios = <&gpio 25 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -107,12 +107,12 @@
 	ports {
 		port@0 {
 			status = "okay";
-			label = "lan1";
+			label = "ethblack";
 		};
 
 		port@4 {
 			status = "okay";
-			label = "lan2";
+			label = "ethblue";
 		};
 	};
 };
