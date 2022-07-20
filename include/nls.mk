@@ -10,17 +10,15 @@ ifeq ($(CONFIG_BUILD_NLS),y)
 	INTL_PREFIX:=$(STAGING_DIR)/usr/lib/libintl-full
 	INTL_FULL:=1
 
-# iconv stub
 else
-	ICONV_PREFIX:=$(STAGING_DIR)/usr/lib/libiconv-stub
+	ICONV_PREFIX:=
 	ICONV_FULL:=
 
-	INTL_PREFIX:=$(STAGING_DIR)/usr/lib/libintl-stub
+	INTL_PREFIX:=
 	INTL_FULL:=
 endif
 
 PKG_CONFIG_DEPENDS += CONFIG_BUILD_NLS
-PKG_BUILD_DEPENDS += !BUILD_NLS:libiconv !BUILD_NLS:gettext
 
 ICONV_DEPENDS:=+BUILD_NLS:libiconv-full
 ifeq ($(CONFIG_BUILD_NLS),y)

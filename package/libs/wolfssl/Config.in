@@ -68,7 +68,7 @@ config WOLFSSL_HAS_DEVCRYPTO
 
 config WOLFSSL_ASM_CAPABLE
 	bool
-	default x86_64 || (aarch64 && !TARGET_bcm27xx)
+	default x86_64 || (aarch64 && !TARGET_bcm27xx && !TARGET_armvirt)
 
 choice
 	prompt "Hardware Acceleration"

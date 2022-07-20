@@ -560,6 +560,12 @@ mac80211_generate_mac() {
 		$(( (0x$6 + $id) % 0x100 ))
 }
 
+mac80211_generate_random_mac() {
+	local o1="`hexdump -n1 -e'"%02x"' /dev/urandom`" # 1st octet
+	o1="${o1:0:1}`printf %x $((4*$((0x${o1:1}/4))+2))`" # round 2nd nibble to 2/6/A/E
+	echo -n $o1; hexdump -n5 -e'1/1 ":%02x"' /dev/urandom
+}
+
 find_phy() {
 	[ -n "$phy" -a -d /sys/class/ieee80211/$phy ] && return 0
 	[ -n "$path" ] && {
@@ -659,10 +665,12 @@ mac80211_prepare_vif() {
 
 	json_select ..
 
-	[ -n "$macaddr" ] || {
+	if [ ! -n "$macaddr" ]; then
 		macaddr="$(mac80211_generate_mac $phy)"
 		macidx="$(($macidx + 1))"
-	}
+	elif [ "$macaddr" = 'random' ]; then
+		macaddr="`mac80211_generate_random_mac`"
+	fi
 
 	json_add_object data
 	json_add_string ifname "$ifname"

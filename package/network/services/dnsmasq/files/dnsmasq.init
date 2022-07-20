@@ -1186,10 +1186,10 @@ dnsmasq_start()
 		[ $ADD_LOCAL_DOMAIN -eq 1 ] && [ -n "$DOMAIN" ] && {
 			echo "search $DOMAIN" >> /tmp/resolv.conf
 		}
-		[ $ADD_LOCAL_IPV4_NAMESERVER -eq 1 ] && {
+		[ "$ADD_LOCAL_IPV4_NAMESERVER" -eq 1 ] && {
 			DNS_SERVERS="$DNS_SERVERS 127.0.0.1"
 		}
-		[ -e /proc/sys/net/ipv6 ] && [ $ADD_LOCAL_IPV6_NAMESERVER -eq 1 ] && {
+		[ -e /proc/sys/net/ipv6 ] && [ "$ADD_LOCAL_IPV6_NAMESERVER" -eq 1 ] && {
 			DNS_SERVERS="$DNS_SERVERS ::1"
 		}
 		for DNS_SERVER in $DNS_SERVERS ; do
