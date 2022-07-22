@@ -59,7 +59,7 @@ through to the re-execed process.
  
  	/* notreached */
  }
-@@ -347,9 +345,10 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
+@@ -347,9 +345,10 @@ static void main_noinetd(int argc, char
  
  				if (execfd >= 0) {
  #if DROPBEAR_DO_REEXEC
@@ -73,7 +73,7 @@ through to the re-execed process.
  
  					/* We need to specially handle "dropbearmulti dropbear". */
  					if (multipath) {
-@@ -359,7 +358,9 @@ static void main_noinetd(int argc, char ** argv, const char* multipath) {
+@@ -359,7 +358,9 @@ static void main_noinetd(int argc, char
  					}
  
  					memcpy(&new_argv[pos0], argv, sizeof(char*) * argc);
@@ -86,7 +86,7 @@ through to the re-execed process.
  					if ((dup2(childsock, STDIN_FILENO) < 0)) {
 --- a/svr-runopts.c
 +++ b/svr-runopts.c
-@@ -138,6 +138,7 @@ void svr_getopts(int argc, char ** argv) {
+@@ -138,6 +138,7 @@ void svr_getopts(int argc, char ** argv)
  	char* keepalive_arg = NULL;
  	char* idle_timeout_arg = NULL;
  	char* maxauthtries_arg = NULL;
@@ -94,7 +94,7 @@ through to the re-execed process.
  	char* keyfile = NULL;
  	char c;
  #if DROPBEAR_PLUGIN
-@@ -175,6 +176,7 @@ void svr_getopts(int argc, char ** argv) {
+@@ -175,6 +176,7 @@ void svr_getopts(int argc, char ** argv)
          svr_opts.pubkey_plugin_options = NULL;
  #endif
  	svr_opts.pass_on_env = 0;
@@ -102,7 +102,7 @@ through to the re-execed process.
  
  #ifndef DISABLE_ZLIB
  	opts.compress_mode = DROPBEAR_COMPRESS_DELAYED;
-@@ -250,12 +252,12 @@ void svr_getopts(int argc, char ** argv) {
+@@ -250,12 +252,12 @@ void svr_getopts(int argc, char ** argv)
  #if DROPBEAR_DO_REEXEC && NON_INETD_MODE
  				/* For internal use by re-exec */
  				case '2':
@@ -118,7 +118,7 @@ through to the re-execed process.
  				case 'P':
  					next = &svr_opts.pidfile;
  					break;
-@@ -426,6 +428,13 @@ void svr_getopts(int argc, char ** argv) {
+@@ -426,6 +428,13 @@ void svr_getopts(int argc, char ** argv)
  		dropbear_log(LOG_INFO, "Forced command set to '%s'", svr_opts.forced_command);
  	}
  

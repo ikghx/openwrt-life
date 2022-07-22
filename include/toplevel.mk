@@ -4,7 +4,7 @@
 
 PREP_MK= OPENWRT_BUILD= QUIET=0
 
-export IS_TTY=$(shell tty -s && echo 1 || echo 0)
+export IS_TTY=$(if $(MAKE_TERMOUT),1,0)
 
 include $(TOPDIR)/include/verbose.mk
 
@@ -77,7 +77,7 @@ prepare-tmpinfo: FORCE
 	@+$(MAKE) -r -s staging_dir/host/.prereq-build $(PREP_MK)
 	mkdir -p tmp/info
 	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="packageinfo" SCAN_DIR="package" SCAN_NAME="package" SCAN_DEPTH=5 SCAN_EXTRA=""
-	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPTH=2 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
+	$(_SINGLE)$(NO_TRACE_MAKE) -j1 -r -s -f include/scan.mk SCAN_TARGET="targetinfo" SCAN_DIR="target/linux" SCAN_NAME="target" SCAN_DEPTH=3 SCAN_EXTRA="" SCAN_MAKEOPTS="TARGET_BUILD=1"
 	for type in package target; do \
 		f=tmp/.$${type}info; t=tmp/.config-$${type}.in; \
 		[ "$$t" -nt "$$f" ] || ./scripts/$${type}-metadata.pl $(_ignore) config "$$f" > "$$t" || { rm -f "$$t"; echo "Failed to build $$t"; false; break; }; \
@@ -101,7 +101,7 @@ ifneq ($(DISTRO_PKG_CONFIG),)
 scripts/config/%onf: export PATH:=$(dir $(DISTRO_PKG_CONFIG)):$(PATH)
 endif
 scripts/config/%onf: CFLAGS+= -O2
-scripts/config/%onf:
+scripts/config/%onf: FORCE
 	@$(_SINGLE)$(SUBMAKE) $(if $(findstring s,$(OPENWRT_VERBOSE)),,-s) \
 		-C scripts/config $(notdir $@)
 
@@ -258,7 +258,7 @@ help:
 	cat README.md
 
 distclean:
-	rm -rf bin build_dir .ccache .config* dl feeds key-build* logs package/feeds package/openwrt-packages staging_dir tmp
+	rm -rf bin build_dir .ccache .config* dl feeds key-build* logs package/feeds staging_dir tmp
 	@$(_SINGLE)$(SUBMAKE) -C scripts/config clean
 
 ifeq ($(findstring v,$(DEBUG)),)
