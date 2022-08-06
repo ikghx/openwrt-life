@@ -231,18 +231,17 @@
 	mtd-mac-address = <&factory 0x4>;
 };
 
+&rgmii2_pins {
+	rgmii2 {
+		function = "gpio";
+	};
+};
+
 &switch0 {
 	ports {
 		port@0 {
 			status = "okay";
 			label = "lan";
 		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "sdhci", "rgmii2", "jtag";
-		function = "gpio";
 	};
 };

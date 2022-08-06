@@ -433,10 +433,7 @@ define KernelPackage/usb-dwc2
   TITLE:=DWC2 USB controller driver
   DEPENDS:=+USB_GADGET_SUPPORT:kmod-usb-gadget +kmod-usb-roles
   KCONFIG:= \
-	CONFIG_USB_PCI=y \
 	CONFIG_USB_DWC2 \
-	CONFIG_USB_DWC2_PCI \
-	CONFIG_USB_DWC2_PLATFORM \
 	CONFIG_USB_DWC2_DEBUG=n \
 	CONFIG_USB_DWC2_VERBOSE=n \
 	CONFIG_USB_DWC2_TRACK_MISSED_SOFS=n \
@@ -453,6 +450,26 @@ define KernelPackage/usb-dwc2/description
 endef
 
 $(eval $(call KernelPackage,usb-dwc2))
+
+
+define KernelPackage/usb-dwc2-pci
+  TITLE:=DWC2 USB controller driver (PCI)
+  DEPENDS:=@PCI_SUPPORT +kmod-usb-dwc2 +kmod-usb-phy-nop
+  KCONFIG:= \
+	CONFIG_USB_PCI=y \
+	CONFIG_USB_DWC2_PCI
+  FILES:= \
+	$(LINUX_DIR)/drivers/usb/dwc2/dwc2_pci.ko
+  AUTOLOAD:=$(call AutoLoad,54,dwc2_pci,1)
+  $(call AddDepends/usb)
+endef
+
+define KernelPackage/usb-dwc2-pci/description
+  The Designware USB2.0 PCI interface module for controllers
+  connected to a PCI bus.
+endef
+
+$(eval $(call KernelPackage,usb-dwc2-pci))
 
 
 define KernelPackage/usb-dwc3
@@ -1407,7 +1424,7 @@ define KernelPackage/usb-net-cdc-ncm
   KCONFIG:=CONFIG_USB_NET_CDC_NCM
   FILES:= $(LINUX_DIR)/drivers/$(USBNET_DIR)/cdc_ncm.ko
   AUTOLOAD:=$(call AutoProbe,cdc_ncm)
-  $(call AddDepends/usb-net)
+  $(call AddDepends/usb-net,+kmod-usb-net-cdc-ether)
 endef
 
 define KernelPackage/usb-net-cdc-ncm/description
@@ -1509,8 +1526,8 @@ $(eval $(call KernelPackage,usb-hid))
 define KernelPackage/usb-hid-cp2112
   SUBMENU:=$(USB_MENU)
   TITLE:=Silicon Labs CP2112 HID USB to SMBus Master Bridge
-  KCONFIG:=CONFIG_GPIOLIB=y CONFIG_HID_CP2112
-  DEPENDS:=+kmod-usb-hid +kmod-i2c-core
+  KCONFIG:=CONFIG_HID_CP2112
+  DEPENDS:=@GPIO_SUPPORT +kmod-usb-hid +kmod-i2c-core
   FILES:=$(LINUX_DIR)/drivers/hid/hid-cp2112.ko
   AUTOLOAD:=$(call AutoProbe,hid-cp2112)
 endef

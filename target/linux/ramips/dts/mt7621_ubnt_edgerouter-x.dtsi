@@ -103,13 +103,6 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "uart2", "uart3", "pcie", "rgmii2", "jtag";
-		function = "gpio";
-	};
-};
-
 &spi0 {
 	/*
 	 * This board has 2Mb spi flash soldered in and visible

@@ -243,7 +243,7 @@ define KernelPackage/dm
     $(LINUX_DIR)/drivers/md/dm-log.ko \
     $(LINUX_DIR)/drivers/md/dm-mirror.ko \
     $(LINUX_DIR)/drivers/md/dm-region-hash.ko
-  AUTOLOAD:=$(call AutoLoad,30,dm-mod dm-log dm-region-hash dm-mirror dm-crypt)
+  AUTOLOAD:=$(call AutoLoad,30,dm-mod dm-log dm-region-hash dm-mirror dm-crypt,1)
 endef
 
 define KernelPackage/dm/description
@@ -506,6 +506,29 @@ define KernelPackage/nbd/description
 endef
 
 $(eval $(call KernelPackage,nbd))
+
+
+define KernelPackage/nvme
+  SUBMENU:=$(BLOCK_MENU)
+  TITLE:=NVM Express block device
+  DEPENDS:=@PCI_SUPPORT
+  KCONFIG:= \
+	CONFIG_NVME_CORE \
+	CONFIG_BLK_DEV_NVME \
+	CONFIG_NVME_MULTIPATH=n \
+	CONFIG_NVME_HWMON=n
+  FILES:= \
+	$(LINUX_DIR)/drivers/nvme/host/nvme-core.ko \
+	$(LINUX_DIR)/drivers/nvme/host/nvme.ko
+  AUTOLOAD:=$(call AutoLoad,30,nvme-core nvme)
+endef
+
+define KernelPackage/nvme/description
+ Kernel module for NVM Express solid state drives directly
+ connected to the PCI or PCI Express bus.
+endef
+
+$(eval $(call KernelPackage,nvme))
 
 
 define KernelPackage/scsi-core

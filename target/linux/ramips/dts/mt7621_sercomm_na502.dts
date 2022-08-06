@@ -187,9 +187,8 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "jtag", "rgmii2";
+&rgmii2_pins {
+	rgmii2 {
 		function = "gpio";
 	};
 };

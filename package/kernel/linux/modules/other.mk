@@ -914,12 +914,10 @@ $(eval $(call KernelPackage,ikconfig))
 define KernelPackage/zram
   SUBMENU:=$(OTHER_MENU)
   TITLE:=ZRAM
-  DEPENDS:=+kmod-lib-lzo
   KCONFIG:= \
 	CONFIG_ZSMALLOC \
 	CONFIG_ZRAM \
 	CONFIG_ZRAM_DEBUG=n \
-	CONFIG_PGTABLE_MAPPING=n \
 	CONFIG_ZRAM_WRITEBACK=n \
 	CONFIG_ZSMALLOC_STAT=n
   FILES:= \
@@ -930,6 +928,30 @@ endef
 
 define KernelPackage/zram/description
  Compressed RAM block device support
+endef
+
+define KernelPackage/zram/config
+  choice
+    prompt "ZRAM Default compressor"
+    default ZRAM_DEF_COMP_LZORLE
+
+  config ZRAM_DEF_COMP_LZORLE
+            bool "lzo-rle"
+            select PACKAGE_kmod-lib-lzo
+
+  config ZRAM_DEF_COMP_LZO
+            bool "lzo"
+            select PACKAGE_kmod-lib-lzo
+
+  config ZRAM_DEF_COMP_LZ4
+            bool "lz4"
+            select PACKAGE_kmod-lib-lz4
+
+  config ZRAM_DEF_COMP_ZSTD
+            bool "zstd"
+            select PACKAGE_kmod-lib-zstd
+
+  endchoice
 endef
 
 $(eval $(call KernelPackage,zram))

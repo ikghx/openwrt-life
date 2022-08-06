@@ -8,10 +8,10 @@
 	model = "GB-PC1";
 
 	aliases {
-		led-boot = &led_status;
-		led-failsafe = &led_status;
-		led-running = &led_status;
-		led-upgrade = &led_status;
+		led-boot = &led_system;
+		led-failsafe = &led_system;
+		led-running = &led_system;
+		led-upgrade = &led_system;
 	};
 
 	keys {
@@ -29,22 +29,24 @@
 
 		ethblack_act {
 			label = "green:ethblack_act";
-			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
-		};
-		
-		ethblue_act {
-			label = "green:ethblue_act";
 			gpios = <&gpio 3 GPIO_ACTIVE_LOW>;
 		};
 
-		system {
-			label = "green:system";
-			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+		ethblue_act {
+			label = "green:ethblue_act";
+			gpios = <&gpio 4 GPIO_ACTIVE_LOW>;
 		};
 
-		led_status: status {
-			label = "green:status";
+		power {
+			label = "green:power";
+			gpios = <&gpio 6 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "default-on";
+		};
+
+		led_system: system {
+			label = "green:system";
 			gpios = <&gpio 8 GPIO_ACTIVE_LOW>;
+			linux,default-trigger = "disk-activity";
 		};
 	};
 };
@@ -59,9 +61,8 @@
 	flash@0 {
 		compatible = "jedec,spi-nor";
 		reg = <0>;
-		spi-max-frequency = <80000000>;
+		spi-max-frequency = <50000000>;
 		broken-flash-reset;
-		m25p,fast-read;
 
 		partitions {
 			compatible = "fixed-partitions";
@@ -103,23 +104,25 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
+&gmac1 {
+	status = "okay";
+	label = "ethblue";
+	phy-handle = <&ethphy4>;
+
+	mtd-mac-address = <&factory 0xe000>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
+};
+
 &switch0 {
 	ports {
 		port@0 {
 			status = "okay";
 			label = "ethblack";
 		};
-
-		port@4 {
-			status = "okay";
-			label = "ethblue";
-		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "jtag", "rgmii2", "uart3", "wdt";
-		function = "gpio";
 	};
 };

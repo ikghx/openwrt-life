@@ -171,13 +171,6 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "rgmii2", "jtag", "wdt";
-		function = "gpio";
-	};
-};
-
 &uartlite2 {
 	status = "okay";
 };

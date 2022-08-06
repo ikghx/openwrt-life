@@ -11,7 +11,7 @@
 		led-failsafe = &led_status_yellow;
 		led-running = &led_status_blue;
 		led-upgrade = &led_status_yellow;
-		label-mac-device = &wan;
+		label-mac-device = &gmac1;
 	};
 
 	chosen {
@@ -134,6 +134,20 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+
+	mtd-mac-address = <&factory 0xe006>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
+};
+
 &switch0 {
 	ports {
 		port@2 {
@@ -145,18 +159,5 @@
 			status = "okay";
 			label = "lan1";
 		};
-
-		wan: port@4 {
-			status = "okay";
-			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
-		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "jtag", "uart2", "uart3", "wdt";
-		function = "gpio";
 	};
 };

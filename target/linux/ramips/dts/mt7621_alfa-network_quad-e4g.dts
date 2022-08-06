@@ -151,6 +151,12 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
+&rgmii2_pins {
+	rgmii2 {
+		function = "gpio";
+	};
+};
+
 &switch0 {
 	ports {
 		port@0 {
@@ -192,13 +198,6 @@
 
 &pcie {
 	status = "okay";
-};
-
-&state_default {
-	gpio {
-		groups = "jtag", "rgmii2", "wdt";
-		function = "gpio";
-	};
 };
 
 &sdhci {

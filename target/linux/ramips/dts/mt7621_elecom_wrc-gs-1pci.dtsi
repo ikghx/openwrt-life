@@ -14,13 +14,6 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "i2c", "uart3", "jtag", "wdt", "sdhci";
-		function = "gpio";
-	};
-};
-
 &pcie0 {
 	wifi: wifi@0,0 {
 		compatible = "mediatek,mt76";

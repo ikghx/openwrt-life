@@ -95,6 +95,10 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
+&gmac1 {
+	mtd-mac-address = <&factory 0xe006>;
+};
+
 &switch0 {
 	ports {
 		port@0 {
@@ -116,18 +120,5 @@
 			status = "okay";
 			label = "lan1";
 		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
-		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "i2c", "uart3", "jtag", "wdt";
-		function = "gpio";
 	};
 };

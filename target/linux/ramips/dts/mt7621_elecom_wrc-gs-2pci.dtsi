@@ -6,15 +6,8 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
-&wan {
+&gmac1 {
 	mtd-mac-address = <&factory 0xe006>;
-};
-
-&state_default {
-	gpio {
-		groups = "uart3", "jtag", "wdt", "sdhci";
-		function = "gpio";
-	};
 };
 
 &pcie0 {

@@ -121,13 +121,6 @@
 	};
 };
 
-&state_default {
-	gpio {
-		groups = "uart2", "uart3", "jtag";
-		function = "gpio";
-	};
-};
-
 &pcie {
 	status = "okay";
 };
@@ -145,6 +138,18 @@
 		compatible = "mediatek,mt76";
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&factory 0x8000>;
+	};
+};
+
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
 	};
 };
 
@@ -168,11 +173,6 @@
 		port@3 {
 			status = "okay";
 			label = "lan4";
-		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
 		};
 	};
 };

@@ -102,6 +102,12 @@
 	mtd-mac-address = <&factory 0x4>;
 };
 
+&rgmii2_pins {
+	rgmii2 {
+		function = "gpio";
+	};
+};
+
 &switch0 {
 	ports {
 		port@0 {
@@ -164,12 +170,5 @@
 			led-sources = <2>;
 			led-active-low;
 		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "rgmii2";
-		function = "gpio";
 	};
 };

@@ -105,6 +105,21 @@
 	mtd-mac-address = <&factory 0xe006>;
 };
 
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+
+	mtd-mac-address = <&factory 0xe006>;
+	mtd-mac-address-increment = <1>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
+};
+
 &switch0 {
 	ports {
 		port@0 {
@@ -126,19 +141,5 @@
 			status = "okay";
 			label = "lan4";
 		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
-			mtd-mac-address-increment = <1>;
-		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "uart3", "jtag";
-		function = "gpio";
 	};
 };

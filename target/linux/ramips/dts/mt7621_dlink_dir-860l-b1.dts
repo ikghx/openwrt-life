@@ -8,11 +8,12 @@
 	model = "D-Link DIR-860L B1";
 
 	aliases {
+		label-mac-device = &gmac0;
+
 		led-boot = &led_power_green;
 		led-failsafe = &led_power_green;
 		led-running = &led_power_green;
 		led-upgrade = &led_power_green;
-		label-mac-device = &gmac0;
 	};
 
 	leds {
@@ -112,13 +113,22 @@
 	mtd-mac-address = <&radio 0x4>;
 };
 
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy0>;
+
+	mtd-mac-address = <&radio 0x4>;
+};
+
+&mdio {
+	ethphy0: ethernet-phy@0 {
+		reg = <0>;
+	};
+};
+
 &switch0 {
 	ports {
-		port@0 {
-			status = "okay";
-			label = "wan";
-		};
-
 		port@1 {
 			status = "okay";
 			label = "lan4";
@@ -161,12 +171,5 @@
 		reg = <0x0000 0 0 0 0>;
 		mediatek,mtd-eeprom = <&radio 0x0>;
 		ieee80211-freq-limit = <2400000 2500000>;
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "uart3", "jtag", "wdt";
-		function = "gpio";
 	};
 };

@@ -47,6 +47,12 @@
 			gpios = <&gpio 15 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
 		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
 	};
 
 	gpio_export {
@@ -135,6 +141,20 @@
 	mtd-mac-address = <&factory 0xe000>;
 };
 
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+
+	mtd-mac-address = <&factory 0xe006>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
+};
+
 &switch0 {
 	ports {
 		port@1 {
@@ -146,18 +166,5 @@
 			status = "okay";
 			label = "lan1";
 		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
-			mtd-mac-address = <&factory 0xe006>;
-		};
-	};
-};
-
-&state_default {
-	gpio {
-		groups = "jtag", "uart2";
-		function = "gpio";
 	};
 };
