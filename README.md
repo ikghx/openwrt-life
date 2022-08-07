@@ -23,7 +23,7 @@ This warehouse is for testing only and does not provide reliability guarantees!
  
 ## 编译准备
 
-1. 选择 “最小安装” Ubuntu 22.04 Desktop (64-bit)
+1. 选择 “最小安装” Ubuntu 20.04.4 Desktop (64-bit)
 
 2. 使用普通用户登录 Ubuntu 系统，禁止使用 root 用户或权限进行编译操作。
 
