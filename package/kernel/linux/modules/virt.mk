@@ -19,10 +19,10 @@ define KernelPackage/kvm-x86
   SUBMENU:=Virtualization
   TITLE:=Kernel-based Virtual Machine (KVM) support
   DEPENDS:=@TARGET_x86_generic||TARGET_x86_64 +kmod-irqbypass
-  KCONFIG:=\
-	  CONFIG_KVM \
-	  CONFIG_KVM_MMU_AUDIT=n \
-	  CONFIG_VIRTUALIZATION=y
+  KCONFIG:= \
+	CONFIG_KVM \
+	CONFIG_KVM_MMU_AUDIT=n \
+	CONFIG_VIRTUALIZATION=y
   FILES:= $(LINUX_DIR)/arch/$(LINUX_KARCH)/kvm/kvm.ko
   AUTOLOAD:=$(call AutoProbe,kvm.ko)
 endef
@@ -73,22 +73,23 @@ endef
 
 $(eval $(call KernelPackage,kvm-amd))
 
+
 define KernelPackage/vfio-mdev
   SUBMENU:=Virtualization
   TITLE:=VFIO driver support to to virtualize devices
   DEPENDS:=@TARGET_x86_64
-  KCONFIG:=	\
-	  CONFIG_IOMMU_API=y	\
-	  CONFIG_MMU=y	\
-	  CONFIG_VFIO=y	\
-	  CONFIG_VFIO_NOIOMMU=y	\
-	  CONFIG_VFIO_PCI=y	\
-	  CONFIG_VFIO_PCI_IGD=y	\
-	  CONFIG_VFIO_MDEV	\
-	  CONFIG_VFIO_MDEV_DEVICE
-  FILES:=	\
-	  $(LINUX_DIR)/drivers/vfio/mdev/mdev.ko	\
-          $(LINUX_DIR)/drivers/vfio/mdev/vfio_mdev.ko
+  KCONFIG:= \
+	CONFIG_IOMMU_API=y \
+	CONFIG_MMU=y \
+	CONFIG_VFIO=y \
+	CONFIG_VFIO_NOIOMMU=y \
+	CONFIG_VFIO_PCI=y \
+	CONFIG_VFIO_PCI_IGD=y \
+	CONFIG_VFIO_MDEV \
+	CONFIG_VFIO_MDEV_DEVICE
+  FILES:= \
+	$(LINUX_DIR)/drivers/vfio/mdev/mdev.ko \
+	$(LINUX_DIR)/drivers/vfio/mdev/vfio_mdev.ko
   AUTOLOAD:=$(call AutoProbe,mdev vfio_mdev)
 endef
 
@@ -97,6 +98,7 @@ define KernelPackage/vfio-mdev/description
 endef
 
 $(eval $(call KernelPackage,vfio-mdev))
+
 
 define KernelPackage/i915-gvt
   SUBMENU:=Virtualization

@@ -2,6 +2,7 @@
 . /lib/netifd/netifd-wireless.sh
 . /lib/netifd/hostapd.sh
 . /lib/netifd/mac80211.sh
+. /lib/functions/system.sh
 
 init_wireless_driver "$@"
 
@@ -421,11 +422,13 @@ mac80211_hostapd_setup_base() {
 		he_mac_cap=${he_mac_cap:2}
 
 		append base_cfg "ieee80211ax=1" "$N"
-		[ -n "$he_bss_color" ] && append base_cfg "he_bss_color=$he_bss_color" "$N"
 		[ "$hwmode" = "a" ] && {
 			append base_cfg "he_oper_chwidth=$vht_oper_chwidth" "$N"
 			append base_cfg "he_oper_centr_freq_seg0_idx=$vht_center_seg0" "$N"
 		}
+
+		set_default he_bss_color 128
+		append base_cfg "he_bss_color=$he_bss_color" "$N"
 
 		mac80211_add_he_capabilities \
 			he_su_beamformer:${he_phy_cap:6:2}:0x80:$he_su_beamformer \
@@ -561,12 +564,6 @@ mac80211_generate_mac() {
 		$(( (0x$6 + $id) % 0x100 ))
 }
 
-mac80211_generate_random_mac() {
-	local o1="`hexdump -n1 -e'"%02x"' /dev/urandom`" # 1st octet
-	o1="${o1:0:1}`printf %x $((4*$((0x${o1:1}/4))+2))`" # round 2nd nibble to 2/6/A/E
-	echo -n $o1; hexdump -n5 -e'1/1 ":%02x"' /dev/urandom
-}
-
 find_phy() {
 	[ -n "$phy" -a -d /sys/class/ieee80211/$phy ] && return 0
 	[ -n "$path" ] && {
@@ -666,11 +663,11 @@ mac80211_prepare_vif() {
 
 	json_select ..
 
-	if [ ! -n "$macaddr" ]; then
+	if [ -z "$macaddr" ]; then
 		macaddr="$(mac80211_generate_mac $phy)"
 		macidx="$(($macidx + 1))"
 	elif [ "$macaddr" = 'random' ]; then
-		macaddr="`mac80211_generate_random_mac`"
+		macaddr="$(macaddr_random)"
 	fi
 
 	json_add_object data

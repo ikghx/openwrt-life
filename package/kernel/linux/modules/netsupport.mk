@@ -163,38 +163,6 @@ endef
 $(eval $(call KernelPackage,misdn))
 
 
-define KernelPackage/isdn4linux
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=Old ISDN4Linux (deprecated)
-  DEPENDS:=+kmod-ppp
-  KCONFIG:= \
-	CONFIG_ISDN=y \
-    CONFIG_ISDN_I4L \
-    CONFIG_ISDN_PPP=y \
-    CONFIG_ISDN_PPP_VJ=y \
-    CONFIG_ISDN_MPP=y \
-    CONFIG_IPPP_FILTER=y \
-    CONFIG_ISDN_PPP_BSDCOMP \
-    CONFIG_ISDN_CAPI_MIDDLEWARE=y \
-    CONFIG_ISDN_CAPI_CAPIFS_BOOL=y \
-    CONFIG_ISDN_AUDIO=y \
-    CONFIG_ISDN_TTY_FAX=y \
-    CONFIG_ISDN_X25=y \
-    CONFIG_ISDN_DIVERSION
-  FILES:= \
-    $(LINUX_DIR)/drivers/isdn/divert/dss1_divert.ko \
-	$(LINUX_DIR)/drivers/isdn/i4l/isdn.ko \
-	$(LINUX_DIR)/drivers/isdn/i4l/isdn_bsdcomp.ko
-  AUTOLOAD:=$(call AutoLoad,40,isdn isdn_bsdcomp dss1_divert)
-endef
-
-define KernelPackage/isdn4linux/description
-  This driver allows you to use an ISDN adapter for networking
-endef
-
-$(eval $(call KernelPackage,isdn4linux))
-
-
 define KernelPackage/ipip
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=IP-in-IP encapsulation
@@ -922,6 +890,22 @@ endef
 $(eval $(call KernelPackage,sched-ipset))
 
 
+define KernelPackage/sched-fq-pie
+  SUBMENU:=$(NETWORK_SUPPORT_MENU)
+  TITLE:=Flow Queue w Proportional Integral Enhanced (FQ-PIE)
+  DEPENDS:=+kmod-sched-core +kmod-sched
+  KCONFIG:=CONFIG_NET_SCH_FQ_PIE
+  FILES:=$(LINUX_DIR)/net/sched/sch_fq_pie.ko
+  AUTOLOAD:=$(call AutoProbe, sch_fq_pie)
+endef
+
+define KernelPackage/sched-fq-pie/description
+  A queuing discipline that combines Flow Queuing with the PIE AQM.
+endef
+
+$(eval $(call KernelPackage,sched-fq-pie))
+
+
 define KernelPackage/sched-mqprio
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Multi-queue priority scheduler (MQPRIO)
@@ -996,7 +980,6 @@ define KernelPackage/sched
 	CONFIG_NET_SCH_TEQL \
 	CONFIG_NET_SCH_FQ \
 	CONFIG_NET_SCH_PIE \
-	CONFIG_NET_SCH_FQ_PIE \
 	CONFIG_NET_ACT_IPT \
 	CONFIG_NET_ACT_PEDIT \
 	CONFIG_NET_ACT_SIMP \

@@ -71,7 +71,6 @@ define KernelPackage/ath3k
   KCONFIG:= \
 	CONFIG_BT_ATH3K \
 	CONFIG_BT_HCIUART_ATH3K=y
-  $(call AddDepends/bluetooth)
   FILES:= \
 	$(LINUX_DIR)/drivers/bluetooth/ath3k.ko
   AUTOLOAD:=$(call AutoProbe,ath3k)
@@ -107,7 +106,6 @@ define KernelPackage/btmrvl
   KCONFIG:= \
 	CONFIG_BT_MRVL \
 	CONFIG_BT_MRVL_SDIO
-  $(call AddDepends/bluetooth)
   FILES:= \
 	$(LINUX_DIR)/drivers/bluetooth/btmrvl.ko \
 	$(LINUX_DIR)/drivers/bluetooth/btmrvl_sdio.ko
@@ -664,22 +662,6 @@ endef
 
 $(eval $(call KernelPackage,rtc-pcf2127))
 
-define KernelPackage/rtc-pt7c4338
-  SUBMENU:=$(OTHER_MENU)
-  TITLE:=Pericom PT7C4338 RTC support
-  DEFAULT:=m if ALL_KMODS && RTC_SUPPORT
-  DEPENDS:=+kmod-i2c-core
-  KCONFIG:=CONFIG_RTC_DRV_PT7C4338 \
-	CONFIG_RTC_CLASS=y
-  FILES:=$(LINUX_DIR)/drivers/rtc/rtc-pt7c4338.ko
-  AUTOLOAD:=$(call AutoProbe,rtc-pt7c4338)
-endef
-
-define KernelPackage/rtc-pt7c4338/description
- Kernel module for Pericom PT7C4338 i2c RTC chip
-endef
-
-$(eval $(call KernelPackage,rtc-pt7c4338))
 
 define KernelPackage/rtc-rs5c372a
   SUBMENU:=$(OTHER_MENU)

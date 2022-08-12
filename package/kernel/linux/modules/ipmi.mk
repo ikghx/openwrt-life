@@ -10,8 +10,8 @@ IPMI_MENU:=IPMI system interface support
 define KernelPackage/ipmi-handler
   SUBMENU:=$(IPMI_MENU)
   TITLE:=IPMI top-level message handler
-  KCONFIG:=CONFIG_IPMI_HANDLER=m \
-           CONFIG_ACPI_IPMI=m \
+  KCONFIG:=CONFIG_IPMI_HANDLER \
+           CONFIG_ACPI_IPMI \
            CONFIG_IPMI_PANIC_EVENT=y \
            CONFIG_IPMI_PANIC_STRING=y \
            CONFIG_IPMI_DEVICE_INTERFACE=n \
@@ -22,7 +22,7 @@ define KernelPackage/ipmi-handler
            CONFIG_SENSORS_IBMAEM=n \
            CONFIG_SENSORS_IBMPEX=n
   FILES:=$(LINUX_DIR)/drivers/char/ipmi/ipmi_msghandler.ko
-  AUTOLOAD:=$(call AutoLoad,60,ipmi_msghandler)
+  AUTOLOAD:=$(call AutoProbe,ipmi_msghandler)
 endef
 
 define KernelPackage/ipmi-handler/description
@@ -39,9 +39,9 @@ define KernelPackage/ipmi-si
   SUBMENU:=$(IPMI_MENU)
   TITLE:=IPMI System Interface handler
   DEPENDS:=+kmod-ipmi-handler
-  KCONFIG:=CONFIG_IPMI_SI=m
+  KCONFIG:=CONFIG_IPMI_SI
   FILES:=$(LINUX_DIR)/drivers/char/ipmi/ipmi_si.ko
-  AUTOLOAD:=$(call AutoLoad,61,ipmi_si)
+  AUTOLOAD:=$(call AutoProbe,ipmi_si)
 endef
 
 define KernelPackage/ipmi-si/description
@@ -56,9 +56,9 @@ define KernelPackage/ipmi-device-interface
   SUBMENU:=$(IPMI_MENU)
   TITLE:=Device interface for IPMI
   DEPENDS:=+kmod-ipmi-handler
-  KCONFIG:=CONFIG_IPMI_DEVICE_INTERFACE=m
+  KCONFIG:=CONFIG_IPMI_DEVICE_INTERFACE
   FILES:=$(LINUX_DIR)/drivers/char/ipmi/ipmi_devintf.ko
-  AUTOLOAD:=$(call AutoLoad,62,ipmi_devintf)
+  AUTOLOAD:=$(call AutoProbe,ipmi_devintf)
 endef
 
 define KernelPackage/ipmi-device-interface/description
