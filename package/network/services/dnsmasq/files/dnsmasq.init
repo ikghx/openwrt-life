@@ -207,18 +207,6 @@ ismounted() {
 	return 1
 }
 
-isparentdir() {
-	local dirname1="$1"
-	local dirname2="$2"
-	case "${dirname1}/" in
-		"$dirname2"*)
-			return 0
-			;;
-	esac
-
-	return 1
-}
-
 append_addnhosts() {
 	ismounted "$1" || append EXTRA_MOUNT "$1"
 	xappend "--addn-hosts=$1"
@@ -599,18 +587,17 @@ dhcp_add() {
 		limit=$((limit-1))
 	fi
 
-	eval "$(ipcalc.sh "${subnet%%/*}" $netmask $start $limit)"
+	# make sure the DHCP range is not empty
+	if [ "$dhcpv4" != "disabled" ] && eval "$(ipcalc.sh "${subnet%%/*}" "$netmask" "$start" "$limit")" ; then
+		[ "$dynamicdhcp" = "0" ] && END="static"
+
+		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
+	fi
 
 	if [ "$dynamicdhcp" = "0" ] ; then
-		END="static"
 		dhcp6range="::,static"
 	else
 		dhcp6range="::1000,::ffff"
-	fi
-
-
-	if [ "$dhcpv4" != "disabled" ] ; then
-		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
 	fi
 
 
@@ -836,7 +823,7 @@ dnsmasq_ipset_add() {
 dnsmasq_start()
 {
 	local cfg="$1"
-	local disabled user_dhcpscript
+	local disabled user_dhcpscript logfacility
 	local resolvfile resolvdir localuse=0
 	local enabled
 
@@ -852,7 +839,7 @@ dnsmasq_start()
 	EXTRA_MOUNT=""
 	CONFIGFILE="${BASECONFIGFILE}.${cfg}"
 	CONFIGFILE_TMP="${CONFIGFILE}.$$"
-	HOSTFILE="${BASEHOSTFILE}/${cfg}/${cfg}"
+	HOSTFILE="${BASEHOSTFILE}.${cfg}"
 	HOSTFILE_TMP="${HOSTFILE}.$$"
 	HOSTFILE_DIR="$(dirname "$HOSTFILE")"
 	BASEDHCPSTAMPFILE_CFG="${BASEDHCPSTAMPFILE}.${cfg}"
@@ -954,7 +941,7 @@ dnsmasq_start()
 	append_bool "$cfg" scriptarp "--script-arp"
 
 	append_parm "$cfg" logfacility "--log-facility"
-
+	config_get logfacility "$cfg" "logfacility"
 	append_parm "$cfg" cachesize "--cache-size"
 	append_parm "$cfg" dnsforwardmax "--dns-forward-max"
 	append_parm "$cfg" port "--port"
@@ -994,18 +981,14 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
 	config_list_foreach "$cfg" "ptr_record" append_ptr_record
 	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.leases"
+
 	local serversfile
 	config_get serversfile "$cfg" "serversfile"
-	if [ -n "$serversfile" ]; then
+	[ -n "$serversfile" ] && {
 		xappend "--servers-file=$serversfile"
-		local serversfile_dir="$(dirname "$serversfile")"
-		if [ "$serversfile_dir" = "/tmp" ]; then
-			log_once "Please move serversfile to a directory other than /tmp if the file is going to be replaced"
-			append EXTRA_MOUNT "$serversfile"
-		else
-			append EXTRA_MOUNT "$serversfile_dir"
-		fi
-	fi
+		append EXTRA_MOUNT "$serversfile"
+	}
+
 	append_parm "$cfg" "tftp_root" "--tftp-root"
 	append_parm "$cfg" "dhcp_boot" "--dhcp-boot"
 	append_parm "$cfg" "local_ttl" "--local-ttl"
@@ -1038,12 +1021,6 @@ dnsmasq_start()
 	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"
 	[ -n "$leasefile" ] && [ ! -e "$leasefile" ] && touch "$leasefile"
 	config_get_bool cachelocal "$cfg" cachelocal 1
-
-	config_get_bool logqueries "$cfg" logqueries 0
-	if [ "$logqueries" != "0" ]; then
-		config_get logfacility "$cfg" logfacility
-		[ -n "$logfacility" ] && [ ! -e "$logfacility" ] && touch "$logfacility"
-	fi
 
 	config_get_bool noresolv "$cfg" noresolv 0
 	if [ "$noresolv" != "1" ]; then
@@ -1209,27 +1186,15 @@ dnsmasq_start()
 		[ -n "$instance_netdev" ] && procd_set_param netdev $instance_netdev
 
 	procd_add_jail dnsmasq ubus log
-	for procd_ro in \
-		$CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS \
-		$EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE \
-		$dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript \
-		/etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers ; do
-			if [ -d "$procd_ro" ] ; then
-				for procd_rw in \
-					/var/run/dnsmasq/ \
-					$leasefile \
-					$logfacility ; do
-						isparentdir "$procd_rw" "$procd_ro" && \
-							log_once "$procd_ro contains resource requiring RW mounting and therefore cannot be RO ujail mounted. RW access to $procd_ro enabled." && \
-							procd_add_jail_mount_rw $procd_ro && \
-							continue 2
-					done
-					procd_add_jail_mount $procd_ro
-			else
-				procd_add_jail_mount $procd_ro
-			fi
-	done
-	procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile $logfacility
+	procd_add_jail_mount $CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS
+	procd_add_jail_mount $EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE
+	procd_add_jail_mount $dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript
+	procd_add_jail_mount /etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers
+	procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile
+	case "$logfacility" in */*)
+		[ ! -e "$logfacility" ] && touch "$logfacility"
+		procd_add_jail_mount_rw "$logfacility"
+	esac
 
 	procd_close_instance
 }
