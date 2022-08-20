@@ -25,7 +25,7 @@
  
 --- a/uhttpd.h
 +++ b/uhttpd.h
-@@ -211,6 +211,7 @@ struct dispatch_ubus {
+@@ -227,6 +227,7 @@ struct dispatch_ubus {
  	struct json_object *jsobj;
  	struct json_object *jsobj_cur;
  	char *url_path;
