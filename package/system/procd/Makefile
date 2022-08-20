@@ -12,9 +12,9 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/procd.git
-PKG_SOURCE_DATE:=2021-03-08
-PKG_SOURCE_VERSION:=2cfc26f8456a4d5ba3836c914a742f3d00bad781
-PKG_MIRROR_HASH:=4b514143949b6ea5799a7b0b2f2f4ad5f084f88929eb0ac5a01ffc7852a71d22
+PKG_SOURCE_DATE:=2021-03-19
+PKG_SOURCE_VERSION:=c23d8bf81624469ed97449af7bf9497ee2c351c2
+PKG_MIRROR_HASH:=5856295e5ffb6954081d07ba02d134e7a85bd52d731c404ccd4b150740241b84
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -24,8 +24,7 @@ PKG_MAINTAINER:=John Crispin <john@phrozen.org>
 
 PKG_ASLR_PIE_REGULAR:=1
 PKG_CONFIG_DEPENDS:= \
-	CONFIG_TARGET_INIT_PATH CONFIG_KERNEL_SECCOMP \
-	CONFIG_PROCD_SHOW_BOOT CONFIG_PROCD_ZRAM_TMPFS \
+	CONFIG_TARGET_INIT_PATH CONFIG_KERNEL_SECCOMP CONFIG_PROCD_SHOW_BOOT \
 	CONFIG_KERNEL_NAMESPACES CONFIG_PACKAGE_procd-ujail CONFIG_PACKAGE_procd-seccomp
 
 include $(INCLUDE_DIR)/package.mk
@@ -68,7 +67,7 @@ define Package/procd-ujail
   SECTION:=base
   CATEGORY:=Base system
   DEPENDS:=@KERNEL_NAMESPACES +@KERNEL_UTS_NS +@KERNEL_IPC_NS +@KERNEL_PID_NS \
-	  +libubox +libubus +libblobmsg-json
+	  +libubox +libubus +libuci +libblobmsg-json
   TITLE:=OpenWrt process jail helper
 endef
 
@@ -82,8 +81,7 @@ endef
 define Package/procd-seccomp
   SECTION:=base
   CATEGORY:=Base system
-  DEPENDS:=@(aarch64||arm||armeb||mips||mipsel||i386||powerpc||x86_64) @!TARGET_uml \
-	  @KERNEL_SECCOMP +libubox +libblobmsg-json
+  DEPENDS:=@SECCOMP +libubox +libblobmsg-json
   TITLE:=OpenWrt process seccomp helper + utrace
 endef
 
@@ -104,10 +102,6 @@ config PROCD_SHOW_BOOT
 	default n
 	prompt "Print the shutdown to the console as well as logging it to syslog"
 
-config PROCD_ZRAM_TMPFS
-	bool
-	default n
-	prompt "Mount /tmp using zram."
 endmenu
 endef
 
@@ -117,10 +111,6 @@ endif
 
 ifeq ($(CONFIG_PROCD_SHOW_BOOT),y)
   CMAKE_OPTIONS += -DSHOW_BOOT_ON_CONSOLE=1
-endif
-
-ifeq ($(CONFIG_PROCD_ZRAM_TMPFS),y)
-  CMAKE_OPTIONS += -DZRAM_TMPFS=1
 endif
 
 ifdef CONFIG_PACKAGE_procd-ujail
