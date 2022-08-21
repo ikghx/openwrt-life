@@ -130,6 +130,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "uart3", "jtag", "wdt";
+		function = "gpio";
+	};
+};
+
 &gmac1 {
 	status = "okay";
 	label = "lan4";

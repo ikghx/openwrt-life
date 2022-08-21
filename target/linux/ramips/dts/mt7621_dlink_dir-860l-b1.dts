@@ -173,3 +173,10 @@
 		ieee80211-freq-limit = <2400000 2500000>;
 	};
 };
+
+&state_default {
+	gpio {
+		groups = "uart3", "jtag", "wdt";
+		function = "gpio";
+	};
+};

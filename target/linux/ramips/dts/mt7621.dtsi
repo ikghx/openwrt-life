@@ -79,6 +79,7 @@
 			#interrupt-cells = <2>;
 			compatible = "mediatek,mt7621-gpio";
 			gpio-controller;
+			gpio-ranges = <&pinctrl 0 0 95>;
 			interrupt-controller;
 			reg = <0x600 0x100>;
 			interrupt-parent = <&gic>;
@@ -256,6 +257,11 @@
 
 	pinctrl: pinctrl {
 		compatible = "ralink,rt2880-pinmux";
+		pinctrl-names = "default";
+		pinctrl-0 = <&state_default>;
+
+		state_default: pinctrl0 {
+		};
 
 		i2c_pins: i2c_pins {
 			i2c_pins {

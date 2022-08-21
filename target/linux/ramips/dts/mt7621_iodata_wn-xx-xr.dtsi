@@ -163,6 +163,13 @@
 	status = "okay";
 };
 
+&state_default {
+	gpio {
+		groups = "uart2", "uart3", "wdt";
+		function = "gpio";
+	};
+};
+
 &xhci {
 	status = "disabled";
 };

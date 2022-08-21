@@ -169,3 +169,10 @@
 		};
 	};
 };
+
+&state_default {
+	gpio {
+		groups = "i2c", "uart3", "jtag", "wdt";
+		function = "gpio";
+	};
+};

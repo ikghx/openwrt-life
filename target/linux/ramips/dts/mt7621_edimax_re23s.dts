@@ -149,6 +149,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "uart3", "uart2", "jtag", "wdt";
+		function = "gpio";
+	};
+};
+
 &xhci {
 	status = "disabled";
 };

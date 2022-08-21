@@ -146,3 +146,10 @@
 		};
 	};
 };
+
+&state_default {
+	gpio {
+		groups = "sdhci";
+		function = "gpio";
+	};
+};

@@ -26,6 +26,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "wdt";
+		function = "gpio";
+	};
+};
+
 &spi0 {
 	status = "okay";
 

@@ -76,6 +76,11 @@
 &nand {
 	status = "okay";
 
+	mediatek,bbt;
+	mediatek,bmt-remap-range =
+		<0x180000 0x580000>,
+		<0x2980000 0x2d80000>;
+
 	partitions {
 		compatible = "fixed-partitions";
 		#address-cells = <1>;
@@ -142,6 +147,13 @@
 			reg = <0x5280000 0x2d00000>;
 			read-only;
 		};
+	};
+};
+
+&state_default {
+	gpio {
+		groups = "i2c", "uart2", "uart3", "jtag", "wdt";
+		function = "gpio";
 	};
 };
 

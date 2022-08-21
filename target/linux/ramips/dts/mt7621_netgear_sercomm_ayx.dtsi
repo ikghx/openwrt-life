@@ -13,7 +13,6 @@
 		led-failsafe = &led_power;
 		led-running = &led_power;
 		led-upgrade = &led_power;
-		label-mac-device = &gmac0;
 	};
 
 	keys {
@@ -106,17 +105,10 @@
 	};
 };
 
-&gmac0 {
-	mtd-mac-address = <&factory 0x4>;
-};
-
 &gmac1 {
 	status = "okay";
 	label = "wan";
 	phy-handle = <&ethphy4>;
-
-	mtd-mac-address = <&factory 0x4>;
-	mtd-mac-address-increment = <1>;
 };
 
 &mdio {
@@ -146,5 +138,12 @@
 			status = "okay";
 			label = "lan1";
 		};
+	};
+};
+
+&state_default {
+	gpio {
+		groups = "uart3", "uart2", "jtag", "wdt";
+		function = "gpio";
 	};
 };

@@ -85,6 +85,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "i2c", "uart2";
+		function = "gpio";
+	};
+};
+
 &pcie {
 	status = "okay";
 };

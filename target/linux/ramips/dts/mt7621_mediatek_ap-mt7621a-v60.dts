@@ -30,6 +30,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "uart2";
+		function = "gpio";
+	};
+};
+
 &pinctrl {
 	i2s_pins: i2s {
 		i2s {

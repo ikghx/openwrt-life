@@ -151,3 +151,10 @@
 &uartlite3 {
 	status = "okay";
 };
+
+&state_default {
+	gpio {
+		group = "wdt", "jtag";
+		function = "gpio";
+	};
+};

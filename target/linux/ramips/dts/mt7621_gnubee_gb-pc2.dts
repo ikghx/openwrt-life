@@ -132,3 +132,10 @@
 		};
 	};
 };
+
+&state_default {
+	gpio {
+		groups = "jtag", "uart3", "wdt";
+		function = "gpio";
+	};
+};

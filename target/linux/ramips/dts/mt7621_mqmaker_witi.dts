@@ -135,3 +135,10 @@
 		};
 	};
 };
+
+&state_default {
+	gpio {
+		groups = "wdt";
+		function = "gpio";
+	};
+};

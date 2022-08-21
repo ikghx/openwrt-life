@@ -2,6 +2,13 @@
 
 #include "mt7621_elecom_wrc-gs.dtsi"
 
+&state_default {
+	gpio {
+		groups = "uart3", "jtag", "wdt", "sdhci";
+		function = "gpio";
+	};
+};
+
 &gmac0 {
 	mtd-mac-address = <&factory 0xe000>;
 };

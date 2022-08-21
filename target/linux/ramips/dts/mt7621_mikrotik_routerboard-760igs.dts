@@ -55,3 +55,14 @@
 &i2c {
 	status = "okay";
 };
+
+&state_default {
+	gpio {
+		/* gpio7 (uart3 group) goes high when
+		 * port5 (PoE out) is cabled to a
+		 * Mikrotik PoE-in capable port,
+		 * such as port1 on another rb760iGS */
+		groups = "uart2", "uart3", "jtag", "wdt";
+		function = "gpio";
+	};
+};

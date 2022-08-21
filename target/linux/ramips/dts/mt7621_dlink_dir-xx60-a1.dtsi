@@ -102,8 +102,6 @@
 
 		partition@4980000 {
 			label = "firmware2";
-			compatible = "openwrt,uimage", "denx,uimage";
-			openwrt,padding = <96>;
 			reg = <0x4980000 0x2800000>;
 		};
 
@@ -190,5 +188,12 @@
 			status = "okay";
 			label = "lan1";
 		};
+	};
+};
+
+&state_default {
+	gpio {
+		groups = "i2c", "uart3", "jtag", "wdt";
+		function = "gpio";
 	};
 };

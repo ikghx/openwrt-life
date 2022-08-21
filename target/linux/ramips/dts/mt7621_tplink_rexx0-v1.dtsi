@@ -132,6 +132,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "rgmii2", "wdt";
+		function = "gpio";
+	};
+};
+
 &pcie {
 	status = "okay";
 };
@@ -160,12 +167,6 @@
 
 &gmac0 {
 	mtd-mac-address = <&config 0x10008>;
-};
-
-&rgmii2_pins {
-	rgmii2 {
-		function = "gpio";
-	};
 };
 
 &switch0 {

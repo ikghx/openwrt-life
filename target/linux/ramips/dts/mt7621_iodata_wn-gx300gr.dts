@@ -170,6 +170,13 @@
 	};
 };
 
+&state_default {
+	gpio {
+		groups = "uart2", "uart3", "jtag";
+		function = "gpio";
+	};
+};
+
 &pcie {
 	status = "okay";
 };
