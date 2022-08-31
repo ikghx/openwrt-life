@@ -233,6 +233,11 @@ define KernelPackage/mt7921-common
   FILES:= $(PKG_BUILD_DIR)/mt7921/mt7921-common.ko
 endef
 
+define KernelPackage/mt7921-firmware
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7921 firmware
+endef
+
 define KernelPackage/mt7921s
   $(KernelPackage/mt76-default)
   TITLE:=MediaTek MT7921s wireless driver
@@ -438,7 +443,7 @@ define KernelPackage/mt7915e/install
 		$(1)/lib/firmware/mediatek
 endef
 
-define KernelPackage/mt7921-common/install
+define KernelPackage/mt7921-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/mediatek
 	cp \
 		$(PKG_BUILD_DIR)/firmware/WIFI_MT7961_patch_mcu_1_2_hdr.bin \
@@ -474,6 +479,7 @@ $(eval $(call KernelPackage,mt7663u))
 $(eval $(call KernelPackage,mt7663s))
 $(eval $(call KernelPackage,mt7915e))
 $(eval $(call KernelPackage,mt7921-common))
+$(eval $(call KernelPackage,mt7921-firmware))
 $(eval $(call KernelPackage,mt7921s))
 $(eval $(call KernelPackage,mt7921e))
 $(eval $(call KernelPackage,mt76))

@@ -99,7 +99,7 @@ $(eval $(call KernelPackage,crypto-ccm))
 
 define KernelPackage/crypto-chacha20poly1305
   TITLE:=ChaCha20-Poly1305 AEAD support, RFC7539 (used by strongSwan IPsec VPN)
-  DEPENDS:=+kmod-crypto-aead +kmod-crypto-manager
+  DEPENDS:=+kmod-crypto-chacha20 +kmod-crypto-poly1305 +kmod-crypto-aead +kmod-crypto-manager
   KCONFIG:=CONFIG_CRYPTO_CHACHA20POLY1305
   FILES:=$(LINUX_DIR)/crypto/chacha20poly1305.ko
   AUTOLOAD:=$(call AutoLoad,09,chacha20poly1305)
@@ -107,6 +107,18 @@ define KernelPackage/crypto-chacha20poly1305
 endef
 
 $(eval $(call KernelPackage,crypto-chacha20poly1305))
+
+
+define KernelPackage/crypto-chacha20
+  TITLE:=ChaCha20 module
+  DEPENDS:=+kmod-crypto-lib-chacha20
+  KCONFIG:=CONFIG_CRYPTO_CHACHA20
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/crypto/chacha_generic.ko
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-chacha20))
 
 
 define KernelPackage/crypto-cmac
@@ -472,7 +484,7 @@ endef
 # NEON is not supported, hence all arm targets can utilize lib-chacha20/arm
 define KernelPackage/crypto-lib-chacha20/arm
   KCONFIG+=CONFIG_CRYPTO_CHACHA20_NEON
-  FILES:=$(LINUX_DIR)/arch/arm/crypto/chacha-neon.ko
+  FILES+=$(LINUX_DIR)/arch/arm/crypto/chacha-neon.ko
 endef
 
 define KernelPackage/crypto-lib-chacha20/aarch64
@@ -560,12 +572,12 @@ endef
 
 define KernelPackage/crypto-lib-poly1305/arm
   KCONFIG+=CONFIG_CRYPTO_POLY1305_ARM
-  FILES:=$(LINUX_DIR)/arch/arm/crypto/poly1305-arm.ko
+  FILES+=$(LINUX_DIR)/arch/arm/crypto/poly1305-arm.ko
 endef
 
 define KernelPackage/crypto-lib-poly1305/aarch64
   KCONFIG+=CONFIG_CRYPTO_POLY1305_NEON
-  FILES:=$(LINUX_DIR)/arch/arm64/crypto/poly1305-neon.ko
+  FILES+=$(LINUX_DIR)/arch/arm64/crypto/poly1305-neon.ko
 endef
 
 define KernelPackage/crypto-lib-poly1305/mips
@@ -616,7 +628,8 @@ define KernelPackage/crypto-md5
   DEPENDS:=+kmod-crypto-hash
   KCONFIG:= \
 	CONFIG_CRYPTO_MD5 \
-	CONFIG_CRYPTO_MD5_OCTEON
+	CONFIG_CRYPTO_MD5_OCTEON \
+	CONFIG_CRYPTO_MD5_PPC
   FILES:=$(LINUX_DIR)/crypto/md5.ko
   AUTOLOAD:=$(call AutoLoad,09,md5)
   $(call AddDepends/crypto)
@@ -625,6 +638,11 @@ endef
 define KernelPackage/crypto-md5/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-md5.ko
   AUTOLOAD+=$(call AutoLoad,09,octeon-md5)
+endef
+
+define KernelPackage/crypto-md5/mpc85xx
+  FILES+=$(LINUX_DIR)/arch/powerpc/crypto/md5-ppc.ko
+  AUTOLOAD+=$(call AutoLoad,09,md5-ppc)
 endef
 
 $(eval $(call KernelPackage,crypto-md5))
@@ -756,6 +774,18 @@ endef
 $(eval $(call KernelPackage,crypto-pcbc))
 
 
+define KernelPackage/crypto-poly1305
+  TITLE:=Poly1305 module
+  DEPENDS:=+kmod-crypto-lib-poly1305
+  KCONFIG:=CONFIG_CRYPTO_POLY1305
+  HIDDEN:=1
+  FILES:=$(LINUX_DIR)/crypto/poly1305_generic.ko
+  $(call AddDepends/crypto,+PACKAGE_kmod-crypto-hash:kmod-crypto-hash)
+endef
+
+$(eval $(call KernelPackage,crypto-poly1305))
+
+
 define KernelPackage/crypto-rsa
   TITLE:=RSA algorithm
   DEPENDS:=+kmod-crypto-manager +kmod-asn1-decoder
@@ -825,6 +855,7 @@ define KernelPackage/crypto-sha1
 	CONFIG_CRYPTO_SHA1_ARM \
 	CONFIG_CRYPTO_SHA1_ARM_NEON \
 	CONFIG_CRYPTO_SHA1_OCTEON \
+	CONFIG_CRYPTO_SHA1_PPC_SPE \
 	CONFIG_CRYPTO_SHA1_SSSE3
   FILES:=$(LINUX_DIR)/crypto/sha1_generic.ko
   AUTOLOAD:=$(call AutoLoad,09,sha1_generic)
@@ -851,7 +882,12 @@ define KernelPackage/crypto-sha1/octeon
   AUTOLOAD+=$(call AutoLoad,09,octeon-sha1)
 endef
 
-KernelPackage/crypto-sha1/tegra=$(KernelPakcage/crypto-sha1/arm)
+KernelPackage/crypto-sha1/tegra=$(KernelPackage/crypto-sha1/arm)
+
+define KernelPackage/crypto-sha1/mpc85xx
+  FILES+=$(LINUX_DIR)/arch/powerpc/crypto/sha1-ppc-spe.ko
+  AUTOLOAD+=$(call AutoLoad,09,sha1-ppc-spe)
+endef
 
 define KernelPackage/crypto-sha1/x86/64
   FILES+=$(LINUX_DIR)/arch/x86/crypto/sha1-ssse3.ko
@@ -867,6 +903,7 @@ define KernelPackage/crypto-sha256
   KCONFIG:= \
 	CONFIG_CRYPTO_SHA256 \
 	CONFIG_CRYPTO_SHA256_OCTEON \
+	CONFIG_CRYPTO_SHA256_PPC_SPE \
 	CONFIG_CRYPTO_SHA256_SSSE3
   FILES:= \
 	$(LINUX_DIR)/crypto/sha256_generic.ko \
@@ -878,6 +915,11 @@ endef
 define KernelPackage/crypto-sha256/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha256.ko
   AUTOLOAD+=$(call AutoLoad,09,octeon-sha256)
+endef
+
+define KernelPackage/crypto-sha256/mpc85xx
+  FILES+=$(LINUX_DIR)/arch/powerpc/crypto/sha256-ppc-spe.ko
+  AUTOLOAD+=$(call AutoLoad,09,sha256-ppc-spe)
 endef
 
 define KernelPackage/crypto-sha256/x86/64
