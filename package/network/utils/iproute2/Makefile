@@ -72,7 +72,7 @@ endef
 define Package/tc-mod-iptables
 $(call Package/iproute2/Default)
   TITLE:=Traffic control module - iptables action
-  DEPENDS:=+libxtables
+  DEPENDS:=+libxtables +libbpf
 endef
 
 define Package/genl
