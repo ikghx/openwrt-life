@@ -24,6 +24,6 @@ DEFAULT_PACKAGES += \
 	bcm4908img fdt-utils uboot-envtools \
 	kmod-gpio-button-hotplug \
 	kmod-usb-ohci kmod-usb2 kmod-usb3 \
-	libwolfssl-cpu-crypto
+	libwolfsslcpu-crypto
 
 $(eval $(call BuildTarget))
