@@ -546,15 +546,6 @@ dhcp_add() {
 	# Override interface netmask with dhcp config if applicable
 	config_get netmask "$cfg" netmask "${subnet##*/}"
 
-	#check for an already active dhcp server on the interface, unless 'force' is set
-	config_get_bool force "$cfg" force 0
-	[ $force -gt 0 ] || dhcp_check "$ifname" || {
-		logger -t dnsmasq \
-			"found already running DHCP-server on interface '$ifname'" \
-			"refusing to start, use 'option force 1' to override"
-		return 0
-	}
-
 	config_get start "$cfg" start 100
 	config_get limit "$cfg" limit 150
 	config_get leasetime "$cfg" leasetime 12h
@@ -865,6 +856,12 @@ dnsmasq_start()
 		xappend "--conf-file=${dnsmasqconffile}"
 	}
 
+	config_get_bool boguspriv "$cfg" boguspriv 1
+	[ "$boguspriv" -gt 0 ] && {
+		xappend "--bogus-priv"
+		[ -r "$RFC6761FILE" ] && xappend "--conf-file=$RFC6761FILE"
+	}
+
 	$PROG --version | grep -osqE "^Compile time options:.* DHCPv6( |$)" && DHCPv6CAPABLE=1 || DHCPv6CAPABLE=0
 
 
@@ -928,7 +925,25 @@ dnsmasq_start()
 	config_get tftp_root "$cfg" "tftp_root"
 	[ -n "$tftp_root" ] && mkdir -p "$tftp_root" && append_bool "$cfg" enable_tftp "--enable-tftp"
 	append_bool "$cfg" tftp_no_fail "--tftp-no-fail"
-	append_bool "$cfg" nonwildcard "--bind-dynamic" 1
+
+	config_get bind "$cfg" "bind"
+	case "$bind" in
+		dynamic|interfaces)
+			xappend "--bind-$bind"
+			;;
+		"")
+			# for compatibility reasons
+			append_bool "$cfg" nonwildcard "--bind-dynamic" 1
+			;;
+	esac
+
+	config_get dnsfilter "$cfg" "dnsfilter"
+	case "$dnsfilter" in
+		A|AAAA)
+			xappend "--filter-$dnsfilter"
+			;;
+	esac
+
 	append_bool "$cfg" fqdn "--dhcp-fqdn"
 	append_bool "$cfg" proxydnssec "--proxy-dnssec"
 	append_bool "$cfg" localservice "--local-service"
@@ -974,8 +989,8 @@ dnsmasq_start()
 		xappend "--addn-hosts=$HOSTFILE"
 		append EXTRA_MOUNT "$HOSTFILE"
 	else
-		xappend "--addn-hosts=$HOSTFILE_DIR"
-		append EXTRA_MOUNT "$HOSTFILE_DIR"
+		xappend "--addn-hosts=$(dirname $HOSTFILE)"
+		append EXTRA_MOUNT "$(dirname $HOSTFILE)"
 	fi
 	config_list_foreach "$cfg" "addnhosts" append_addnhosts
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
@@ -1126,11 +1141,6 @@ dnsmasq_start()
 	append_bool "$cfg" localmx "--localmx"
 	echo >> $CONFIGFILE_TMP
 
-	config_get_bool boguspriv "$cfg" boguspriv 1
-	[ "$boguspriv" -gt 0 ] && {
-		xappend "--bogus-priv"
-		[ -r "$RFC6761FILE" ] && xappend "--conf-file=$RFC6761FILE"
-	}
 
 	if [ "$DNSMASQ_DHCP_VER" -gt 4 ] ; then
 		# Enable RA feature for when/if it is constructed,
