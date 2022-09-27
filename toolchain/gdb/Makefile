@@ -30,12 +30,12 @@ HOST_CONFIGURE_ARGS = \
 	--build=$(GNU_HOST_NAME) \
 	--host=$(GNU_HOST_NAME) \
 	--target=$(REAL_GNU_TARGET_NAME) \
+	--with-expat=$(TOPDIR)/staging_dir/host \
 	--disable-werror \
 	--without-uiout \
 	--enable-tui --disable-gdbtk --without-x \
 	--without-included-gettext \
 	--enable-threads \
-	--with-expat \
 	--without-python \
 	--disable-unit-tests \
 	--disable-ubsan \
