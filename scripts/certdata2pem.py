@@ -21,7 +21,7 @@
 #
 # Openwrt changelog:
 # - use env for shebang
-# - comment out cert validation
+# - allow skipping cert expiration check
 # - use command line args for file inputs
 #
 # Usage: [python3] $(TOPDIR)/scripts/certdata2pem.py certdata.txt blacklist.txt
@@ -33,9 +33,11 @@ import re
 import sys
 import textwrap
 import io
-'''
-from cryptography import x509
-'''
+
+try:
+    from cryptography import x509
+except:
+    print('Cryptography module failed to import, skipping expiration check')
 
 objects = []
 
@@ -127,13 +129,17 @@ for obj in objects:
     if obj['CKA_CLASS'] == 'CKO_CERTIFICATE':
         if not obj['CKA_LABEL'] in trust or not trust[obj['CKA_LABEL']]:
             continue
-        '''
-        cert = x509.load_der_x509_certificate(obj['CKA_VALUE'])
-        if cert.not_valid_after < datetime.datetime.utcnow():
-            print('!'*74)
-            print('Trusted but expired certificate found: %s' % obj['CKA_LABEL'])
-            print('!'*74)
-        '''
+
+        # skipping expiration check if error
+        try:
+            cert = x509.load_der_x509_certificate(obj['CKA_VALUE'])
+            if cert.not_valid_after < datetime.datetime.utcnow():
+                print('!'*74)
+                print('Trusted but expired certificate found: %s' % obj['CKA_LABEL'])
+                print('!'*74)
+        except:
+            pass
+
         bname = obj['CKA_LABEL'][1:-1].replace('/', '_')\
                                       .replace(' ', '_')\
                                       .replace('(', '=')\
