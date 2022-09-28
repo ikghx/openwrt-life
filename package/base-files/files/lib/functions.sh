@@ -209,10 +209,10 @@ add_group_and_user() {
 	if [ -n "$rusers" ]; then
 		local tuple oIFS="$IFS"
 		for tuple in $rusers; do
-			local uid gid uname gname
+			local uid gid uname gname addngroups addngroup addngname addngid
 
 			IFS=":"
-			set -- $tuple; uname="$1"; gname="$2"
+			set -- $tuple; uname="$1"; gname="$2"; addngroups="$3"
 			IFS="="
 			set -- $uname; uname="$1"; uid="$2"
 			set -- $gname; gname="$1"; gid="$2"
@@ -232,7 +232,24 @@ add_group_and_user() {
 				group_add_user "$gname" "$uname"
 			fi
 
-			unset uid gid uname gname
+			if [ -n "$uname" ] &&  [ -n "$addngroups" ]; then
+				oIFS="$IFS"
+				IFS=","
+				for addngroup in $addngroups ; do
+					IFS="="
+					set -- $addngroup; addngname="$1"; addngid="$2"
+					if [ -n "$addngid" ]; then
+						group_exists "$addngname" || group_add "$addngname" "$addngid"
+					else
+						group_add_next "$addngname"
+					fi
+
+					group_add_user "$addngname" "$uname"
+				done
+				IFS="$oIFS"
+			fi
+
+			unset uid gid uname gname addngroups addngroup addngname addngid
 		done
 	fi
 }
@@ -411,15 +428,6 @@ cmdline_get_var() {
 		tmp=${cmdlinevar##${var}}
 		[ "=" = "${tmp:0:1}" ] && echo ${tmp:1}
 	done
-}
-
-insmod_ignore() {
-	local load
-	for mod in "$@"; do
-		grep -qs "^$mod " /proc/modules && continue
-		/sbin/insmod "$mod" && load=1
-	done
-	[ "$load" = "1" ] && sleep 1
 }
 
 [ -z "$IPKG_INSTROOT" ] && [ -f /lib/config/uci.sh ] && . /lib/config/uci.sh
