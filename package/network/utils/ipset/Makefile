@@ -13,7 +13,7 @@ PKG_VERSION:=7.6
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=http://ipset.netfilter.org
+PKG_SOURCE_URL:=https://ipset.netfilter.org
 PKG_HASH:=0e7d44caa9c153d96a9b5f12644fbe35a632537a5a7f653792b72e53d9d5c2db
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
