@@ -1,6 +1,6 @@
 #!/bin/sh /etc/rc.common
 
-START=99
+START=98
 
 adb_exec() {
 	adb -s "$serial" shell "( $1 ) >/dev/null 2>&1"'; printf "\nEXIT_CODE: %i\n" $?' | head -c 64 | grep -qx 'EXIT_CODE: 0\r\?'

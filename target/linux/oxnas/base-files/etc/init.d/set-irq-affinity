@@ -1,6 +1,6 @@
 #!/bin/sh /etc/rc.common
 
-START=99
+START=98
 
 get_irq() {
 	local name="$1"

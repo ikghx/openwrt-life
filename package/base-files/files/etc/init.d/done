@@ -1,7 +1,7 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2006 OpenWrt.org
 
-START=95
+START=99
 boot() {
 	mount_root done
 	rm -f /sysupgrade.tgz && sync
@@ -10,6 +10,13 @@ boot() {
 	[ -f /etc/rc.local ] && {
 		sh /etc/rc.local
 	}
+
+	# saveing bootup-time
+	local uptime
+	. /usr/share/libubox/jshn.sh
+	json_load "$(ubus -S call system info)"
+	json_get_var uptime uptime
+	echo "$uptime" > /tmp/bootup-time
 
 	# set leds to normal state
 	. /etc/diag.sh
