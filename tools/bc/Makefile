@@ -20,4 +20,8 @@ PKG_FIXUP := autoreconf
 
 include $(INCLUDE_DIR)/host-build.mk
 
+define Host/Uninstall
+	-$(call Host/Compile/Default,uninstall)
+endef
+
 $(eval $(call HostBuild))

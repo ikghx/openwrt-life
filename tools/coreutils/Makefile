@@ -34,4 +34,9 @@ define Host/Install
 	$(CP) $(patsubst %,$(HOST_BUILD_DIR)/%,$(BUILD_BINS)) $(1)/bin/
 endef
 
+define Host/Uninstall
+	rm -f $(STAGING_DIR_HOST)/bin/install
+	-$(call Host/Compile/Default,uninstall)
+endef
+
 $(eval $(call HostBuild))
