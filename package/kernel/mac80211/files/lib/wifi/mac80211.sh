@@ -203,6 +203,7 @@ detect_mac80211() {
 			set wireless.${name}.disabled=0
 			set wireless.${name}.noscan=1
 			set wireless.${name}.cell_density=0
+
 			set wireless.default_${name}=wifi-iface
 			set wireless.default_${name}.device=${name}
 			set wireless.default_${name}.network=lan
