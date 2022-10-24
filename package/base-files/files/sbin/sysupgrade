@@ -199,7 +199,7 @@ add_overlayfiles() {
 
 if [ $SAVE_OVERLAY = 1 ]; then
 	[ ! -d /overlay/upper/etc ] && {
-		echo "Cannot find '/overlay/upper/etc', required for '-c'" >&2
+		echo "Cannot find '/overlay/upper/etc', required for '-c' or '-o'" >&2
 		exit 1
 	}
 	sysupgrade_init_conffiles="add_overlayfiles"
@@ -242,7 +242,7 @@ do_save_conffiles() {
 				ask_bool 0 "Abort" && exit
 			}
 
-		# Format: pkg-name<TAB>{rom,overlay,unkown}
+		# Format: pkg-name<TAB>{rom,overlay,unknown}
 		# rom is used for pkgs in /rom, even if updated later
 		find /usr/lib/opkg/info -name "*.control" \( \
 			\( -exec test -f /rom/{} \; -exec echo {} rom \; \) -o \
@@ -253,11 +253,12 @@ do_save_conffiles() {
 
 	v "Saving config files..."
 	[ "$VERBOSE" -gt 1 ] && TAR_V="v" || TAR_V=""
-	tar c${TAR_V}zf "$conf_tar" -T "$CONFFILES" 2>/dev/null
-	if [ "$?" -ne 0 ]; then
+	sed -i -e 's,^/,,' "$CONFFILES"
+	tar c${TAR_V}zf "$conf_tar" -C / -T "$CONFFILES"
+	local err=$?
+	if [ "$err" -ne 0 ]; then
 		echo "Failed to create the configuration backup."
 		rm -f "$conf_tar"
-		exit 1
 	fi
 
 	[ "$UMOUNT_ETCBACKUP_DIR" -eq 1 ] && {
@@ -265,6 +266,8 @@ do_save_conffiles() {
 		rm -rf "$RAMFS"
 	}
 	rm -f "$CONFFILES"
+
+	return "$err"
 }
 
 if [ $CONF_BACKUP_LIST -eq 1 ]; then
@@ -277,7 +280,7 @@ fi
 
 if [ -n "$CONF_BACKUP" ]; then
 	do_save_conffiles "$CONF_BACKUP"
-	exit $?
+	exit
 fi
 
 if [ -n "$CONF_RESTORE" ]; then
@@ -346,7 +349,7 @@ if [ -n "$CONF_IMAGE" ]; then
 	get_image "$CONF_IMAGE" "cat" > "$CONF_TAR"
 	export SAVE_CONFIG=1
 elif ask_bool $SAVE_CONFIG "Keep config files over reflash"; then
-	[ $TEST -eq 1 ] || do_save_conffiles "$CONF_TAR"
+	[ $TEST -eq 1 ] || do_save_conffiles "$CONF_TAR" || exit
 	export SAVE_CONFIG=1
 else
 	[ $TEST -eq 1 ] || rm -f "$CONF_TAR"

@@ -307,8 +307,12 @@ nand_do_upgrade() {
 nand_do_platform_check() {
 	local board_name="$1"
 	local tar_file="$2"
-	local control_length=$( (tar xf $tar_file sysupgrade-$board_name/CONTROL -O | wc -c) 2> /dev/null)
+	local control_length=$( (tar xf $tar_file sysupgrade-${board_name//,/_}/CONTROL -O | wc -c) 2> /dev/null)
 	local file_type="$(identify $2)"
+
+	if [ "$control_length" = 0 ]; then
+		control_length=$( (tar xf $tar_file sysupgrade-${board_name//_/,}/CONTROL -O | wc -c) 2> /dev/null)
+	fi
 
 	[ "$control_length" = 0 -a "$file_type" != "ubi" -a "$file_type" != "ubifs" ] && {
 		echo "Invalid sysupgrade file."

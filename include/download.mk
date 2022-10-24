@@ -18,6 +18,9 @@ endif
 
 DOWNLOAD_RDEP=$(STAMP_PREPARED) $(HOST_STAMP_PREPARED)
 
+# Export options for download.pl
+export DOWNLOAD_CHECK_CERTIFICATE:=$(CONFIG_DOWNLOAD_CHECK_CERTIFICATE)
+
 define dl_method_git
 $(if $(filter https://github.com/% git://github.com/%,$(1)),github_archive,git)
 endef
@@ -59,7 +62,7 @@ define dl_tar_pack
 		$$$${TAR_TIMESTAMP:+--mtime="$$$$TAR_TIMESTAMP"} -c $(2) | $(call dl_pack,$(1))
 endef
 
-gen_sha256sum = $(shell mkhash sha256 $(DL_DIR)/$(1))
+gen_sha256sum = $(shell $(MKHASH) sha256 $(DL_DIR)/$(1))
 
 # Used in Build/CoreTargets and HostBuild/Core as an integrity check for
 # downloaded files.  It will add a FORCE rule if the sha256 hash does not
