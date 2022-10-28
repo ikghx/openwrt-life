@@ -201,7 +201,6 @@ detect_mac80211() {
 			set wireless.${name}.htmode=$htmode
 			set wireless.${name}.country=CN
 			set wireless.${name}.disabled=0
-			set wireless.${name}.noscan=1
 			set wireless.${name}.cell_density=0
 
 			set wireless.default_${name}=wifi-iface
