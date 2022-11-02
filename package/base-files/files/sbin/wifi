@@ -13,9 +13,6 @@ EOF
 }
 
 ubus_wifi_cmd() {
-	local cmd="$1"
-	local dev="$2"
-
 	json_init
 	[ -n "$2" ] && json_add_string device "$2"
 	ubus call network.wireless "$1" "$(json_dump)"
