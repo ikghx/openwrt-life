@@ -258,6 +258,7 @@ IPSEC6-m = \
 	ipv6/esp6 \
 	ipv6/ipcomp6 \
 	ipv6/xfrm6_mode_beet@le5.2 \
+	ipv6/xfrm6_mode_ro@le5.2 \
 	ipv6/xfrm6_mode_transport@le5.2 \
 	ipv6/xfrm6_mode_tunnel@le5.2 \
 	ipv6/xfrm6_tunnel
@@ -271,6 +272,7 @@ define KernelPackage/ipsec6
 	CONFIG_INET6_ESP \
 	CONFIG_INET6_IPCOMP \
 	CONFIG_INET6_XFRM_MODE_BEET@le5.2 \
+	CONFIG_INET6_XFRM_MODE_ROUTEOPTIMIZATION@le5.2 \
 	CONFIG_INET6_XFRM_MODE_TRANSPORT@le5.2 \
 	CONFIG_INET6_XFRM_MODE_TUNNEL@le5.2 \
 	CONFIG_INET6_XFRM_TUNNEL \
@@ -286,6 +288,7 @@ define KernelPackage/ipsec6/description
  - esp6
  - ipcomp6
  - xfrm6_mode_beet
+ - xfrm6_mode_ro
  - xfrm6_mode_transport
  - xfrm6_mode_tunnel
  - xfrm6_tunnel
