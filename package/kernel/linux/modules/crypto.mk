@@ -233,6 +233,18 @@ endef
 $(eval $(call KernelPackage,crypto-echainiv))
 
 
+define KernelPackage/crypto-essiv
+  TITLE:=ESSIV support for block encryption
+  DEPENDS:=+kmod-crypto-authenc
+  KCONFIG:=CONFIG_CRYPTO_ESSIV
+  FILES:= $(LINUX_DIR)/crypto/essiv.ko
+  AUTOLOAD:=$(call AutoLoad,10,essiv)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-essiv))
+
+
 define KernelPackage/crypto-fcrypt
   TITLE:=FCRYPT cipher CryptoAPI module
   KCONFIG:=CONFIG_CRYPTO_FCRYPT
@@ -402,7 +414,8 @@ $(eval $(call KernelPackage,crypto-hw-padlock))
 define KernelPackage/crypto-hw-safexcel
   TITLE:= MVEBU SafeXcel Crypto Engine module
   DEPENDS:=@(TARGET_mvebu_cortexa53||TARGET_mvebu_cortexa72) +eip197-mini-firmware \
-	+kmod-crypto-authenc +kmod-crypto-md5 +kmod-crypto-hmac +kmod-crypto-sha256 +kmod-crypto-sha512
+	+kmod-crypto-authenc +kmod-crypto-des +kmod-crypto-md5 +kmod-crypto-hmac \
+	+kmod-crypto-sha1 +kmod-crypto-sha256 +kmod-crypto-sha512
   KCONFIG:= \
 	CONFIG_CRYPTO_HW=y \
 	CONFIG_CRYPTO_DEV_SAFEXCEL
@@ -652,6 +665,7 @@ define KernelPackage/crypto-misc
   TITLE:=Other CryptoAPI modules
   DEPENDS:=+kmod-crypto-xts
   KCONFIG:= \
+	CONFIG_CRYPTO_USER_API_ENABLE_OBSOLETE=y \
 	CONFIG_CRYPTO_CAMELLIA_X86_64 \
 	CONFIG_CRYPTO_BLOWFISH_X86_64 \
 	CONFIG_CRYPTO_TWOFISH_X86_64 \
