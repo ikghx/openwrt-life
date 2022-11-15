@@ -60,41 +60,105 @@ hk_config__keyfile()
 	hk_config 'keyfile' "$1"
 }
 
+ktype_all='ecdsa ed25519 rsa'
+
 hk_generate_as_needed()
 {
-	local kdir kgen ktype tdir kcount tfile
-	kdir='/etc/dropbear'
+	local hk_cfg_dir kgen ktype kfile hk_tmp_dir
+	hk_cfg_dir='/etc/dropbear'
+
+	if ! [ -d "${hk_cfg_dir}" ]; then
+		mkdir -p "${hk_cfg_dir}"
+	fi
 
 	kgen=''
-	for ktype in ed25519 ecdsa rsa; do
-		hk_verify "${kdir}/dropbear_${ktype}_host_key" && continue
+	for ktype in ${ktype_all}; do
+		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
+
+		if hk_verify "${kfile}"; then continue; fi
 
 		kgen="${kgen} ${ktype}"
 	done
 
-	[ -z "${kgen}" ] && return
+	# all keys are sane?
+	[ -n "${kgen}" ] || return 0
 
-	tdir=$(mktemp -d); chmod 0700 "${tdir}"
+	hk_tmp_dir=$(mktemp -d)
+	# system in bad state?
+	[ -n "${hk_tmp_dir}" ] || return 1
 
-	kcount=0
+	chmod 0700 "${hk_tmp_dir}"
+
 	for ktype in ${kgen}; do
-		tfile="${tdir}/dropbear_${ktype}_host_key"
+		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
 
-		if ! _dropbearkey -t ${ktype} -f "${tfile}"; then
+		if ! _dropbearkey -t ${ktype} -f "${kfile}"; then
 			# unsupported key type
-			rm -f "${tfile}"
+			rm -f "${kfile}"
 			continue
 		fi
-
-		kcount=$((kcount+1))
 	done
 
-	if [ ${kcount} -ne 0 ]; then
-		mkdir -p "${kdir}"; chmod 0700 "${kdir}"; chown root "${kdir}"
-		mv -f "${tdir}/"* "${kdir}/"
+	kgen=''
+	for ktype in ${ktype_all}; do
+		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+
+		[ -s "${kfile}" ] || continue
+
+		kgen="${kgen} ${ktype}"
+	done
+
+	if [ -n "${kgen}" ]; then
+		for ktype in ${kgen}; do
+			kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+			mv -f "${kfile}" "${hk_cfg_dir}/"
+		done
 	fi
 
-	rm -rf "${tdir}"
+	# cleanup empty files
+	for ktype in ${ktype_all}; do
+		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
+
+		if [ -s "${kfile}" ]; then continue; fi
+
+		rm -f "${kfile}"
+	done
+
+	rm -rf "${hk_tmp_dir}"
+}
+
+# args: <path> <owner> <mode>
+adjust_owner_perm()
+{
+	chown "$2" "$1"
+	chmod "$3" "$1"
+}
+
+adjust_dir()
+{
+	[ -d "$1" ] || return 0
+	adjust_owner_perm "$@"
+}
+
+adjust_file()
+{
+	[ -f "$1" ] || return 0
+	adjust_owner_perm "$@"
+}
+
+adjust_permissions()
+{
+	local kdir ktype kfile
+	kdir='/etc/dropbear'
+
+	adjust_dir "${kdir}" 0:0 0700
+	adjust_file "${kdir}/authorized_keys" 0:0 0600
+
+	for ktype in ${ktype_all}; do
+		kfile="${kdir}/dropbear_${ktype}_host_key"
+
+		adjust_file "${kfile}" 0:0 0600
+	done
 }
 
 append_ports()
@@ -196,6 +260,7 @@ boot()
 start_service()
 {
 	hk_generate_as_needed
+	adjust_permissions
 
 	. /lib/functions.sh
 	. /lib/functions/network.sh

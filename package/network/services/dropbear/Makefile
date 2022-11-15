@@ -8,14 +8,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dropbear
-PKG_VERSION:=2022.82
+PKG_VERSION:=2022.83
 PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:= \
 	https://matt.ucc.asn.au/dropbear/releases/ \
 	https://dropbear.nl/mirror/releases/
-PKG_HASH:=3a038d2bbc02bf28bbdd20c012091f741a3ec5cbe460691811d714876aad75d1
+PKG_HASH:=bc5a121ffbc94b5171ad5ebe01be42746d50aa797c9549a4639894a16749443b
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
@@ -23,17 +23,25 @@ PKG_CPE_ID:=cpe:/a:matt_johnston:dropbear_ssh_server
 
 PKG_BUILD_PARALLEL:=1
 PKG_ASLR_PIE_REGULAR:=1
+# handled by dropbear
+PKG_FORTIFY_SOURCE:=0
+# handled by dropbear
+PKG_SSP:=0
 PKG_USE_MIPS16:=0
 PKG_FIXUP:=autoreconf
 PKG_FLAGS:=nonshared
 
 PKG_CONFIG_DEPENDS:= \
-	CONFIG_TARGET_INIT_PATH CONFIG_DROPBEAR_ECC CONFIG_DROPBEAR_ECC_FULL \
-	CONFIG_DROPBEAR_CURVE25519 CONFIG_DROPBEAR_ZLIB \
+	CONFIG_TARGET_INIT_PATH \
+	CONFIG_DROPBEAR_MODERN_ONLY \
+	CONFIG_DROPBEAR_CURVE25519 CONFIG_DROPBEAR_ECC CONFIG_DROPBEAR_ECC_FULL \
 	CONFIG_DROPBEAR_ED25519 CONFIG_DROPBEAR_CHACHA20POLY1305 \
-	CONFIG_DROPBEAR_UTMP CONFIG_DROPBEAR_PUTUTLINE \
-	CONFIG_DROPBEAR_DBCLIENT CONFIG_DROPBEAR_SCP CONFIG_DROPBEAR_ASKPASS \
-	CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD CONFIG_DROPBEAR_AGENTFORWARD
+	CONFIG_DROPBEAR_U2F CONFIG_DROPBEAR_ECDSA_SK CONFIG_DROPBEAR_ED25519_SK \
+	CONFIG_DROPBEAR_AGENTFORWARD CONFIG_DROPBEAR_ZLIB CONFIG_DROPBEAR_UTMP \
+	CONFIG_DROPBEAR_PUTUTLINE CONFIG_DROPBEAR_SCP \
+	CONFIG_DROPBEAR_DBCLIENT CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD \
+	CONFIG_DROPBEAR_DBCLIENT_ASKPASS \
+
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -61,6 +69,7 @@ define Package/dropbear
   $(if $(CONFIG_DROPBEAR_DBCLIENT),ALTERNATIVES+= \
 	  100:/usr/bin/ssh:/usr/sbin/dropbear,)
 
+  FILE_MODES:=$(foreach c,$(Package/dropbear/conffiles),$(c):root:root:0600 )
 endef
 
 define Package/dropbear/description
@@ -68,10 +77,11 @@ define Package/dropbear/description
 endef
 
 define Package/dropbear/conffiles
-$(if $(CONFIG_DROPBEAR_ED25519),/etc/dropbear/dropbear_ed25519_host_key)
-$(if $(CONFIG_DROPBEAR_ECC),/etc/dropbear/dropbear_ecdsa_host_key)
-/etc/dropbear/dropbear_rsa_host_key
 /etc/config/dropbear
+/etc/dropbear/authorized_keys
+/etc/dropbear/dropbear_ecdsa_host_key
+/etc/dropbear/dropbear_ed25519_host_key
+/etc/dropbear/dropbear_rsa_host_key
 endef
 
 define Package/dropbearconvert
@@ -107,18 +117,20 @@ CONFIGURE_ARGS += \
 # remove protocol idented software version number:
 # - LOCAL_IDENT
 # disable legacy/unsafe methods and unused functionality:
-# - DROPBEAR_CLI_NETCAT
-# - DROPBEAR_DSS
 # - DO_MOTD
+# - DROPBEAR_CLI_NETCAT
+# - DROPBEAR_DSS (in both headers!)
+# adjust allowed shell list (if getusershell(3) is missing):
+# - COMPAT_USER_SHELLS
 DB_OPT_COMMON = \
-	DEFAULT_PATH|"$(TARGET_INIT_PATH)" \
+	!!DROPBEAR_DSS|0 \
 	!!LOCAL_IDENT|"SSH-2.0-dropbear" \
+	COMPAT_USER_SHELLS|"/bin/ash","/bin/sh" \
+	DEFAULT_PATH|"$(TARGET_INIT_PATH)" \
+	DEFAULT_ROOT_PATH|"$(TARGET_INIT_PATH)" \
+	DO_MOTD|0 \
 	DROPBEAR_CLI_NETCAT|0 \
 	DROPBEAR_DSS|0 \
-	DO_MOTD|0 \
-	DROPBEAR_RSA_SHA1|0 \
-	DROPBEAR_DH_GROUP14_SHA1|0 \
-	DROPBEAR_SHA1_HMAC|0 \
 
 
 ##############################################################################
@@ -131,22 +143,30 @@ DB_OPT_COMMON = \
 ##############################################################################
 
 DB_OPT_CONFIG = \
+	DROPBEAR_AES128|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
+	DROPBEAR_AES256|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
+	DROPBEAR_DH_GROUP14_SHA1|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
+	DROPBEAR_RSA|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
+	DROPBEAR_RSA_SHA1|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
+	DROPBEAR_SHA1_HMAC|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
 	DROPBEAR_CURVE25519|CONFIG_DROPBEAR_CURVE25519|1|0 \
-	DROPBEAR_ED25519|CONFIG_DROPBEAR_ED25519|1|0 \
-	DROPBEAR_SK_ED25519|CONFIG_DROPBEAR_ED25519|1|0 \
-	DROPBEAR_CHACHA20POLY1305|CONFIG_DROPBEAR_CHACHA20POLY1305|1|0 \
 	DROPBEAR_ECDSA|CONFIG_DROPBEAR_ECC|1|0 \
-	DROPBEAR_SK_ECDSA|CONFIG_DROPBEAR_ECC|1|0 \
 	DROPBEAR_ECDH|CONFIG_DROPBEAR_ECC|1|0 \
 	!!DROPBEAR_ECC_384|CONFIG_DROPBEAR_ECC_FULL|1|0 \
 	!!DROPBEAR_ECC_521|CONFIG_DROPBEAR_ECC_FULL|1|0 \
-	DROPBEAR_CLI_ASKPASS_HELPER|CONFIG_DROPBEAR_ASKPASS|1|0 \
-	DROPBEAR_CLI_AGENTFWD|CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD|1|0 \
+	DROPBEAR_ED25519|CONFIG_DROPBEAR_ED25519|1|0 \
+	DROPBEAR_CHACHA20POLY1305|CONFIG_DROPBEAR_CHACHA20POLY1305|1|0 \
+	DROPBEAR_SK_KEYS|CONFIG_DROPBEAR_U2F|1|0 \
+	DROPBEAR_SK_ECDSA|CONFIG_DROPBEAR_ECDSA_SK|1|0 \
+	DROPBEAR_SK_ED25519|CONFIG_DROPBEAR_ED25519_SK|1|0 \
 	DROPBEAR_SVR_AGENTFWD|CONFIG_DROPBEAR_AGENTFORWARD|1|0 \
+	DROPBEAR_CLI_AGENTFWD|CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD|1|0 \
+	DROPBEAR_CLI_ASKPASS_HELPER|CONFIG_DROPBEAR_DBCLIENT_ASKPASS|1|0 \
 
 
-TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections -flto=jobserver
+TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections -flto=auto -ffat-lto-objects
+TARGET_CFLAGS += $(if $(filter -Os,$(TARGET_CFLAGS)),-DLTC_SMALL_CODE,-DDROPBEAR_SMALL_CODE=0)
+TARGET_LDFLAGS += -Wl,--gc-sections -flto=auto -ffat-lto-objects
 
 db_opt_add     =echo '\#define $(1) $(2)' >> $(PKG_BUILD_DIR)/localoptions.h
 db_opt_replace =$(ESED) 's,^(\#define $(1)) .*$$$$,\1 $(2),g' $(PKG_BUILD_DIR)/sysoptions.h
@@ -154,8 +174,8 @@ db_opt_replace =$(ESED) 's,^(\#define $(1)) .*$$$$,\1 $(2),g' $(PKG_BUILD_DIR)/s
 define Build/Configure/dropbear_headers
 	$(strip $(foreach s,$(DB_OPT_COMMON), \
 	  $(if $(filter !!%,$(word 1,$(subst |, ,$(s)))), \
-	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst |, ,$(s)))),$(word 2,$(subst |, ,$(s)))), \
-	    $(call db_opt_add,$(word 1,$(subst |, ,$(s))),$(word 2,$(subst |, ,$(s)))) \
+	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst |, ,$(s)))),$(wordlist 2,$(words $(subst |, ,$(s))),$(subst |, ,$(s)))), \
+	    $(call db_opt_add,$(word 1,$(subst |, ,$(s))),$(wordlist 2,$(words $(subst |, ,$(s))),$(subst |, ,$(s)))) \
 	  ) ; \
 	))
 
@@ -186,10 +206,12 @@ define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
 		PROGRAMS="dropbear $(if $(CONFIG_DROPBEAR_DBCLIENT),dbclient,) dropbearkey $(if $(CONFIG_DROPBEAR_SCP),scp,)" \
+		IGNORE_SPEED=1 $(if $(filter -Os,$(TARGET_CFLAGS)),LTC_SMALL=1) \
 		MULTI=1 SCPPROGRESS=1
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		$(TARGET_CONFIGURE_OPTS) \
-		PROGRAMS="dropbearconvert"
+		PROGRAMS="dropbearconvert" \
+		IGNORE_SPEED=1 $(if $(filter -Os,$(TARGET_CFLAGS)),LTC_SMALL=1)
 endef
 
 define Package/dropbear/install
@@ -206,9 +228,7 @@ define Package/dropbear/install
 	$(INSTALL_DIR) $(1)/etc/dropbear
 	$(INSTALL_DIR) $(1)/lib/preinit
 	$(INSTALL_DATA) ./files/dropbear.failsafe $(1)/lib/preinit/99_10_failsafe_dropbear
-	$(if $(CONFIG_DROPBEAR_ED25519),touch $(1)/etc/dropbear/dropbear_ed25519_host_key)
-	$(if $(CONFIG_DROPBEAR_ECC),touch $(1)/etc/dropbear/dropbear_ecdsa_host_key)
-	touch $(1)/etc/dropbear/dropbear_rsa_host_key
+	touch $(foreach c,$(Package/dropbear/conffiles),$(1)$(c) )
 endef
 
 define Package/dropbearconvert/install

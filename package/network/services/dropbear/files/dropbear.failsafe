@@ -1,8 +1,21 @@
 #!/bin/sh
 
+_dropbearkey()
+{
+	dropbearkey -f "$@" 0<&- 1>&- 2>&- || {
+		rm -f "$1" ; return 1
+	}
+}
+
 failsafe_dropbear () {
-	dropbearkey -t rsa -s 1024 -f /tmp/dropbear_failsafe_host_key
-	dropbear -r /tmp/dropbear_failsafe_host_key <> /dev/null 2>&1
+	tkey='/tmp/dropbear_failsafe_host_key'
+	while :; do
+		_dropbearkey "${tkey}" -t ed25519       && break
+		_dropbearkey "${tkey}" -t ecdsa -s 256  && break
+		_dropbearkey "${tkey}" -t rsa   -s 1024
+		break
+	done
+	dropbear -r "${tkey}" <> /dev/null 2>&1
 }
 
 boot_hook_add failsafe failsafe_dropbear

@@ -38,7 +38,7 @@ sudo apt install -y build-essential ccache ecj fastjar gawk \
 gettext git java-propose-classpath libelf-dev libncurses5-dev \
 libncursesw5-dev libssl-dev python-is-python2 python2.7-dev \
 python3-distutils python3-setuptools subversion swig xsltproc \
-upx-ucl libtinfo5 g++-multilib qemu-utils curl
+upx-ucl libtinfo5 g++-multilib qemu-utils curl clang
 ```
 
 ```
