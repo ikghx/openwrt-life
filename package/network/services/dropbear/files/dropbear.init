@@ -127,40 +127,6 @@ hk_generate_as_needed()
 	rm -rf "${hk_tmp_dir}"
 }
 
-# args: <path> <owner> <mode>
-adjust_owner_perm()
-{
-	chown "$2" "$1"
-	chmod "$3" "$1"
-}
-
-adjust_dir()
-{
-	[ -d "$1" ] || return 0
-	adjust_owner_perm "$@"
-}
-
-adjust_file()
-{
-	[ -f "$1" ] || return 0
-	adjust_owner_perm "$@"
-}
-
-adjust_permissions()
-{
-	local kdir ktype kfile
-	kdir='/etc/dropbear'
-
-	adjust_dir "${kdir}" 0:0 0700
-	adjust_file "${kdir}/authorized_keys" 0:0 0600
-
-	for ktype in ${ktype_all}; do
-		kfile="${kdir}/dropbear_${ktype}_host_key"
-
-		adjust_file "${kfile}" 0:0 0600
-	done
-}
-
 append_ports()
 {
 	local ipaddrs="$1"
@@ -260,7 +226,6 @@ boot()
 start_service()
 {
 	hk_generate_as_needed
-	adjust_permissions
 
 	. /lib/functions.sh
 	. /lib/functions/network.sh
