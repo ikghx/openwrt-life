@@ -12,28 +12,49 @@ PIDCOUNT=0
 
 extra_command "killclients" "Kill ${NAME} processes except servers and yourself"
 
-_dropbearkey()
-{
-	/usr/bin/dropbearkey "$@" 0<&- 1>&- 2>&-
-}
+_dropbearkey() { /usr/bin/dropbearkey "$@" 0<&- 1>&- 2>&-; }
+
+dumb_stat() { ls -Lln "$1" | tr -s '\t ' ' ' ; }
+dumb_stat_perm() { dumb_stat "$1" | cut -d ' ' -f 1 ; }
+dumb_stat_owner() { dumb_stat "$1" | cut -d ' ' -f 3 ; }
 
 # $1 - host key file name
-hk_verify()
+file_verify()
 {
 	[ -f "$1" ] || return 1
-	[ -s "$1" ] || return 2
-	_dropbearkey -y -f "$1" || return 3
+	# checking file ownership
+	[ "$(dumb_stat_owner "$1")" = "0" ] || {
+		chown 0 "$1"
+		[ "$(dumb_stat_owner "$1")" = "0" ] || return 2
+	}
+	# checking group write bit
+	[ "$(dumb_stat_perm "$1" | cut -c 6)" = "-" ] || {
+		chmod g-w "$1"
+		[ "$(dumb_stat_perm "$1" | cut -c 6)" = "-" ] || return 3
+	}
+	# checking other write bit
+	[ "$(dumb_stat_perm "$1" | cut -c 9)" = "-" ] || {
+		chmod o-w "$1"
+		[ "$(dumb_stat_perm "$1" | cut -c 9)" = "-" ] || return 3
+	}
+	# file is host key or not?
+	[ "$2" = "nokey" ] && return 0
+	# checking file contents (finally)
+	[ -s "$1" ] || return 4
+	_dropbearkey -y -f "$1" || return 5
 	return 0
 }
 
-# $1 - hk_verify() return code
-hk_errmsg()
+# $1 - file_verify() return code
+file_errmsg()
 {
 	case "$1" in
 	0) ;;
 	1) echo "file does not exist" ;;
-	2) echo "file has zero length" ;;
-	3) echo "file is not valid host key or not supported" ;;
+	2) echo "file has wrong owner (must be owned by root)" ;;
+	3) echo "file has wrong permissions (must not have group/other write bit)" ;;
+	4) echo "file has zero length" ;;
+	5) echo "file is not valid host key or not supported" ;;
 	*) echo "unknown error" ;;
 	esac
 }
@@ -43,22 +64,19 @@ hk_errmsg()
 hk_config()
 {
 	local x m
-	hk_verify "$2"; x=$?
+	file_verify "$2"; x=$?
 	case "$x" in
 	0)	procd_append_param command -r "$2"
 		;;
-	*)	m=$(hk_errmsg "$x")
-		logger -t "${NAME}" -p daemon.warn \
+	*)	m=$(file_errmsg "$x")
+		logger -s -t "${NAME}" -p daemon.warn \
 		  "option '$1', value '$2': $m, skipping"
 		;;
 	esac
 }
 
 # $1 - host key file name
-hk_config__keyfile()
-{
-	hk_config 'keyfile' "$1"
-}
+hk_config__keyfile() { hk_config 'keyfile' "$1"; }
 
 ktype_all='ecdsa ed25519 rsa'
 
@@ -75,7 +93,7 @@ hk_generate_as_needed()
 	for ktype in ${ktype_all}; do
 		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
 
-		if hk_verify "${kfile}"; then continue; fi
+		if file_verify "${kfile}"; then continue; fi
 
 		kgen="${kgen} ${ktype}"
 	done
@@ -97,6 +115,8 @@ hk_generate_as_needed()
 			rm -f "${kfile}"
 			continue
 		fi
+
+		chmod 0600 "${kfile}"
 	done
 
 	kgen=''
@@ -127,18 +147,19 @@ hk_generate_as_needed()
 	rm -rf "${hk_tmp_dir}"
 }
 
+# $1 - ip addresses
+# $2 - port
 append_ports()
 {
-	local ipaddrs="$1"
-	local port="$2"
+	local addr
 
-	[ -z "$ipaddrs" ] && {
-		procd_append_param command -p "$port"
+	[ -n "$1" ] || {
+		procd_append_param command -p "$2"
 		return
 	}
 
-	for addr in $ipaddrs; do
-		procd_append_param command -p "$addr:$port"
+	for addr in $1; do
+		procd_append_param command -p "${addr}:$2"
 	done
 }
 
@@ -174,8 +195,32 @@ dropbear_instance()
 	[ -n "${Interface}" ] && {
 		[ -n "${BOOT}" ] && return 0
 
-		network_get_ipaddrs_all ipaddrs "${Interface}" || {
-			echo "interface ${Interface} has no physdev or physdev has no suitable ip"
+		case "${Interface}" in
+		*\ *)
+			logger -s -t ${NAME} -p daemon.warn \
+				"Option 'Interface' should specify SINGLE interface" \
+				"but instead it lists following interfaces: ${Interface}"
+			logger -s -t ${NAME} -p daemon.warn \
+				"Consider creating per-interface instance instead"
+		;;
+		esac
+
+		ipaddrs=''
+		local n
+		for n in ${Interface}; do
+			if_ipaddrs=''
+			network_get_ipaddrs_all if_ipaddrs "$n"
+			[ -n "${if_ipaddrs}" ] || {
+				logger -s -t ${NAME} -p daemon.warn \
+					"Interface '$n' has no physdev or physdev has no suitable ip"
+				continue
+			}
+			ipaddrs="${ipaddrs}${ipaddrs:+ }${if_ipaddrs}"
+		done
+
+		[ -n "${ipaddrs}" ] || {
+			logger -s -t ${NAME} -p daemon.warn \
+				"No ip addresses are available for interface(s) '${Interface}'"
 			return 1
 		}
 	}
@@ -191,9 +236,13 @@ dropbear_instance()
 	[ "${RootPasswordAuth}" -eq 0 ] && procd_append_param command -g
 	[ "${RootLogin}" -eq 0 ] && procd_append_param command -w
 	if [ -n "${rsakeyfile}" ]; then
-		logger -t ${NAME} -p daemon.warn \
-			"option 'rsakeyfile' is considered to be deprecated and" \
-			"will be removed in future releases, use 'keyfile' instead"
+		logger -s -t ${NAME} -p daemon.warn "###"
+		logger -s -t ${NAME} -p daemon.warn "Option 'rsakeyfile' is DEPRECATED and will be REMOVED soon!"
+		logger -s -t ${NAME} -p daemon.warn "Use 'keyfile' instead - replace (in /etc/config/${NAME}):"
+		logger -s -t ${NAME} -p daemon.warn "  option rsakeyfile ${rsakeyfile}"
+		logger -s -t ${NAME} -p daemon.warn "with:"
+		logger -s -t ${NAME} -p daemon.warn "  list keyfile ${rsakeyfile}"
+		logger -s -t ${NAME} -p daemon.warn "###"
 		hk_config 'rsakeyfile' "${rsakeyfile}"
 	fi
 	config_list_foreach "$1" "keyfile" hk_config__keyfile
@@ -226,6 +275,7 @@ boot()
 start_service()
 {
 	hk_generate_as_needed
+	file_verify /etc/dropbear/authorized_keys nokey
 
 	. /lib/functions.sh
 	. /lib/functions/network.sh
@@ -244,8 +294,9 @@ service_triggers()
 	config_foreach load_interfaces dropbear
 
 	[ -n "${interfaces}" ] && {
+		local n
 		for n in $interfaces ; do
-			procd_add_interface_trigger "interface.*" $n /etc/init.d/dropbear reload
+			procd_add_interface_trigger "interface.*" "$n" /etc/init.d/dropbear reload
 		done
 	}
 

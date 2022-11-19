@@ -22,14 +22,26 @@ PKG_LICENSE_FILES:=LICENSE libtomcrypt/LICENSE libtommath/LICENSE
 PKG_CPE_ID:=cpe:/a:matt_johnston:dropbear_ssh_server
 
 PKG_BUILD_PARALLEL:=1
-PKG_ASLR_PIE_REGULAR:=1
-# handled by dropbear
-PKG_FORTIFY_SOURCE:=0
-# handled by dropbear
-PKG_SSP:=0
 PKG_USE_MIPS16:=0
 PKG_FIXUP:=autoreconf
 PKG_FLAGS:=nonshared
+
+# global hardening fixups
+CONFIG_PKG_ASLR_PIE_REGULAR:=1
+CONFIG_PKG_CC_STACKPROTECTOR_STRONG:=1
+CONFIG_PKG_RELRO_FULL:=1
+CONFIG_PKG_FORTIFY_SOURCE_2:=1
+undefine CONFIG_PKG_ASLR_PIE_ALL
+undefine CONFIG_PKG_CC_STACKPROTECTOR_REGULAR
+undefine CONFIG_PKG_RELRO_PARTIAL
+undefine CONFIG_PKG_FORTIFY_SOURCE_1
+# package hardening fixups
+PKG_ASLR_PIE_REGULAR:=1
+PKG_SSP:=1
+PKG_RELRO:=1
+PKG_FORTIFY_SOURCE:=1
+# switch from PIC to PIE
+FPIC:=$(subst -fPIC,-fPIE,$(subst -fpic,-fpie,$(FPIC)))
 
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_TARGET_INIT_PATH \
@@ -44,6 +56,10 @@ PKG_CONFIG_DEPENDS:= \
 
 
 include $(INCLUDE_DIR)/package.mk
+
+TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections -flto=auto -ffat-lto-objects -Wl,-pie
+TARGET_CFLAGS += $(if $(filter -Os,$(TARGET_CFLAGS)),-DLTC_SMALL_CODE,-DDROPBEAR_SMALL_CODE=0)
+TARGET_LDFLAGS += -Wl,--gc-sections -flto=auto -ffat-lto-objects -pie
 
 ifneq ($(DUMP),1)
   STAMP_CONFIGURED:=$(strip $(STAMP_CONFIGURED))_$(shell echo $(CONFIG_TARGET_INIT_PATH) | $(MKHASH) md5)
@@ -69,7 +85,6 @@ define Package/dropbear
   $(if $(CONFIG_DROPBEAR_DBCLIENT),ALTERNATIVES+= \
 	  100:/usr/bin/ssh:/usr/sbin/dropbear,)
 
-  FILE_MODES:=$(foreach c,$(Package/dropbear/conffiles),$(c):root:root:0600 )
 endef
 
 define Package/dropbear/description
@@ -109,8 +124,8 @@ CONFIGURE_ARGS += \
 
 ##############################################################################
 #
-#   option|value - add option to localoptions.h
-# !!option|value - replace option in sysoptions.h
+#   option,value - add option to localoptions.h
+# !!option,value - replace option in sysoptions.h
 #
 ##############################################################################
 
@@ -119,79 +134,81 @@ CONFIGURE_ARGS += \
 # disable legacy/unsafe methods and unused functionality:
 # - DO_MOTD
 # - DROPBEAR_CLI_NETCAT
+# - DROPBEAR_DH_GROUP14_SHA1
 # - DROPBEAR_DSS (in both headers!)
+# - DROPBEAR_RSA_SHA1
+# - DROPBEAR_SHA1_HMAC
 # adjust allowed shell list (if getusershell(3) is missing):
 # - COMPAT_USER_SHELLS
 DB_OPT_COMMON = \
-	!!DROPBEAR_DSS|0 \
-	!!LOCAL_IDENT|"SSH-2.0-dropbear" \
-	COMPAT_USER_SHELLS|"/bin/ash","/bin/sh" \
-	DEFAULT_PATH|"$(TARGET_INIT_PATH)" \
-	DEFAULT_ROOT_PATH|"$(TARGET_INIT_PATH)" \
-	DO_MOTD|0 \
-	DROPBEAR_CLI_NETCAT|0 \
-	DROPBEAR_DSS|0 \
+	!!DROPBEAR_DSS,0 \
+	!!LOCAL_IDENT,"SSH-2.0-dropbear" \
+	COMPAT_USER_SHELLS,"/bin/ash","/bin/sh" \
+	DEFAULT_PATH,"$(TARGET_INIT_PATH)" \
+	DEFAULT_ROOT_PATH,"$(TARGET_INIT_PATH)" \
+	DO_MOTD,0 \
+	DROPBEAR_CLI_NETCAT,0 \
+	DROPBEAR_DH_GROUP14_SHA1,0 \
+	DROPBEAR_DSS,0 \
+	DROPBEAR_RSA_SHA1,0 \
+	DROPBEAR_SHA1_HMAC,0 \
 
 
 ##############################################################################
 #
-#   option|config|enabled|disabled = add option to localoptions.h
-# !!option|config|enabled|disabled = replace option in sysoptions.h
+#   option,config,enabled,disabled = add option to localoptions.h
+# !!option,config,enabled,disabled = replace option in sysoptions.h
 #
 #   option := (config) ? enabled : disabled
 #
 ##############################################################################
 
 DB_OPT_CONFIG = \
-	DROPBEAR_AES128|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_AES256|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_DH_GROUP14_SHA1|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_RSA|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_RSA_SHA1|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_SHA1_HMAC|CONFIG_DROPBEAR_MODERN_ONLY|0|1 \
-	DROPBEAR_CURVE25519|CONFIG_DROPBEAR_CURVE25519|1|0 \
-	DROPBEAR_ECDSA|CONFIG_DROPBEAR_ECC|1|0 \
-	DROPBEAR_ECDH|CONFIG_DROPBEAR_ECC|1|0 \
-	!!DROPBEAR_ECC_384|CONFIG_DROPBEAR_ECC_FULL|1|0 \
-	!!DROPBEAR_ECC_521|CONFIG_DROPBEAR_ECC_FULL|1|0 \
-	DROPBEAR_ED25519|CONFIG_DROPBEAR_ED25519|1|0 \
-	DROPBEAR_CHACHA20POLY1305|CONFIG_DROPBEAR_CHACHA20POLY1305|1|0 \
-	DROPBEAR_SK_KEYS|CONFIG_DROPBEAR_U2F|1|0 \
-	DROPBEAR_SK_ECDSA|CONFIG_DROPBEAR_ECDSA_SK|1|0 \
-	DROPBEAR_SK_ED25519|CONFIG_DROPBEAR_ED25519_SK|1|0 \
-	DROPBEAR_SVR_AGENTFWD|CONFIG_DROPBEAR_AGENTFORWARD|1|0 \
-	DROPBEAR_CLI_AGENTFWD|CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD|1|0 \
-	DROPBEAR_CLI_ASKPASS_HELPER|CONFIG_DROPBEAR_DBCLIENT_ASKPASS|1|0 \
+	DROPBEAR_AES128,CONFIG_DROPBEAR_MODERN_ONLY,0,1 \
+	DROPBEAR_AES256,CONFIG_DROPBEAR_MODERN_ONLY,0,1 \
+	DROPBEAR_RSA,CONFIG_DROPBEAR_MODERN_ONLY,0,1 \
+	DROPBEAR_CURVE25519,CONFIG_DROPBEAR_CURVE25519,1,0 \
+	DROPBEAR_ECDSA,CONFIG_DROPBEAR_ECC,1,0 \
+	DROPBEAR_ECDH,CONFIG_DROPBEAR_ECC,1,0 \
+	!!DROPBEAR_ECC_384,CONFIG_DROPBEAR_ECC_FULL,1,0 \
+	!!DROPBEAR_ECC_521,CONFIG_DROPBEAR_ECC_FULL,1,0 \
+	DROPBEAR_ED25519,CONFIG_DROPBEAR_ED25519,1,0 \
+	DROPBEAR_CHACHA20POLY1305,CONFIG_DROPBEAR_CHACHA20POLY1305,1,0 \
+	DROPBEAR_SK_KEYS,CONFIG_DROPBEAR_U2F,1,0 \
+	DROPBEAR_SK_ECDSA,CONFIG_DROPBEAR_ECDSA_SK,1,0 \
+	DROPBEAR_SK_ED25519,CONFIG_DROPBEAR_ED25519_SK,1,0 \
+	DROPBEAR_SVR_AGENTFWD,CONFIG_DROPBEAR_AGENTFORWARD,1,0 \
+	DROPBEAR_CLI_AGENTFWD,CONFIG_DROPBEAR_DBCLIENT_AGENTFORWARD,1,0 \
+	DROPBEAR_CLI_ASKPASS_HELPER,CONFIG_DROPBEAR_DBCLIENT_ASKPASS,1,0 \
 
 
-TARGET_CFLAGS += -DARGTYPE=3 -ffunction-sections -fdata-sections -flto=auto -ffat-lto-objects
-TARGET_CFLAGS += $(if $(filter -Os,$(TARGET_CFLAGS)),-DLTC_SMALL_CODE,-DDROPBEAR_SMALL_CODE=0)
-TARGET_LDFLAGS += -Wl,--gc-sections -flto=auto -ffat-lto-objects
+xsedx:=$(shell printf '\027')
+# fixup for topmost rules.mk
+space:=$(empty) $(empty)
 
 db_opt_add     =echo '\#define $(1) $(2)' >> $(PKG_BUILD_DIR)/localoptions.h
-db_opt_replace =$(ESED) 's,^(\#define $(1)) .*$$$$,\1 $(2),g' $(PKG_BUILD_DIR)/sysoptions.h
+db_opt_replace =$(ESED) '/^\#define $(1) .*$$$$/{h;:a;$$$$!n;/^\#.+$$$$/bb;/^$$$$/bb;H;ba;:b;x;s$(xsedx)^.+$$$$$(xsedx)\#define $(1) $(2)$(xsedx)p;x};p' -n $(PKG_BUILD_DIR)/sysoptions.h
 
 define Build/Configure/dropbear_headers
 	$(strip $(foreach s,$(DB_OPT_COMMON), \
-	  $(if $(filter !!%,$(word 1,$(subst |, ,$(s)))), \
-	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst |, ,$(s)))),$(wordlist 2,$(words $(subst |, ,$(s))),$(subst |, ,$(s)))), \
-	    $(call db_opt_add,$(word 1,$(subst |, ,$(s))),$(wordlist 2,$(words $(subst |, ,$(s))),$(subst |, ,$(s)))) \
+	  $(if $(filter !!%,$(word 1,$(subst $(comma),$(space),$(s)))), \
+	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst $(comma),$(space),$(s)))),$(subst $(space),$(comma),$(wordlist 2,$(words $(subst $(comma),$(space),$(s))),$(subst $(comma),$(space),$(s))))), \
+	    $(call db_opt_add,$(word 1,$(subst $(comma),$(space),$(s))),$(subst $(space),$(comma),$(wordlist 2,$(words $(subst $(comma),$(space),$(s))),$(subst $(comma),$(space),$(s))))) \
 	  ) ; \
 	))
 
 	$(strip $(foreach s,$(DB_OPT_CONFIG), \
-	  $(if $(filter !!%,$(word 1,$(subst |, ,$(s)))), \
-	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst |, ,$(s)))),$(if $($(word 2,$(subst |, ,$(s)))),$(word 3,$(subst |, ,$(s))),$(word 4,$(subst |, ,$(s))))), \
-	    $(call db_opt_add,$(word 1,$(subst |, ,$(s))),$(if $($(word 2,$(subst |, ,$(s)))),$(word 3,$(subst |, ,$(s))),$(word 4,$(subst |, ,$(s))))) \
+	  $(if $(filter !!%,$(word 1,$(subst $(comma),$(space),$(s)))), \
+	    $(call db_opt_replace,$(patsubst !!%,%,$(word 1,$(subst $(comma),$(space),$(s)))),$(if $($(word 2,$(subst $(comma),$(space),$(s)))),$(word 3,$(subst $(comma),$(space),$(s))),$(word 4,$(subst $(comma),$(space),$(s))))), \
+	    $(call db_opt_add,$(word 1,$(subst $(comma),$(space),$(s))),$(if $($(word 2,$(subst $(comma),$(space),$(s)))),$(word 3,$(subst $(comma),$(space),$(s))),$(word 4,$(subst $(comma),$(space),$(s))))) \
 	  ) ; \
 	))
 endef
 
 define Build/Configure
-	: > $(PKG_BUILD_DIR)/localoptions.h
-
+	rm -f $(PKG_BUILD_DIR)/localoptions.h
 	$(Build/Configure/Default)
-
+	: > $(PKG_BUILD_DIR)/localoptions.h
 	$(Build/Configure/dropbear_headers)
 
 	# Enforce rebuild of svr-chansession.c
@@ -228,7 +245,7 @@ define Package/dropbear/install
 	$(INSTALL_DIR) $(1)/etc/dropbear
 	$(INSTALL_DIR) $(1)/lib/preinit
 	$(INSTALL_DATA) ./files/dropbear.failsafe $(1)/lib/preinit/99_10_failsafe_dropbear
-	touch $(foreach c,$(Package/dropbear/conffiles),$(1)$(c) )
+	$(foreach f,$(filter /etc/dropbear/%,$(Package/dropbear/conffiles)),$(if $(wildcard ./files/$(notdir $(f))),$(INSTALL_CONF) ./files/$(notdir $(f)) $(1)$(f); ))
 endef
 
 define Package/dropbearconvert/install

@@ -15,6 +15,7 @@ failsafe_dropbear () {
 		_dropbearkey "${tkey}" -t rsa   -s 1024
 		break
 	done
+	chmod 0600 "${tkey}"
 	dropbear -r "${tkey}" <> /dev/null 2>&1
 }
 
