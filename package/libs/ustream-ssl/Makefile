@@ -37,7 +37,6 @@ define Package/libustream-wolfssl
   $(Package/libustream/default)
   TITLE += (wolfssl)
   DEPENDS += +PACKAGE_libustream-wolfssl:libwolfssl
-  CONFLICTS:=libustream-openssl
   VARIANT:=wolfssl
 endef
 
