@@ -719,7 +719,7 @@ hostapd_set_bss_options() {
 		;;
 	esac
 
-	local auth_algs=$((($auth_mode_shared << 1) | $auth_mode_open))
+	local auth_algs="$((($auth_mode_shared << 1) | $auth_mode_open))"
 	append bss_conf "auth_algs=${auth_algs:-1}" "$N"
 	append bss_conf "wpa=$wpa" "$N"
 	[ -n "$wpa_pairwise" ] && append bss_conf "wpa_pairwise=$wpa_pairwise" "$N"
@@ -1287,14 +1287,12 @@ wpa_supplicant_add_network() {
 
 			key_mgmt="$wpa_key_mgmt"
 
-			if [ ${#key} -eq 64 ]; then
+			if [ "$_w_mode" = "mesh" -o "$auth_type" = "sae" ]; then
+				passphrase="sae_password=\"${key}\""
+			elif [ ${#key} -eq 64 ]; then
 				passphrase="psk=${key}"
 			else
-				if [ "$_w_mode" = "mesh" ]; then
-					passphrase="sae_password=\"${key}\""
-				else
-					passphrase="psk=\"${key}\""
-				fi
+				passphrase="psk=\"${key}\""
 			fi
 			append network_data "$passphrase" "$N$T"
 		;;
