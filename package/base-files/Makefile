@@ -48,6 +48,7 @@ define Package/base-files/conffiles
 /etc/config/network
 /etc/config/system
 /etc/crontabs/
+/etc/config/sysctl
 /etc/dropbear/
 /etc/ethers
 /etc/group
