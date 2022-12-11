@@ -8,7 +8,7 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=r8125
 PKG_VERSION:=9.010.01-1
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/awesometic/realtek-r8125-dkms/tar.gz/$(PKG_VERSION)?
@@ -29,7 +29,7 @@ define KernelPackage/r8125
   AUTOLOAD:=$(call AutoProbe,r8125)
 endef
 
-define Package/r8125/description
+define KernelPackage/r8125/description
   This package contains a driver for Realtek r8125 chipsets.
 endef
 
