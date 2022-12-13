@@ -22,7 +22,7 @@ Subject: [PATCH] Fix --enable-devcrypto build error for sys without u_int8_t
  Or for more control over features used:
 --- a/wolfcrypt/src/port/devcrypto/wc_devcrypto.c
 +++ b/wolfcrypt/src/port/devcrypto/wc_devcrypto.c
-@@ -122,7 +122,7 @@ int wc_DevCryptoCreate(WC_CRYPTODEV* ctx, int type, byte* key, word32 keySz)
+@@ -122,7 +122,7 @@ int wc_DevCryptoCreate(WC_CRYPTODEV* ctx
          case CRYPTO_SHA2_512_HMAC:
              ctx->sess.cipher = 0;
              ctx->sess.mac    = type;

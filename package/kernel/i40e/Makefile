@@ -10,7 +10,7 @@ PKG_VERSION:=2.22.8
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://sources.immortalwrt.org
+PKG_SOURCE_URL:=https://sources.immortalwrt.org/
 PKG_HASH:=938eac24067e385d6e7e47788c7a1c47987bbe0ed36f3360809cbaa8caf85c6b
 
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
