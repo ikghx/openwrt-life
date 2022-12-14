@@ -15,7 +15,7 @@ config-$(call config_package,ipw2200) += IPW2200
 
 define KernelPackage/iwlwifi
   $(call KernelPackage/mac80211/Default)
-  DEPENDS:= +kmod-mac80211 @PCI_SUPPORT +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11AX_SUPPORT
+  DEPENDS:= +kmod-mac80211 @PCI_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11AX_SUPPORT
   TITLE:=Intel AGN Wireless support
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko \
@@ -110,7 +110,7 @@ endef
 
 define KernelPackage/iwl4965
   $(call KernelPackage/mac80211/Default)
-  DEPENDS:= +kmod-mac80211 +kmod-iwl-legacy +@DRIVER_11N_SUPPORT +iwl4965-firmware
+  DEPENDS:= +kmod-mac80211 +kmod-iwl-legacy +iwl4965-firmware
   TITLE:=Intel iwl4965 Wireless support
   FILES:=$(PKG_BUILD_DIR)/drivers/net/wireless/intel/iwlegacy/iwl4965.ko
   AUTOLOAD:=$(call AutoProbe,iwl4965)
