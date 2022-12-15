@@ -7,7 +7,6 @@
 	model = "GL.iNet GL-AR300M-Lite";
 };
 
-/delete-node/ &reg_usb_vbus;
 
 /delete-node/ &nand_flash;
 
@@ -28,8 +27,4 @@
 
 &led_wlan {
 	label = "green:wlan";
-};
-
-&usb0 {
-	/delete-property/ vbus-supply;
 };

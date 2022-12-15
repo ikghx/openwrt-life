@@ -506,14 +506,14 @@ $(eval $(call KernelPackage,fs-ntfs))
 define KernelPackage/fs-ntfs3
   SUBMENU:=$(FS_MENU)
   TITLE:=NTFS3 Read-Write file system support
-  DEPENDS:=+kmod-nls-base
   KCONFIG:= \
 	CONFIG_NTFS3_FS \
 	CONFIG_NTFS3_64BIT_CLUSTER=y \
 	CONFIG_NTFS3_LZX_XPRESS=y \
 	CONFIG_NTFS3_FS_POSIX_ACL=y
   FILES:=$(LINUX_DIR)/fs/ntfs3/ntfs3.ko
-  AUTOLOAD:=$(call AutoLoad,30,ntfs3)
+  $(call AddDepends/nls)
+  AUTOLOAD:=$(call AutoLoad,80,ntfs3)
 endef
 
 define KernelPackage/fs-ntfs3/description
