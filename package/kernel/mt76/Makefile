@@ -171,7 +171,7 @@ endef
 define KernelPackage/mt7615-firmware
   $(KernelPackage/mt76-default)
   TITLE:=MediaTek MT7615e firmware
-  DEFAULT:=PACKAGE_kmod-mt7615e
+  DEPENDS+=+kmod-mt7615e
 endef
 
 define KernelPackage/mt7615e
@@ -218,10 +218,17 @@ define KernelPackage/mt7663u
   AUTOLOAD:=$(call AutoProbe,mt7663u)
 endef
 
+define KernelPackage/mt7915-firmware
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7915 firmware
+  DEPENDS+=+kmod-mt7915e
+endef
+
 define KernelPackage/mt7915e
   $(KernelPackage/mt76-default)
   TITLE:=MediaTek MT7915e wireless driver
-  DEPENDS+=@PCI_SUPPORT +kmod-mt7615-common +kmod-hwmon-core +kmod-thermal +@DRIVER_11AX_SUPPORT +@KERNEL_RELAY
+  DEPENDS+=@PCI_SUPPORT +@DRIVER_11AX_SUPPORT +@KERNEL_RELAY \
+	+kmod-hwmon-core +kmod-mt76-connac +kmod-mt76-core +kmod-thermal
   FILES:= $(PKG_BUILD_DIR)/mt7915/mt7915e.ko
   AUTOLOAD:=$(call AutoProbe,mt7915e)
 endef
@@ -352,8 +359,7 @@ ifdef CONFIG_PACKAGE_kmod-mt7921e
 endif
 
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-		$(KERNEL_MAKE_FLAGS) \
+	+$(KERNEL_MAKE) $(PKG_JOBS) \
 		$(PKG_MAKE_FLAGS) \
 		M="$(PKG_BUILD_DIR)" \
 		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
@@ -413,9 +419,6 @@ define KernelPackage/mt7615-firmware/install
 		$(PKG_BUILD_DIR)/firmware/mt7615_cr4.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7615_n9.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7615_rom_patch.bin \
-		$(if $(CONFIG_TARGET_mediatek_mt7622), \
-			$(PKG_BUILD_DIR)/firmware/mt7622_n9.bin \
-			$(PKG_BUILD_DIR)/firmware/mt7622_rom_patch.bin) \
 		$(1)/lib/firmware/mediatek
 endef
 
@@ -435,7 +438,7 @@ define KernelPackage/mt7663-firmware-sta/install
 		$(1)/lib/firmware/mediatek
 endef
 
-define KernelPackage/mt7915e/install
+define KernelPackage/mt7915-firmware/install
 	$(INSTALL_DIR) $(1)/lib/firmware/mediatek
 	cp \
 		$(PKG_BUILD_DIR)/firmware/mt7915_wa.bin \
@@ -478,6 +481,7 @@ $(eval $(call KernelPackage,mt7663-firmware-sta))
 $(eval $(call KernelPackage,mt7663-usb-sdio))
 $(eval $(call KernelPackage,mt7663u))
 $(eval $(call KernelPackage,mt7663s))
+$(eval $(call KernelPackage,mt7915-firmware))
 $(eval $(call KernelPackage,mt7915e))
 $(eval $(call KernelPackage,mt7921-common))
 $(eval $(call KernelPackage,mt7921-firmware))
