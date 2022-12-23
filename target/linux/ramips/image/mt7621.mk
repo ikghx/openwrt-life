@@ -769,7 +769,7 @@ define Device/jcg_q20
 	check-size
   DEVICE_VENDOR := JCG
   DEVICE_MODEL := Q20
-  DEVICE_PACKAGES := kmod-mt7915e uboot-envtools
+  DEVICE_PACKAGES := kmod-mt7915-firmware uboot-envtools
 endef
 TARGET_DEVICES += jcg_q20
 
@@ -1252,7 +1252,7 @@ define Device/totolink_x5000r
   UIMAGE_NAME := C8343R-9999
   DEVICE_VENDOR := TOTOLINK
   DEVICE_MODEL := X5000R
-  DEVICE_PACKAGES := kmod-mt7915e
+  DEVICE_PACKAGES := kmod-mt7915-firmware
 endef
 TARGET_DEVICES += totolink_x5000r
 
@@ -1365,7 +1365,7 @@ define Device/ubnt_unifi-6-lite
   DEVICE_VENDOR := Ubiquiti
   DEVICE_MODEL := UniFi 6 Lite
   DEVICE_DTS_CONFIG := config@1
-  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7915e
+  DEVICE_PACKAGES += kmod-mt7603 kmod-mt7915-firmware
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   IMAGE_SIZE := 15424k
 endef
@@ -1572,7 +1572,7 @@ define Device/xiaomi_mi-router-cr660x
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   IMAGE/firmware.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
 	check-size
-  DEVICE_PACKAGES += kmod-mt7915e uboot-envtools
+  DEVICE_PACKAGES += kmod-mt7915-firmware uboot-envtools
 endef
 
 define Device/xiaomi_mi-router-cr6606
@@ -1625,7 +1625,7 @@ define Device/youhua_wr1200js
   IMAGE_SIZE := 16064k
   DEVICE_VENDOR := YouHua
   DEVICE_MODEL := WR1200JS
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 \
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb2 \
 	kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += youhua_wr1200js
@@ -1647,7 +1647,7 @@ define Device/yuncore_ax820
   IMAGE_SIZE := 15808k
   DEVICE_VENDOR := YunCore
   DEVICE_MODEL := AX820
-  DEVICE_PACKAGES := kmod-mt7915e
+  DEVICE_PACKAGES := kmod-mt7915-firmware
 endef
 TARGET_DEVICES += yuncore_ax820
 
