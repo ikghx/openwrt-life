@@ -23,7 +23,7 @@ This warehouse is for testing only and does not provide reliability guarantees!
  
 ## 编译准备
 
-1. 选择 “最小安装” Ubuntu 20.04.4 Desktop (64-bit)
+1. 选择 “最小安装” Ubuntu 22.04.1 Desktop (64-bit)
 
 2. 使用普通用户登录 Ubuntu 系统，禁止使用 root 用户或权限进行编译操作。
 
@@ -34,11 +34,8 @@ sudo apt-get update
 ```
 
 ```
-sudo apt install -y build-essential ccache ecj fastjar gawk \
-gettext git java-propose-classpath libelf-dev libncurses5-dev \
-libncursesw5-dev libssl-dev python-is-python2 python2.7-dev \
-python3-distutils python3-setuptools subversion swig xsltproc \
-upx-ucl libtinfo5 g++-multilib qemu-utils curl
+sudo apt install -y build-essential clang curl flex g++-multilib gawk \
+gettext git libelf-dev libncurses5-dev libssl-dev python3-distutils
 ```
 
 ```
