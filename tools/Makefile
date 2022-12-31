@@ -82,6 +82,7 @@ $(curdir)/fakeroot/compile := $(curdir)/libtool/compile
 $(curdir)/findutils/compile := $(curdir)/bison/compile
 $(curdir)/firmware-utils/compile += $(curdir)/cmake/compile
 $(curdir)/flex/compile := $(curdir)/libtool/compile
+$(curdir)/genext2fs/compile := $(curdir)/libtool/compile
 $(curdir)/gengetopt/compile := $(curdir)/libtool/compile
 $(curdir)/gmp/compile := $(curdir)/libtool/compile
 $(curdir)/isl/compile := $(curdir)/gmp/compile
@@ -91,7 +92,7 @@ $(curdir)/lzma-old/compile := $(curdir)/zlib/compile
 $(curdir)/make-ext4fs/compile := $(curdir)/zlib/compile
 $(curdir)/meson/compile := $(curdir)/ninja/compile
 $(curdir)/missing-macros/compile := $(curdir)/autoconf/compile
-$(curdir)/mkimage/compile += $(curdir)/libressl/compile
+$(curdir)/mkimage/compile += $(curdir)/bison/compile $(curdir)/libressl/compile
 $(curdir)/mklibs/compile := $(curdir)/libtool/compile
 $(curdir)/mpc/compile := $(curdir)/mpfr/compile $(curdir)/gmp/compile
 $(curdir)/mpfr/compile := $(curdir)/gmp/compile
@@ -108,6 +109,14 @@ $(curdir)/zstd/compile := $(curdir)/meson/compile
 ifneq ($(HOST_OS),Linux)
   $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
   tools-y += coreutils
+endif
+ifeq ($(HOST_OS),Darwin)
+  tools-y += bash
+else
+  $(curdir)/dwarves/compile += $(curdir)/elfutils/compile
+  $(curdir)/elfutils/compile := $(curdir)/m4/compile $(curdir)/zlib/compile
+  tools-$(CONFIG_DWARVES) += dwarves
+  tools-y += elfutils
 endif
 
 ifneq ($(CONFIG_CCACHE)$(CONFIG_SDK),)

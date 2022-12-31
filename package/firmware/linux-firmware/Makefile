@@ -21,6 +21,9 @@ SCAN_DEPS = *.mk
 
 include $(INCLUDE_DIR)/package.mk
 
+RSTRIP:=:
+STRIP:=:
+
 define Package/firmware-default
   SECTION:=firmware
   CATEGORY:=Firmware
