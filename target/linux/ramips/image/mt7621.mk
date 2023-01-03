@@ -372,7 +372,6 @@ define Device/dlink_dir-878-a1
   $(Device/dlink_dir-8xx-a1)
   DEVICE_MODEL := DIR-878
   DEVICE_VARIANT := A1
-  DEVICE_PACKAGES += kmod-mt7603
 endef
 TARGET_DEVICES += dlink_dir-878-a1
 
@@ -380,7 +379,7 @@ define Device/dlink_dir-882-a1
   $(Device/dlink_dir-8xx-a1)
   DEVICE_MODEL := DIR-882
   DEVICE_VARIANT := A1
-  DEVICE_PACKAGES += kmod-mt7603 kmod-usb3 kmod-usb-ledtrig-usbport kmod-sdhci-mt7620
+  DEVICE_PACKAGES += kmod-usb3 kmod-usb-ledtrig-usbport kmod-sdhci-mt7620
 endef
 TARGET_DEVICES += dlink_dir-882-a1
 
@@ -590,7 +589,7 @@ define Device/glinet_gl-mt1300
   IMAGE_SIZE := 32448k
   DEVICE_VENDOR := GL.iNet
   DEVICE_MODEL := GL-MT1300
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-usb3 kmod-sdhci-mt7620
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 kmod-sdhci-mt7620
 endef
 TARGET_DEVICES += glinet_gl-mt1300
 
@@ -866,7 +865,6 @@ define Device/linksys_ea7500-v2
   DEVICE_MODEL := EA7500
   DEVICE_VARIANT := v2
   LINKSYS_HWNAME := EA7500v2
-  DEVICE_PACKAGES += kmod-mt7603
 endef
 TARGET_DEVICES += linksys_ea7500-v2
 
@@ -875,7 +873,6 @@ define Device/linksys_ea8100-v1
   DEVICE_MODEL := EA8100
   DEVICE_VARIANT := v1
   LINKSYS_HWNAME := EA8100
-  DEVICE_PACKAGES += kmod-mt7603
 endef
 TARGET_DEVICES += linksys_ea8100-v1
 
@@ -884,7 +881,6 @@ define Device/linksys_ea8100-v2
   DEVICE_MODEL := EA8100
   DEVICE_VARIANT := v2
   LINKSYS_HWNAME := EA8100v2
-  DEVICE_PACKAGES += kmod-mt7603
 endef
 TARGET_DEVICES += linksys_ea8100-v2
 
@@ -1169,7 +1165,7 @@ define Device/phicomm_k2p
   DEVICE_ALT0_VENDOR := Phicomm
   DEVICE_ALT0_MODEL := KE 2P
   SUPPORTED_DEVICES += k2p
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware
+  DEVICE_PACKAGES := kmod-mt7615-firmware
 endef
 TARGET_DEVICES += phicomm_k2p
 
@@ -1246,7 +1242,7 @@ define Device/totolink_a7000r
   UIMAGE_NAME := C8340R1C-9999
   DEVICE_VENDOR := TOTOLINK
   DEVICE_MODEL := A7000R
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware
+  DEVICE_PACKAGES := kmod-mt7615-firmware
 endef
 TARGET_DEVICES += totolink_a7000r
 
@@ -1519,7 +1515,7 @@ define Device/xiaomi_mi-router-3-pro
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
 	check-size
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-usb3 \
+  DEVICE_PACKAGES := kmod-mt7615-firmware kmod-usb3 \
 	kmod-usb-ledtrig-usbport uboot-envtools
   SUPPORTED_DEVICES += xiaomi,mir3p
 endef
