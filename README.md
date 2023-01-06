@@ -35,7 +35,8 @@ sudo apt-get update
 
 ```
 sudo apt install -y build-essential clang curl flex g++-multilib gawk \
-gettext git libelf-dev libncurses5-dev libssl-dev python3-distutils
+gettext git libelf-dev libncurses5-dev libssl-dev python3-distutils \
+mkisofs qemu-utils
 ```
 
 ```
