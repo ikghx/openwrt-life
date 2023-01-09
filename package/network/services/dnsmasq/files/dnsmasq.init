@@ -1013,6 +1013,7 @@ dnsmasq_start()
 	append_parm "$cfg" "dhcp_boot" "--dhcp-boot"
 	append_parm "$cfg" "local_ttl" "--local-ttl"
 	append_parm "$cfg" "use_stale_cache" "--use-stale-cache"
+	append_parm "$cfg" "fast_dns_retry" "--fast-dns-retry"
 	append_parm "$cfg" "max_ttl" "--max-ttl"
 	append_parm "$cfg" "min_cache_ttl" "--min-cache-ttl"
 	append_parm "$cfg" "max_cache_ttl" "--max-cache-ttl"
