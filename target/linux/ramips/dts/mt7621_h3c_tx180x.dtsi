@@ -49,6 +49,18 @@
 	};
 };
 
+&gmac1 {
+	status = "okay";
+	label = "wan";
+	phy-handle = <&ethphy4>;
+};
+
+&mdio {
+	ethphy4: ethernet-phy@4 {
+		reg = <4>;
+	};
+};
+
 &nand {
 	status = "okay";
 
@@ -125,6 +137,13 @@
 	status = "disabled";
 };
 
+&state_default {
+	gpio {
+		groups = "jtag";
+		function = "gpio";
+	};
+};
+
 &switch0 {
 	ports {
 		port@1 {
@@ -140,11 +159,6 @@
 		port@3 {
 			status = "okay";
 			label = "lan3";
-		};
-
-		port@4 {
-			status = "okay";
-			label = "wan";
 		};
 	};
 };
