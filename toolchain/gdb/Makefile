@@ -30,7 +30,7 @@ HOST_CONFIGURE_ARGS = \
 	--build=$(GNU_HOST_NAME) \
 	--host=$(GNU_HOST_NAME) \
 	--target=$(REAL_GNU_TARGET_NAME) \
-	--with-expat=$(TOPDIR)/staging_dir/host \
+	--with-expat=$(STAGING_DIR_HOST) \
 	--disable-werror \
 	--without-uiout \
 	--enable-tui --disable-gdbtk --without-x \
