@@ -239,6 +239,17 @@ _procd_add_jail_mount_rw() {
 	json_select ..
 }
 
+_procd_set_jail_param() {
+	local type="$1"; shift
+
+	local _json_no_warning=1
+
+	json_select "jail"
+	[ $? = 0 ] || return
+	json_add_string "$type" "$1"
+	json_select ..
+}
+
 _procd_set_param() {
 	local type="$1"; shift
 
@@ -524,7 +535,7 @@ _procd_send_signal() {
 _procd_status() {
 	local service="$1"
 	local instance="$2"
-	local data
+	local data running
 
 	json_init
 	[ -n "$service" ] && json_add_string name "$service"
@@ -542,6 +553,8 @@ _procd_status() {
 	if [ -z "$(echo "$data" | jsonfilter -e '$['"$instance"']')" ]; then
 		echo "unknown instance $instance"; return 4
 	else
+		running=$(echo "$data" | jsonfilter -e '@[*].running')
+		echo "$running" | grep -q true || { echo "inactive"; return 3; }
 		echo "running"; return 0
 	fi
 }
@@ -648,6 +661,7 @@ _procd_wrapper \
 	procd_add_jail \
 	procd_add_jail_mount \
 	procd_add_jail_mount_rw \
+	procd_set_jail_param \
 	procd_set_param \
 	procd_append_param \
 	procd_add_validation \

@@ -903,18 +903,18 @@ dnsmasq_start()
 		fi
 	fi
 
-	append_bool "$cfg" authoritative "--dhcp-authoritative"
-	append_bool "$cfg" nodaemon "--no-daemon"
-	append_bool "$cfg" domainneeded "--domain-needed"
-	append_bool "$cfg" filterwin2k "--filterwin2k"
-	append_bool "$cfg" nohosts "--no-hosts"
-	append_bool "$cfg" nonegcache "--no-negcache"
-	append_bool "$cfg" strictorder "--strict-order"
-	append_bool "$cfg" logqueries "--log-queries=extra"
-	append_parm "$cfg" log_async "--log-async"
-	append_bool "$cfg" noresolv "--no-resolv"
-	append_bool "$cfg" localise_queries "--localise-queries"
-	append_bool "$cfg" readethers "--read-ethers"
+	append_bool "$cfg" "authoritative" "--dhcp-authoritative"
+	append_bool "$cfg" "nodaemon" "--no-daemon"
+	append_bool "$cfg" "domainneeded" "--domain-needed"
+	append_bool "$cfg" "filterwin2k" "--filterwin2k"
+	append_bool "$cfg" "nohosts" "--no-hosts"
+	append_bool "$cfg" "nonegcache" "--no-negcache"
+	append_bool "$cfg" "strictorder" "--strict-order"
+	append_bool "$cfg" "logqueries" "--log-queries=extra"
+	append_parm "$cfg" "log_async" "--log-async"
+	append_bool "$cfg" "noresolv" "--no-resolv"
+	append_bool "$cfg" "localise_queries" "--localise-queries"
+	append_bool "$cfg" "readethers" "--read-ethers"
 
 	local instance_name="dnsmasq.$cfg"
 	if [ "$cfg" = "$DEFAULT_INSTANCE" ]; then
@@ -925,10 +925,10 @@ dnsmasq_start()
 	config_get_bool ubus "$cfg" "ubus" 1
 	[ $ubus -gt 0 ] && xappend "--enable-ubus=$instance_name"
 
-	append_bool "$cfg" expandhosts "--expand-hosts"
+	append_bool "$cfg" "expandhosts" "--expand-hosts"
 	config_get tftp_root "$cfg" "tftp_root"
-	[ -n "$tftp_root" ] && mkdir -p "$tftp_root" && append_bool "$cfg" enable_tftp "--enable-tftp"
-	append_bool "$cfg" tftp_no_fail "--tftp-no-fail"
+	[ -n "$tftp_root" ] && mkdir -p "$tftp_root" && append_bool "$cfg" "enable_tftp" "--enable-tftp"
+	append_bool "$cfg" "tftp_no_fail" "--tftp-no-fail"
 
 	config_get bind "$cfg" "bind"
 	case "$bind" in
@@ -937,7 +937,7 @@ dnsmasq_start()
 			;;
 		"")
 			# for compatibility reasons
-			append_bool "$cfg" nonwildcard "--bind-dynamic" 1
+			append_bool "$cfg" "nonwildcard" "--bind-dynamic" 1
 			;;
 	esac
 
@@ -948,25 +948,25 @@ dnsmasq_start()
 			;;
 	esac
 
-	append_bool "$cfg" fqdn "--dhcp-fqdn"
-	append_bool "$cfg" proxydnssec "--proxy-dnssec"
-	append_bool "$cfg" localservice "--local-service"
-	append_bool "$cfg" logdhcp "--log-dhcp"
-	append_bool "$cfg" quietdhcp "--quiet-dhcp"
-	append_bool "$cfg" sequential_ip "--dhcp-sequential-ip"
-	append_bool "$cfg" allservers "--all-servers"
-	append_bool "$cfg" noping "--no-ping"
-	append_bool "$cfg" rapidcommit "--dhcp-rapid-commit"
-	append_bool "$cfg" scriptarp "--script-arp"
-	append_bool "$cfg" noroundrobin "--no-round-robin"
+	append_bool "$cfg" "fqdn" "--dhcp-fqdn"
+	append_bool "$cfg" "proxydnssec" "--proxy-dnssec"
+	append_bool "$cfg" "localservice" "--local-service"
+	append_bool "$cfg" "logdhcp" "--log-dhcp"
+	append_bool "$cfg" "quietdhcp" "--quiet-dhcp"
+	append_bool "$cfg" "sequential_ip" "--dhcp-sequential-ip"
+	append_bool "$cfg" "allservers" "--all-servers"
+	append_bool "$cfg" "noping" "--no-ping"
+	append_bool "$cfg" "rapidcommit" "--dhcp-rapid-commit"
+	append_bool "$cfg" "scriptarp" "--script-arp"
+	append_bool "$cfg" "noroundrobin" "--no-round-robin"
 
-	append_parm "$cfg" logfacility "--log-facility"
+	append_parm "$cfg" "logfacility" "--log-facility"
 	config_get logfacility "$cfg" "logfacility"
-	append_parm "$cfg" cachesize "--cache-size"
-	append_parm "$cfg" dnsforwardmax "--dns-forward-max"
-	append_parm "$cfg" port "--port"
-	append_parm "$cfg" ednspacket_max "--edns-packet-max"
-	append_parm "$cfg" dhcpleasemax "--dhcp-lease-max"
+	append_parm "$cfg" "cachesize" "--cache-size"
+	append_parm "$cfg" "dnsforwardmax" "--dns-forward-max"
+	append_parm "$cfg" "port" "--port"
+	append_parm "$cfg" "ednspacket_max" "--edns-packet-max"
+	append_parm "$cfg" "dhcpleasemax" "--dhcp-lease-max"
 	append_parm "$cfg" "queryport" "--query-port"
 	append_parm "$cfg" "minport" "--min-port"
 	append_parm "$cfg" "maxport" "--max-port"
@@ -1015,6 +1015,7 @@ dnsmasq_start()
 	append_parm "$cfg" "use_stale_cache" "--use-stale-cache"
 	append_parm "$cfg" "fast_dns_retry" "--fast-dns-retry"
 	append_parm "$cfg" "max_ttl" "--max-ttl"
+	append_parm "$cfg" "neg_ttl" "--neg-ttl"
 	append_parm "$cfg" "min_cache_ttl" "--min-cache-ttl"
 	append_parm "$cfg" "max_cache_ttl" "--max-cache-ttl"
 	append_parm "$cfg" "pxe_prompt" "--pxe-prompt"
