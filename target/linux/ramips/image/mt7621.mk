@@ -734,7 +734,7 @@ define Device/iodata_wn-dx1200gr
   DEVICE_MODEL := WN-DX1200GR
   KERNEL_INITRAMFS := $(KERNEL_DTB) | loader-kernel | lzma | \
 	uImage lzma -M 0x434f4d43 -n '3.10(XIQ.0)b20' | iodata-mstc-header
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663-firmware-ap
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-mt7663-firmware-ap
 endef
 TARGET_DEVICES += iodata_wn-dx1200gr
 
@@ -856,7 +856,7 @@ define Device/linksys_e5600
   IMAGE_SIZE := 26624k
   DEVICE_VENDOR := Linksys
   DEVICE_MODEL := E5600
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663-firmware-ap \
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-mt7663-firmware-ap \
 	uboot-envtools
   UBINIZE_OPTS := -E 5
   IMAGES += factory.bin
@@ -1301,7 +1301,7 @@ define Device/tplink_archer-a6-v3
   $(Device/tplink-safeloader)
   DEVICE_MODEL := Archer A6
   DEVICE_VARIANT := V3
-  DEVICE_PACKAGES := kmod-mt7603 \
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware \
 	kmod-mt7663-firmware-ap
   TPLINK_BOARD_ID := ARCHER-A6-V3
   KERNEL := $(KERNEL_DTB) | uImage lzma
@@ -1315,7 +1315,7 @@ define Device/tplink_archer-c6u-v1
   DEVICE_MODEL := Archer C6U
   DEVICE_VARIANT := v1
   DEVICE_PACKAGES := kmod-mt7603 \
-	kmod-mt7663-firmware-ap \
+	kmod-mt7615-firmware kmod-mt7663-firmware-ap \
 	kmod-usb3 kmod-usb-ledtrig-usbport
   KERNEL := $(KERNEL_DTB) | uImage lzma
   TPLINK_BOARD_ID := ARCHER-C6U-V1
@@ -1328,7 +1328,7 @@ define Device/tplink_eap235-wall-v1
   $(Device/tplink-safeloader)
   DEVICE_MODEL := EAP235-Wall
   DEVICE_VARIANT := v1
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663-firmware-ap
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-mt7663-firmware-ap
   TPLINK_BOARD_ID := EAP235-WALL-V1
   IMAGE_SIZE := 13440k
   IMAGE/factory.bin := append-rootfs | tplink-safeloader factory | \
@@ -1583,11 +1583,11 @@ TARGET_DEVICES += xiaomi_mi-router-4a-gigabit
 define Device/xiaomi_mi-router-4a-gigabit-v2
   $(Device/dsa-migration)
   $(Device/uimage-lzma-loader)
-  IMAGE_SIZE := 16064k
+  IMAGE_SIZE := 14784k
   DEVICE_VENDOR := Xiaomi
   DEVICE_MODEL := Mi Router 4A
-  DEVICE_VARIANT := Gigabit Edition V2
-  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7663-firmware-ap
+  DEVICE_VARIANT := Gigabit Edition v2
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615-firmware kmod-mt7663-firmware-ap
 endef
 TARGET_DEVICES += xiaomi_mi-router-4a-gigabit-v2
 
