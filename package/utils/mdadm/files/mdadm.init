@@ -1,93 +1,505 @@
 #!/bin/sh /etc/rc.common
 
-START=13
+START=12
 STOP=98
 
 USE_PROCD=1
 PROG=/sbin/mdadm
 NAME=mdadm
 
-CONF="/var/etc/mdadm.conf"
+LOGGER=0 # off
+VERBOSE=0 # off
+
+TMP_FILE="/var/etc/mdadm.conf" # /var/etc is on /tmp; used for temporary state, to enable stateful only mdadm features
+
+[ -x "$PROG" ] || exit 1
 
 append_list_item() {
-	append "$2" "$1" "$3"
+    append "$2" "$1" "$3"
 }
 
 append_option() {
-	local var="$1"
-	local cfg="$2"
-	local opt="$3"
-	local name="$4"
-	local sep="$5"
-	local str
+    local var="$1"
+    local cfg="$2"
+    local opt="$3"
+    local name="$4"
+    local sep="$5"
+    local str
 
-	if [ -n "$sep" ]; then
-		config_list_foreach "$cfg" "$opt" append_list_item str "$sep"
-	else
-		config_get str "$cfg" "$opt"
-	fi
+    if [ -n "$sep" ]; then
+        config_list_foreach "$cfg" "$opt" append_list_item str "$sep"
+    else
+        config_get str "$cfg" "$opt"
+    fi
 
-	[ -n "$str" ] && append "$var" $(printf "%s=%s" "${name:-${opt//_/-}}" "$str")
+    [ -n "$str" ] && append "$var" $(printf "%s=%s" "${name:-${opt//_/-}}" "$str")
 }
 
-mdadm_common() {
-	local cfg="$1"
-	local email devices
+verbose() {
+    local msg="$1"
+    local level="$2"
 
-	if [ -x /usr/sbin/sendmail ]; then
-		config_get email "$cfg" email
-		[ -n "$email" ] && printf "MAILADDR %s\n" "$email" >> $CONF
-	fi
+    [ -z "$level" ] && level="INFO"
 
-	config_list_foreach "$cfg" devices append_list_item devices " "
-	[ -n "$devices" ] && printf "DEVICE %s\n" "$devices" >> $CONF
+    [ "$VERBOSE" = "1" ] && {
+        if [ ${#SSH_TTY} -gt 0 ]; then
+            printf "$NAME: init %7s - %b\n" "$level" "$msg"
+        else
+            # no SSH_TTY goes to logger
+            printf "$NAME: init %7s - %b\n" "$level" "$msg" | logger -t mdadm
+        fi
+    }
 }
 
-mdadm_array() {
-	local cfg="$1"
-	local uuid device devices name array
+mdadm_conf_auto() {
+    local mdadm_conf="$1"
 
-	config_get uuid "$cfg" uuid
-	config_get name "$cfg" name
-	config_get device "$cfg" device
+    [ -w "$mdadm_conf" ] || {
+        if [ -z "$mdadm_conf" ]; then
+            verbose "mdadm_conf value is empty" ERROR
+        else
+            verbose "'$mdadm_conf' file not found writable" ERROR
+        fi
+        return 1
+    }
 
-	if [ -z "$device" ] || [ -z "$uuid$name" ]; then
-		echo "Skipping array without device, uuid or name" >&2
-		return
-	fi
+    local block_md block_uuid mdadm_md mdadm_md_rc mdadm_uuid
 
-	[ -n "$uuid" ] && append array "uuid=$uuid"
-	[ -n "$name" ] && append array "name=$name"
+    # Check block info for active linux_raid_members, if necessary then compare with mdadm, & dynamically update $mdadm_conf
 
-	append_option array "$cfg" super_minor
-	append_option array "$cfg" spares
-	append_option array "$cfg" spare_group
-	append_option array "$cfg" bitmap
-	append_option array "$cfg" container
-	append_option array "$cfg" member
-	append_option array "$cfg" devices devices ","
+    block_md=0 # counter
+    for block_uuid in $(block info 2> /dev/null | sed -nEe 's#^.* UUID="([^"]*)".*TYPE="linux_raid_member"#\1#p'); do
+        mdadm_md=""
+        mdadm_md_rc=0
 
-	printf "ARRAY %s %s\n" "$device" "$array" >> $CONF
+        while [ -z "$mdadm_md" ]; do
+            if [ -b "/dev/md$block_md" ]; then
+                # handle mdadm restart, service reload, multiple starts without stops, physical unplug, etc.
+
+                verbose "/dev/md$block_md block device already exists" NOTICE
+
+                # active arrays will promptly respond; first check
+                mdadm_uuid=$($PROG --detail --test --brief "/dev/md$block_md" 2> /dev/null | sed -nEe '1s#^.*UUID=((.){35})#\1#p')
+
+                [ -z "$mdadm_uuid" ] && {
+                    # When an array is unplugged and then plugged in again (without rebooting) then it becomes an INACTIVE-ARRAY
+                    # however the device file persists, e.g. /dev/md0, and should be reused, rather than a new device assigned.
+                    if $PROG --detail --test --scan "/dev/md$block_md" 2> /dev/null | grep -E "^(INACTIVE-ARRAY(\ |\t)(.*)/dev/md(|/)$block_md(\ |\t)metadata)" > /dev/null 2>&1; then
+                        verbose "attempting to revive INACTIVE-ARRAY on /dev/md$block_md" NOTICE
+                        if $PROG --examine --scan 2> /dev/null | grep -qE "^(ARRAY(\ |\t)(.*)/dev/md(|/)$block_md(\ |\t))"; then
+                            # this is relatively safe with the above regex validation
+                            mdadm_md="/dev/md$block_md"
+                        fi
+                    else
+                        # This is an unsafe condition to handle with a shell, mdadm sees an inactive device with a different /dev.
+                        # Err to the side of caution;--assemble --scan shoud know what to do ... it will abandon the block device.
+                        # If these are happening, suggest stateless & sacrifice some minor functionality, e.g. MAILFROM
+                        # May be an mdadm or kernel bug with this hardware setup.
+                        verbose "bug? unsafe to revive INACTIVE-ARRAY on /dev/md$block_md" WARNING
+                        block_md=$((block_md+1))
+                        continue
+                    fi
+                }
+
+                if [ "${block_uuid//-/}" = "${mdadm_uuid//:/}" ]; then
+                    # block info & mdadm concur all's well; the meta device is active; reuse
+                    mdadm_md="/dev/md$block_md"
+                    verbose "auto conf found active RAID member block_uuid=$block_uuid and will reused device '$mdadm_md'" OK
+                else
+                    if [ ! -e "/dev/md$block_md" ]; then
+                        # this block device was never assembled previously; new
+                        mdadm_md="/dev/md$block_md"
+                        verbose "auto conf found new RAID member block_uuid=$block_uuid and will assign device '$mdadm_md'" OK
+                    else
+                        block_md=$((block_md+1))
+                        continue
+                    fi
+                fi
+
+            else
+                if [ ! -e "/dev/md$block_md" ]; then
+                    # best scenario; no device or file (yet), safest
+                    mdadm_md="/dev/md$block_md"
+                    verbose "auto conf found missing RAID member block_uuid=$block_uuid and will assign device '$mdadm_md'" OK
+                else
+                    # a file exists, but it's not a block device? It's possible (touch), albeit a corner case; discretely say
+                    # we know & pass over it.
+                    verbose "/dev/md$block_md file found, not a block device" WARNING
+                    block_md=$((block_md+1))
+                    continue
+                fi
+            fi
+
+            $PROG --detail --test --brief $mdadm_md > /dev/null 2>&1 # rc 1=ok, 1=degrade, 2=dead, 4=missing
+            mdadm_md_rc=$?
+
+            # todo: annouce degraded arrays in the logs? mdadmin monitor will do it but not on demand, only per frequency.
+            #       nice to have for hot plugs ...
+
+            verbose "block_md=$block_md, block_uuid=$block_uuid, mdadm_md=$mdadm_md, mdadm_uuid=$mdadm_uuid, rc=$mdadm_md_rc" INFO
+
+            if [ $mdadm_md_rc -lt 4 ]; then
+                $PROG --detail --test --brief $mdadm_md 2> /dev/null >> $mdadm_conf
+            else
+                # there's a device with no header.  maybe it's to replace a failed device ...
+                echo "ARRAY $mdadm_md uuid=$block_uuid" >> $mdadm_conf
+            fi
+
+        done
+
+    done
+
+    if [ -n "$mdadm_md" ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+mdadm_conf_uci() {
+    local cfg="$1"
+    local mdadm_conf="$2"
+
+    [ -z "$cfg" ] && {
+        verbose "cfg is empty" WARNING
+        return 1
+    }
+
+    local cfg_name
+    cfg_name=$(uci_get mdadm.$cfg 2> /dev/null)
+
+    [ -z "$cfg_name" ] && verbose "($cfg) mdadm config name is empty" NOTICE
+
+    [ -z "$mdadm_conf" ] && {
+        verbose "($cfg) skipping mdadm.$cfg_name array; config file is empty" WARNING
+        return 1
+    }
+
+    if ! touch "$mdadm_conf" 2> /dev/null; then
+        verbose "($cfg) skipping mdadm.$cfg_name array; can't touch '$mdadm_conf'" ERROR
+        return 1
+    fi
+
+    local array device devices name uuid
+
+    config_get name "$cfg" name
+    config_get device "$cfg" device
+    config_get uuid "$cfg" uuid
+
+    config_list_foreach "$cfg" devices append_list_item devices " "
+    [ -n "$devices" ] && printf "DEVICE %s\n" "$devices" >> $mdadm_conf
+
+    if [ -z "$device" ] || [ -z "$uuid$name" ]; then
+        verbose "($cfg) skipping mdadm.$cfg_name array; no device, uuid, or name" WARNING
+        return 1
+    fi
+
+    [ -n "$uuid" ] && append array "uuid=$uuid"
+    [ -n "$name" ] && append array "name=$name"
+
+    append_option array "$cfg" super_minor
+    append_option array "$cfg" spares
+    append_option array "$cfg" spare_group
+    append_option array "$cfg" bitmap
+    append_option array "$cfg" container
+    append_option array "$cfg" member
+    append_option array "$cfg" devices devices ","
+
+    printf "ARRAY %s %s\n" "$device" "$array" >> $mdadm_conf
+}
+
+reload_service() {
+    while read -r line; do echo $line; done
+    # running start_service() on reload should be OK in all modes, except manual configs.
+    # for auto & none, start_service() already rescans for hotplugged devices, add new arrays, etc.
+    # could check for the configured mode & call appropriately?  doing nothing is safer; todo: test & resolve
+    verbose "reload_service called, ignoring" NOTICE
+    return 0
 }
 
 start_service() {
-	local email
+    local config config_detail config_file config_level config_mode config_rc config_state config_verbose mdadm_conf
 
-	mkdir -p "${CONF%/*}"
-	printf "# Autogenerated from /etc/config/mdadm, do not edit!\n" > $CONF
+    # mdadm.global specific locals
+    local alert_program email email_from mail_program mdadm_args monitor_frequency
 
-	config_load mdadm
-	config_foreach mdadm_common mdadm
-	config_foreach mdadm_array array
+    config_verbose=$(uci_get mdadm.global.verbose 2> /dev/null | awk '{print tolower($1)}')
+    if [ "$config_verbose" = "1" ] || [ "$config_verbose" = "on" ] || [ "$config_verbose" = "true" ]; then
+        VERBOSE=1 # turn verbose on globally
+        config_verbose=1
+        mdadm_args="--verbose"
+    else
+        unset -v config_verbose
+        mdadm_args="--quiet"
+    fi
 
-	$PROG --assemble --scan --config="$CONF"
+    verbose "start_service $*" INFO
 
-	procd_open_instance
-	procd_set_param command "$PROG" --monitor --syslog --scan --config="$CONF"
-	procd_close_instance
+    config_rc=0
+    config_detail="start"
+    config_level="INFO"
+    config_mode="service"
+
+    config=$(uci_get mdadm.global.config 2> /dev/null)
+    if [ -z "$config" ]; then
+        # per PR1713 discussion; this works very well for the majority of use cases; let mdadm do the heavy lifting.
+        # none is (Auto Assemble; or no --config); see mdadm(8), default
+        config='none'
+        config_detail="mdadm.global.config value is empty"
+        config_state='stateless'
+        config_mode="default"
+        config_level='OK'
+    else
+        # experts only
+
+        config_mode="manual"
+
+        # check file values first, to preserve case of file name values
+        if [ "${config:0:1}" = "/" ]; then
+            config_state='stateful' # all types of file configs are stateful
+
+            if [ -d "$config" ] && [ -r "$config" ]; then
+                local config_file_count=0
+                for config_file in ${config}/*.conf; do
+                    if [ -r "$config_file" ]; then
+                        config_file_count=$((config_file_count+1))
+                    fi
+                done
+                if [ $config_file_count -eq 0 ]; then
+                    config_level="WARNING"
+                else
+                    config_level="OK"
+                fi
+                config_detail="directory found with $config_file_count readable .conf files"
+            else
+                if [ -w "$config" ]; then
+                    if [ -s "$config" ]; then
+                        # regardless, this will rely on mdadm for final validation; for informational purposes ...
+                        grep -E '^((DEVICE){1}(\ |\t)(.*)(/dev/|containers|partitions))' "$config" > /dev/null 2>&1 # pattern per mdadm(8)
+                        if [ $? -eq 0 ]; then
+                            config_detail="file found, readable with a ^DEVICE"
+                            config_level="OK"
+                        else
+                            config_detail="file found, readable without a ^DEVICE"
+                            config_level="WARNING"
+                        fi
+                    else
+                        config_detail="file found, writable and empty"
+                        config_level="OK"
+                    fi
+                else
+                    config_detail="file not found, unwritable"
+                    config_level="FATAL"
+                    config_rc=1
+                fi
+            fi
+        else
+            config_mode="dynamic"
+
+            # allow static values in mixed case; convert to lower
+            config="$(awk -v config="$config" 'BEGIN{print tolower(config)}')"
+            if [ "$config" = "containers" ] || [ "$config" = "none" ] || [ "$config" = "partition" ]; then
+                # pass through to mdadm --config=
+                config_detail="dynamic; uci static key value"
+                config_level="OK"
+                config_state='stateless'
+            else
+                if [ "$config" = "auto" ] || [ "$config" = "uci" ]; then
+                    config_detail="dynamic; $config config"
+                    config_level="OK"
+                    config_state='stateful'
+                    mdadm_conf="$TMP_FILE"
+                else
+                    config_detail="invalid; unsupported uci config key value"
+                    config_level="FATAL"
+                    config_state='stateful'
+                    config_rc=1
+                fi
+            fi
+        fi
+    fi
+
+    # final safety & functional checks
+
+    # check for fatality
+    [ -z "$config" ] && {
+        config="${config}?"
+        config_detail="$config_detail (sorry, something went wrong; check the config settings)"
+        config_level="FATAL"
+        config_mode="${config_mode}?"
+        config_state="${config_state}?"
+        config_rc=1
+    }
+
+    # Prefer mdadm.global.email; only one is allowed and can be an --email argument per mdadm.conf(5)
+    email=$(uci_get mdadm.global.email 2> /dev/null)
+
+    # There's really no point in making mdadm's compiled in sendmail configurable via uci.
+    mail_program="/usr/lib/sendmail"
+    [ -x "$mail_program" ] || {
+        verbose "disabling email; mail program '/usr/lib/sendmail' not found executable (install postfix)" WARNING
+        email=""
+    }
+
+    if [ "$config_state" = "stateful" ] && [ -n "$mdadm_conf" ]; then
+        if mkdir -p "${mdadm_conf%/*}" > /dev/null 2>&1; then
+            printf "# Autogenerated from /etc/init.d/mdadm, do not edit!\n" > $mdadm_conf
+
+            # Use mdadm.global.email_from only if there's a valid mta; only one is allowed per mdadm.conf(5)
+            # todo: see what other mtas Openwrt has in their opkg repos & maybe support others
+            [ -x "$mail_program" ] && email_from=$(uci_get mdadm.global.email_from 2> /dev/null)
+
+            if [ "$config" = "auto" ]; then
+                # stateful mdadm.conf auto configuration
+                if ! mdadm_conf_auto "$mdadm_conf"; then
+                    #there's quite a bit of logic & error handling in mdadm_conf_auto; if it doesn't return 0 then it's a fatality
+                    config_detail="$config_detail (couldn't find any meta devices; check connections, or try stateless autoconfig)"
+                    config_level="FATAL"
+                    config_rc=1
+                fi
+            else
+                # stateful mdadm.conf uci configuration
+
+                # load uci config from /etc/config/mdadm
+                config_load mdadm
+
+                # This is how mdadm uci mdadm config sections should be named, like fstab does with 'mount'.
+                # The included uci /etc/config/mdadm provides more documentation & direction.
+                config_foreach mdadm_conf_uci array "$mdadm_conf"
+
+                # The unlabled mdadm.@mdadm[0] section should be (is now) deprecated.
+                # It's more difficult to document how to use, redundant, and over complicated this init configuration.
+
+                # Confused; originally config_foreach?
+                # It's possible to specify multiple mdadm sections with array options in all sections.
+                # Thus multiple option emails which could result in multiple MAILADDR being appended to mdadm.conf.
+                # That confuses mdadm.
+
+                # The following code is here to prevent regressions.
+
+                config_foreach mdadm_conf_uci mdadm "$mdadm_conf"
+
+                # For backward compatibility; this will allow an mdadm.@mdadm[0] section's option email.
+                # (only if mdadm.global.email is not set; again, prefer mdadm.global.email)
+                #
+                # bug fixed. The first legacy mdadm section option email will be used.
+                # a better fix would be to *only* support array sections.
+                #
+                [ -z "$email" ] && [ -x "$mail_program" ] && email=$(uci_get mdadm.@mdadm[0].email 2> /dev/null)
+                # email_from is a new feature; was not previously handled; no need to and please don't backport
+
+            fi
+
+            # This is nice feature to have to get mdadm mails through spam filters, etc.
+            # Too bad mdadm (4.0) doesn't have an argument for it.
+            # Maybe mdadm 4.1 will ... todo: revisit when making mdadm 4.1 & it's in Openwrt mainline.
+            # This tests successfully with the postfix workaround above & mdadm 4.0.
+            [ -x "$mail_program" ] && {
+                printf "MAILFROM %s\n" "$email_from" >> $mdadm_conf # only supported via stateful configs; see mdadm.conf(5)
+            }
+
+            [ -n "$config_verbose" ] && [ -r "$mdadm_conf" ] && {
+                verbose "mdadm_conf = $mdadm_conf (config_verbose=$config_verbose)" INFO
+                verbose "---cut $mdadm_conf cut---" INFO
+                while read -r line; do
+                    verbose "$line" INFO
+                done < "$mdadm_conf"
+                unset -v line
+                verbose "---cut $mdadm_conf cut---" INFO
+            }
+
+        else
+            config_detail="$config_detail (mkdir failed; check permissions)"
+            config_level="FATAL"
+            config_rc=1
+        fi
+    fi
+
+    [ $config_rc -ne 0 ] && {
+        # FATAL
+        verbose "$config_state,$config_mode config='$config', $config_detail" "$config_level" INFO
+        [ -n "$mdadm_conf" ] && [ -w "$mdadm_conf" ] && rm -f "$mdadm_conf"
+        exit $config_rc
+    }
+
+    # Good to go, no more fatal exits, finish getting global & setting local values ... they're all optional.
+
+    mdadm_args="$mdadm_args --scan"
+
+    if [ -n "$mdadm_conf" ]; then
+        # mdadm.global.config </file>
+        mdadm_args="$mdadm_args --config=$mdadm_conf"
+    else
+        # mdadm.global.config all (containers, partitions, etc), except none
+        [ -n "$config" ] && [ "$config" != 'none' ] && mdadm_args="$mdadm_args --config=$config"
+    fi
+
+    local assemble_count assemble_rc
+
+    assemble_count=$($PROG --detail --brief --scan 2> /dev/null | wc -l)
+    verbose "$assemble_count arrays are currently assembled" INFO
+
+    # setup assembly mode
+
+    verbose "(assemble) '$PROG --assemble $mdadm_args'" INFO
+    $PROG --assemble $mdadm_args > /dev/null 2>&1
+    assemble_rc=$?
+
+    if [ $assemble_rc -eq 0 ]; then
+        verbose "all arrays assembled successfully" OK
+        [ -n "$config_verbose" ] && {
+            true > /var/log/mdadm.detail
+            local assemble_dev assemble_devs
+            assemble_devs=$($PROG --detail --brief --scan | awk '{print $2}')
+            for assemble_dev in $assemble_devs; do
+             {
+                printf "\n"
+                $PROG --verbose --detail $assemble_dev
+                printf "\n"
+             } >> /var/log/mdadm.detail
+            done
+            unset -v assemble_dev
+            while read -r line; do
+                verbose "$line" INFO
+            done < "/var/log/mdadm.detail"
+            unset -v line
+        }
+    else
+        if [ $assemble_count -eq 0 ]; then
+            verbose "no arrays assembled successfully" ERROR
+        else
+            verbose "no new arrays need assembly" NOTICE
+        fi
+    fi
+
+    # setup monitor mode
+
+    alert_program=$(uci_get mdadm.global.alert_program 2> /dev/null)
+    [ -n "$alert_program" ] && {
+        if [ -x "$alert_program" ]; then
+            mdadm_args="$mdadm_args --alert=$alert_program"
+        else
+            verbose "disabling alerts; alert_progam '$alert_program' not found executable" WARNING
+        fi
+    }
+
+    [ -n "$email" ] && mdadm_args="$mdadm_args --mail=$email"
+
+    monitor_frequency=$(uci_get mdadm.global.monitor_frequency 2> /dev/null | sed -e 's/[^0-9]*//g')
+    [ -n "$monitor_frequency" ] && {
+        mdadm_args="$mdadm_args --delay=$monitor_frequency"
+        verbose "setting monitor frequency to '$monitor_frequency' seconds"
+    }
+
+    verbose "(monitor) '$PROG --monitor --syslog $mdadm_args'" INFO
+
+    procd_open_instance
+    procd_set_param command "$PROG" --monitor --syslog $mdadm_args
+    procd_close_instance
+
+    verbose "$config_state,$config_mode config=$config, $config_detail complete" "$config_level"
 }
 
 stop_service() {
-	$PROG --stop --scan
+    $PROG --stop --scan
 }
-

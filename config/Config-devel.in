@@ -4,11 +4,9 @@
 
 menuconfig DEVEL
 	bool "Advanced configuration options (for developers)"
-	default n
 
 	config BROKEN
 		bool "Show broken platforms / packages / devices" if DEVEL
-		default n
 
 	config BINARY_FOLDER
 		string "Binary folder" if DEVEL
@@ -39,7 +37,6 @@ menuconfig DEVEL
 
 	config AUTOREMOVE
 		bool "Automatic removal of build directories" if DEVEL
-		default n
 		help
 		  Automatically delete build directories after make target completed.
 		  This allows you to symlink build_dir into a scratch location, e.g. a ramdisk,

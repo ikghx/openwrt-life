@@ -117,6 +117,7 @@
 &gmac1 {
 	status = "okay";
 	label = "ethyellow";
+	phy-mode = "rgmii-rxid";
 	phy-handle = <&ethphy5>;
 
 	mtd-mac-address = <&factory 0xe000>;
@@ -125,7 +126,6 @@
 &mdio {
 	ethphy5: ethernet-phy@5 {
 		reg = <5>;
-		phy-mode = "rgmii-rxid";
 	};
 };
 
