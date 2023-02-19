@@ -741,6 +741,21 @@ dhcp_mxhost_add() {
 	xappend "--mx-host=$service"
 }
 
+dhcp_txt_add() {
+	local cfg="$1"
+	local strs=
+	config_get name "$cfg" name
+	[ -n "$name" ] || return 0
+
+	append_strings () {
+	    strs="$strs,\"$1\""
+	}
+	config_list_foreach "$cfg" text append_strings
+	[ -n "$strs" ] || return 0
+
+	xappend "--txt-record=$name$strs"
+}
+
 dhcp_cname_add() {
 	local cfg="$1"
 	local cname target
@@ -1145,6 +1160,7 @@ dnsmasq_start()
 	echo >> $CONFIGFILE_TMP
 	config_foreach filter_dnsmasq srvhost dhcp_srv_add "$cfg"
 	config_foreach filter_dnsmasq mxhost dhcp_mxhost_add "$cfg"
+	config_foreach filter_dnsmasq txtrecord dhcp_txt_add "$cfg"
 	append_parm "$cfg" mxtarget "--mx-target"
 	append_bool "$cfg" localmx "--localmx"
 	echo >> $CONFIGFILE_TMP
