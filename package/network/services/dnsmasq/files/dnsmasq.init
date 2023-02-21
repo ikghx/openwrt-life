@@ -550,6 +550,15 @@ dhcp_add() {
 	# Override interface netmask with dhcp config if applicable
 	config_get netmask "$cfg" netmask "${subnet##*/}"
 
+	#check for an already active dhcp server on the interface, unless 'force' is set
+	config_get_bool force "$cfg" force 0
+	[ $force -gt 0 ] || dhcp_check "$ifname" || {
+		logger -t dnsmasq \
+			"found already running DHCP-server on interface '$ifname'" \
+			"refusing to start, use 'option force 1' to override"
+		return 0
+	}
+
 	config_get start "$cfg" start 100
 	config_get limit "$cfg" limit 150
 	config_get leasetime "$cfg" leasetime 12h
@@ -724,7 +733,7 @@ dhcp_srv_add() {
 	xappend "--srv-host=$service"
 }
 
-dhcp_mxhost_add() {
+dhcp_mx_add() {
 	local cfg="$1"
 	local domain relay pref
 
@@ -1159,7 +1168,7 @@ dnsmasq_start()
 
 	echo >> $CONFIGFILE_TMP
 	config_foreach filter_dnsmasq srvhost dhcp_srv_add "$cfg"
-	config_foreach filter_dnsmasq mxhost dhcp_mxhost_add "$cfg"
+	config_foreach filter_dnsmasq mxhost dhcp_mx_add "$cfg"
 	config_foreach filter_dnsmasq txtrecord dhcp_txt_add "$cfg"
 	append_parm "$cfg" mxtarget "--mx-target"
 	append_bool "$cfg" localmx "--localmx"
@@ -1188,7 +1197,6 @@ dnsmasq_start()
 	config_foreach filter_dnsmasq ipset dnsmasq_ipset_add "$cfg"
 	echo >> $CONFIGFILE_TMP
 
-	echo >> $CONFIGFILE_TMP
 	mv -f $CONFIGFILE_TMP $CONFIGFILE
 	mv -f $HOSTFILE_TMP $HOSTFILE
 
