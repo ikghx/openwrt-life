@@ -35,7 +35,7 @@ define Package/bspatch
   CATEGORY:=Utilities
   DEPENDS:=+libbz2
   TITLE:=Binary patch tool
-  URL:=http://www.daemonology.net/bsdiff/
+  URL:=https://www.daemonology.net/bsdiff/
 endef
 
 
