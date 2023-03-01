@@ -17,7 +17,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
     BUILD_ISL = y
   endif
 endif
-ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmware)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
+ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_BRCMSMAC_USE_FW_FROM_WL),)
   BUILD_B43_TOOLS = y
 endif
 
@@ -53,7 +53,7 @@ tools-y += patch-image
 tools-y += patchelf
 tools-y += pkgconf
 tools-y += quilt
-tools-y += squashfskit4
+tools-y += squashfs4
 tools-y += sstrip
 tools-y += zip
 tools-y += zlib
@@ -62,7 +62,7 @@ tools-$(BUILD_B43_TOOLS) += b43-tools
 tools-$(BUILD_ISL) += isl
 tools-$(BUILD_TOOLCHAIN) += gmp mpc mpfr
 tools-$(CONFIG_TARGET_apm821xx)$(CONFIG_TARGET_gemini) += genext2fs
-tools-$(CONFIG_TARGET_ath79) += lzma-old squashfs
+tools-$(CONFIG_TARGET_ath79) += lzma-old squashfs3-lzma
 tools-$(CONFIG_TARGET_mxs) += elftosb sdimage
 tools-$(CONFIG_TARGET_tegra) += cbootimage cbootimage-configs
 tools-$(CONFIG_USE_SPARSE) += sparse
@@ -104,12 +104,12 @@ $(curdir)/patchelf/compile := $(curdir)/libtool/compile
 $(curdir)/pkgconf/compile := $(curdir)/meson/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/compile $(curdir)/findutils/compile
 $(curdir)/sdcc/compile := $(curdir)/bison/compile
-$(curdir)/squashfs/compile := $(curdir)/lzma-old/compile
-$(curdir)/squashfskit4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
+$(curdir)/squashfs3-lzma/compile := $(curdir)/lzma-old/compile
+$(curdir)/squashfs4/compile := $(curdir)/xz/compile $(curdir)/zlib/compile
 $(curdir)/zstd/compile := $(curdir)/meson/compile
 
 ifneq ($(HOST_OS),Linux)
-  $(curdir)/squashfskit4/compile += $(curdir)/coreutils/compile
+  $(curdir)/squashfs4/compile += $(curdir)/coreutils/compile
   tools-y += coreutils
 endif
 ifeq ($(HOST_OS),Darwin)
@@ -133,8 +133,11 @@ $(foreach tool, $(tools-y), $(if $(wildcard $(curdir)/$(tool)/patches),$(eval $(
 
 $(foreach tool, $(filter-out xz,$(tools-y)), $(eval $(curdir)/$(tool)/compile += $(curdir)/xz/compile))
 
-# make any tool depend on tar, xz and patch to ensure that archives can be unpacked and patched properly
-tools-core := tar xz patch
+# make any tool depend on the following to ensure that archives can be unpacked and patched properly
+tools-core += libdeflate
+tools-core += patch
+tools-core += tar
+tools-core += xz
 
 $(foreach tool, $(tools-y), $(eval $(curdir)/$(tool)/compile += $(patsubst %,$(curdir)/%/compile,$(tools-core))))
 tools-y += $(tools-core)
