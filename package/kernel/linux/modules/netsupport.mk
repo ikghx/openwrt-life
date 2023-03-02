@@ -911,22 +911,6 @@ endef
 $(eval $(call KernelPackage,sched-ipset))
 
 
-define KernelPackage/sched-fq-pie
-  SUBMENU:=$(NETWORK_SUPPORT_MENU)
-  TITLE:=Flow Queue Proportional Integral Enhanced (FQ-PIE)
-  DEPENDS:=+kmod-sched-core +kmod-sched-pie
-  KCONFIG:=CONFIG_NET_SCH_FQ_PIE
-  FILES:=$(LINUX_DIR)/net/sched/sch_fq_pie.ko
-  AUTOLOAD:=$(call AutoProbe, sch_fq_pie)
-endef
-
-define KernelPackage/sched-fq-pie/description
-  A queuing discipline that combines Flow Queuing with the PIE AQM.
-endef
-
-$(eval $(call KernelPackage,sched-fq-pie))
-
-
 define KernelPackage/sched-mqprio
   SUBMENU:=$(NETWORK_SUPPORT_MENU)
   TITLE:=Multi-queue priority scheduler (MQPRIO)
