@@ -213,6 +213,23 @@ endef
 $(eval $(call KernelPackage,hwmon-lm63))
 
 
+define KernelPackage/hwmon-lm70
+  TITLE:=LM70 monitoring support
+  KCONFIG:=CONFIG_SENSORS_LM70 \
+        CONFIG_SPI=y \
+        CONFIG_SPI_MASTER=y
+  FILES:=$(LINUX_DIR)/drivers/hwmon/lm70.ko
+  AUTOLOAD:=$(call AutoProbe,lm70)
+  $(call AddDepends/hwmon)
+endef
+
+define KernelPackage/hwmon-lm70/description
+ Kernel module for lm70 and compatible thermal monitor chip
+endef
+
+$(eval $(call KernelPackage,hwmon-lm70))
+
+
 define KernelPackage/hwmon-lm75
   TITLE:=LM75 monitoring support
   KCONFIG:=CONFIG_SENSORS_LM75
@@ -346,6 +363,21 @@ define KernelPackage/hwmon-nct6775/description
 endef
 
 $(eval $(call KernelPackage,hwmon-nct6775))
+
+
+define KernelPackage/hwmon-nct7802
+  TITLE:=NCT7802Y and compatibles monitoring support
+  KCONFIG:=CONFIG_SENSORS_NCT7802
+  FILES:=$(LINUX_DIR)/drivers/hwmon/nct7802.ko
+  AUTOLOAD:=$(call AutoProbe,nct7802)
+  $(call AddDepends/hwmon,+kmod-regmap-i2c)
+endef
+
+define KernelPackage/hwmon-nct7802/description
+ Kernel module for NCT7802Y thermal monitor chip
+endef
+
+$(eval $(call KernelPackage,hwmon-nct7802))
 
 
 define KernelPackage/hwmon-pc87360

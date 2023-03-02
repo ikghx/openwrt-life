@@ -90,21 +90,6 @@ endef
 $(eval $(call KernelPackage,ata-artop))
 
 
-define KernelPackage/ata-marvell-sata
-  TITLE:=Marvell Serial ATA support
-  KCONFIG:=CONFIG_SATA_MV
-  FILES:=$(LINUX_DIR)/drivers/ata/sata_mv.ko
-  AUTOLOAD:=$(call AutoLoad,41,sata_mv,1)
-  $(call AddDepends/ata)
-endef
-
-define KernelPackage/ata-marvell-sata/description
- SATA support for marvell chipsets
-endef
-
-$(eval $(call KernelPackage,ata-marvell-sata))
-
-
 define KernelPackage/ata-nvidia-sata
   TITLE:=Nvidia Serial ATA support
   KCONFIG:=CONFIG_SATA_NV
@@ -218,7 +203,7 @@ $(eval $(call KernelPackage,dax))
 define KernelPackage/dm
   SUBMENU:=$(BLOCK_MENU)
   TITLE:=Device Mapper
-  DEPENDS:=+kmod-crypto-manager +kmod-dax
+  DEPENDS:=+kmod-crypto-manager +kmod-dax +KERNEL_KEYS:kmod-keys-encrypted
   # All the "=n" are unnecessary, they're only there
   # to stop the config from asking the question.
   # MIRROR is M because I've needed it for pvmove.
