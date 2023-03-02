@@ -75,8 +75,9 @@ JFFS2OPTS += $(MKFS_DEVTABLE_OPT)
 SQUASHFS_BLOCKSIZE := $(CONFIG_TARGET_SQUASHFS_BLOCK_SIZE)k
 SQUASHFSOPT := -b $(SQUASHFS_BLOCKSIZE)
 SQUASHFSOPT += -p '/dev d 755 0 0' -p '/dev/console c 600 0 0 5 1'
+SQUASHFSOPT += $(if $(CONFIG_SELINUX),-xattrs,-no-xattrs)
 SQUASHFSCOMP := gzip
-LZMA_XZ_OPTIONS := -Xpreset 9 -Xe -Xlc 0 -Xlp 2 -Xpb 2
+LZMA_XZ_OPTIONS := -Xpreset extreme -Xlc 0 -Xlp 2 -Xpb 2
 ifeq ($(CONFIG_SQUASHFS_XZ),y)
   ifneq ($(filter arm x86 powerpc sparc,$(LINUX_KARCH)),)
     BCJ_FILTER:=-Xbcj $(LINUX_KARCH)
@@ -134,14 +135,6 @@ endef
 define Image/BuildKernel/MkuImage
 	mkimage -A $(ARCH) -O linux -T kernel -C $(1) -a $(2) -e $(3) \
 		-n '$(call toupper,$(ARCH)) $(VERSION_DIST) Linux-$(LINUX_VERSION)' -d $(4) $(5)
-endef
-
-define Image/BuildKernel/MkFIT
-	$(TOPDIR)/scripts/mkits.sh \
-		-D $(1) -o $(KDIR)/fit-$(1).its -k $(2) $(if $(3),-d $(3)) -C $(4) -a $(5) -e $(6) \
-		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config@1") \
-		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
-	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage -f $(KDIR)/fit-$(1).its $(KDIR)/fit-$(1)$(7).itb
 endef
 
 ifdef CONFIG_TARGET_IMAGES_GZIP
