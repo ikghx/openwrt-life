@@ -829,7 +829,7 @@ define Device/jdcloud_re-sp-01b
   DEVICE_VENDOR := JDCloud
   DEVICE_MODEL := RE-SP-01B
   DEVICE_PACKAGES := kmod-fs-ext4 kmod-mt7603 \
-	kmod-mt7615-firmware kmod-sdhci-mt7620 kmod-usb3
+	kmod-mt7615-firmware kmod-sdhci-mt7620 kmod-usb3 -uboot-envtools
 endef
 TARGET_DEVICES += jdcloud_re-sp-01b
 
