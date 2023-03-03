@@ -387,7 +387,6 @@ define Device/dlink_dir-882-r1
   DEVICE_MODEL := DIR-882
   DEVICE_VARIANT := R1
   DEVICE_PACKAGES += kmod-usb3 kmod-usb-ledtrig-usbport
-  IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | append-rootfs | check-size | \
 	sign-dlink-ru 57c5375741c30ca9ebcb36713db4ba51 \
 	ab0dff19af8842cdb70a86b4b68d23f7
