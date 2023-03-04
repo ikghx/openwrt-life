@@ -1,13 +1,12 @@
 # attention: only zlib compression is allowed for the boot fs
 define Build/zyxel-buildkerneljffs
-	rm -rf  $(KDIR_TMP)/zyxelnbg6716
-	mkdir -p $(KDIR_TMP)/zyxelnbg6716/image/boot
-	cp $@ $(KDIR_TMP)/zyxelnbg6716/image/boot/vmlinux.lzma.uImage
+	mkdir -p $@.tmp/boot
+	cp $@ $@.tmp/boot/vmlinux.lzma.uImage
 	$(STAGING_DIR_HOST)/bin/mkfs.jffs2 \
 		--big-endian --squash-uids -v -e 128KiB -q -f -n -x lzma -x rtime \
 		-o $@ \
-		-d $(KDIR_TMP)/zyxelnbg6716/image
-	rm -rf $(KDIR_TMP)/zyxelnbg6716
+		-d $@.tmp
+	rm -rf $@.tmp
 endef
 
 define Build/zyxel-factory
@@ -165,7 +164,7 @@ define Device/glinet_gl-xe300
 endef
 TARGET_DEVICES += glinet_gl-xe300
 
-# fake rootfs is mandatory, pad-offset 129 equals (2 * uimage_header + 0xff)
+# fake rootfs is mandatory, pad-offset 64 equals (1 * uimage_header)
 define Device/netgear_ath79_nand
   DEVICE_VENDOR := NETGEAR
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ledtrig-usbport
@@ -173,15 +172,12 @@ define Device/netgear_ath79_nand
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   IMAGE_SIZE := 25600k
-  KERNEL := kernel-bin | append-dtb | lzma -d20 | \
-	pad-offset $$(KERNEL_SIZE) 129 | uImage lzma | \
-	append-string -e '\xff' | \
-	append-uImage-fakehdr filesystem $$(UIMAGE_MAGIC)
-  KERNEL_INITRAMFS := kernel-bin | append-dtb | lzma -d20 | uImage lzma
+  KERNEL := kernel-bin | append-dtb | lzma | uImage lzma | \
+	pad-offset $$(BLOCKSIZE) 64 | append-uImage-fakehdr filesystem $$(UIMAGE_MAGIC)
   IMAGES := sysupgrade.bin factory.img
-  IMAGE/factory.img := append-kernel | append-ubi | netgear-dni | \
-	check-size
-  IMAGE/sysupgrade.bin := sysupgrade-tar | check-size | append-metadata
+  IMAGE/factory.img := append-kernel | pad-to $$$$(KERNEL_SIZE) | \
+	append-ubi | check-size | netgear-dni
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   UBINIZE_OPTS := -E 5
 endef
 
@@ -260,8 +256,9 @@ define Device/zyxel_nbg6716
   KERNEL_SIZE := 4096k
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  KERNEL := kernel-bin | append-dtb | uImage none | zyxel-buildkerneljffs | \
-	check-size 4096k
+  LOADER_TYPE := bin
+  KERNEL := kernel-bin | append-dtb | lzma | loader-kernel | uImage none | \
+	zyxel-buildkerneljffs | check-size 4096k
   IMAGES := sysupgrade.tar sysupgrade-4M-Kernel.bin factory.bin
   IMAGE/sysupgrade.tar/squashfs := append-rootfs | pad-to $$$$(BLOCKSIZE) | \
 	sysupgrade-tar rootfs=$$$$@ | append-metadata
