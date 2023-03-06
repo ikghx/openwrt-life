@@ -130,7 +130,7 @@ case "$FIRMWARE" in
 		;;
 	engenius,ens620ext)
 		caldata_extract "ART" 0x1000 0x2f20
-		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) +2)
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) 2)
 		;;
 	linksys,ea8300 |\
 	linksys,mr8300)
@@ -233,15 +233,15 @@ case "$FIRMWARE" in
 		;;
 	engenius,emd1)
 		caldata_extract "0:ART" 0x5000 0x2f20
-		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:APPSBLENV wlanaddr) +1)
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:APPSBLENV wlanaddr) 1)
 		;;
 	engenius,emr3500)
 		caldata_extract "0:ART" 0x5000 0x2f20
-		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:APPSBLENV ethaddr) +1)
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii 0:APPSBLENV ethaddr) 1)
 		;;
 	engenius,ens620ext)
 		caldata_extract "ART" 0x5000 0x2f20
-		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) +3)
+		ath10k_patch_mac $(macaddr_add $(mtd_get_mac_ascii u-boot-env ethaddr) 3)
 		;;
 	linksys,ea8300 |\
 	linksys,mr8300)
