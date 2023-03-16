@@ -1,4 +1,4 @@
-# SPDX-License-Identifier: GPL-3.0-only
+# SPDX-License-Identifier: GPL-2.0-only
 #
 # Copyright (C) 2022 ImmortalWrt.org
 
@@ -10,7 +10,7 @@ PKG_VERSION:=2.22.18
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://sources.immortalwrt.org/
+PKG_SOURCE_URL:=@SF/e1000/i40e%20stable/$(PKG_VERSION)/
 PKG_HASH:=ba3fed07b178bc78bfeab3ba309f812243cbc88032333edca891eb74022468f6
 
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
@@ -25,7 +25,7 @@ define KernelPackage/i40e-vendor
   SUBMENU:=Network Devices
   TITLE:=Intel(R) Ethernet Controller XL710 Family support (vendor driver)
   VERSION:=$(LINUX_VERSION)+$(PKG_VERSION)-$(BOARD)-$(PKG_RELEASE)
-  DEPENDS:=@PCI_SUPPORT +kmod-mdio +kmod-ptp +kmod-libphy
+  DEPENDS:=@PCI_SUPPORT +kmod-mdio +kmod-ptp +kmod-libphy @TARGET_x86
   CONFLICTS:=kmod-i40e
   FILES:= \
 	$(PKG_BUILD_DIR)/src/intel_auxiliary.ko \

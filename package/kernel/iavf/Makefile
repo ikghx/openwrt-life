@@ -1,17 +1,17 @@
 # SPDX-License-Identifier: GPL-2.0-only
 #
-# Copyright (C) 2022 ImmortalWrt.org
+# Copyright (C) 2023 ImmortalWrt.org
 
 include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
-PKG_NAME:=igb
-PKG_VERSION:=5.13.16
+PKG_NAME:=iavf
+PKG_VERSION:=4.8.2
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=@SF/e1000/igb%20stable/$(PKG_VERSION)/
-PKG_HASH:=23731b9d3630e20ecdbe6c5db06475f07c8b2d080a374635550957747db96183
+PKG_SOURCE_URL:=@SF/e1000/iavf%20stable/$(PKG_VERSION)/
+PKG_HASH:=78d986de9667f260e806a3d0962dfee32ac35a686a672c15c209a29252d42d48
 
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
 PKG_LICENSE:=GPL-2.0-only
@@ -21,18 +21,20 @@ PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
-define KernelPackage/igb-vendor
+define KernelPackage/iavf-vendor
   SUBMENU:=Network Devices
-  TITLE:=Intel(R) 82575/82576 PCI-Express Gigabit Ethernet support (vendor driver)
+  TITLE:=Intel(R) Ethernet Adaptive Virtual Function support (vendor driver)
   VERSION:=$(LINUX_VERSION)+$(PKG_VERSION)-$(BOARD)-$(PKG_RELEASE)
-  DEPENDS:=@PCI_SUPPORT +kmod-i2c-core +kmod-i2c-algo-bit +kmod-ptp +kmod-hwmon-core @TARGET_x86
-  CONFLICTS:=kmod-igb
-  FILES:=$(PKG_BUILD_DIR)/src/igb.ko
-  AUTOLOAD:=$(call AutoProbe,igb)
+  DEPENDS:=@PCI_SUPPORT +kmod-i40e-vendor @TARGET_x86
+  CONFLICTS:=kmod-iavf
+  FILES:=$(PKG_BUILD_DIR)/src/iavf.ko
+  AUTOLOAD:=$(call AutoProbe,iavf)
 endef
 
-define KernelPackage/igb-vendor/description
-  Kernel modules for Intel(R) 82575/82576 PCI-Express Gigabit Ethernet adapters.
+define KernelPackage/iavf-vendor/description
+  Kernel modules for Intel XL710,
+          X710, X722, XXV710, and all devices advertising support for
+          Intel Ethernet Adaptive Virtual Function devices.
 endef
 
 define Build/Configure
@@ -49,8 +51,8 @@ endef
 define Build/Compile
 	+$(KERNEL_MAKE) $(PKG_JOBS) \
 		M=$(PKG_BUILD_DIR)/src \
-		CONFIG_IGB=m \
+		NEED_AUX_BUS=2 \
 		modules
 endef
 
-$(eval $(call KernelPackage,igb-vendor))
+$(eval $(call KernelPackage,iavf-vendor))

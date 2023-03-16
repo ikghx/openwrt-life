@@ -11,8 +11,8 @@ PKG_NAME:=Build dependency
 
 # Required for the toolchain
 $(eval $(call TestHostCommand,working-make, \
-	Please install GNU make v3.82 or later. (This version has bugs), \
-	$(MAKE) -v | grep -E 'Make (3\.8[2-9]|3\.9[0-9]|[4-9]\.)'))
+	Please install GNU make v4.1 or later., \
+	$(MAKE) -v | grep -E 'Make (4\.[1-9]|[5-9]\.)'))
 
 $(eval $(call TestHostCommand,case-sensitive-fs, \
 	OpenWrt can only be built on a case-sensitive filesystem, \
@@ -25,28 +25,30 @@ $(eval $(call TestHostCommand,proper-umask, \
 
 ifndef IB
 $(eval $(call SetupHostCommand,gcc, \
-	Please install the GNU C Compiler (gcc) 4.8 or later, \
-	$(CC) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?|1[0-9]\.?)', \
-	gcc -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?|1[0-9]\.?)', \
+	Please install the GNU C Compiler (gcc) 8 or later, \
+	$(CC) -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
+	gcc -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
+	gcc-8 -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
 	gcc --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-gcc, \
-	Please reinstall the GNU C Compiler (4.8 or later) - \
+	Please reinstall the GNU C Compiler (8 or later) - \
 	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
-		gcc -x c -o $(TMP_DIR)/a.out -))
+		$(STAGING_DIR_HOST)/bin/gcc -x c -o $(TMP_DIR)/a.out -))
 
 $(eval $(call SetupHostCommand,g++, \
-	Please install the GNU C++ Compiler (g++) 4.8 or later, \
-	$(CXX) -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?|1[0-9]\.?)', \
-	g++ -dumpversion | grep -E '^(4\.[8-9]|[5-9]\.?|1[0-9]\.?)', \
+	Please install the GNU C++ Compiler (g++) 8 or later, \
+	$(CXX) -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
+	g++ -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
+	g++-8 -dumpversion | grep -E '^([8-9]\.?|1[0-9]\.?)', \
 	g++ --version | grep -E 'Apple.(LLVM|clang)' ))
 
 $(eval $(call TestHostCommand,working-g++, \
-	Please reinstall the GNU C++ Compiler (4.8 or later) - \
+	Please reinstall the GNU C++ Compiler (8 or later) - \
 	it appears to be broken, \
 	echo 'int main(int argc, char **argv) { return 0; }' | \
-		g++ -x c++ -o $(TMP_DIR)/a.out - -lstdc++ && \
+		$(STAGING_DIR_HOST)/bin/g++ -x c++ -o $(TMP_DIR)/a.out - -lstdc++ && \
 		$(TMP_DIR)/a.out))
 
 $(eval $(call RequireCHeader,ncurses.h, \
@@ -170,25 +172,21 @@ $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
 
 $(eval $(call CleanupPython2))
 
-$(eval $(call SetupHostCommand,python,Please install Python >= 3.5, \
+$(eval $(call SetupHostCommand,python,Please install Python >= 3.7, \
 	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
-	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3.5 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([5-9]|[0-9][0-9])\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([7-9]|[0-9][0-9])\.?'))
 
-$(eval $(call SetupHostCommand,python3,Please install Python >= 3.5, \
+$(eval $(call SetupHostCommand,python3,Please install Python >= 3.7, \
 	python3.11 -V 2>&1 | grep 'Python 3', \
 	python3.10 -V 2>&1 | grep 'Python 3', \
 	python3.9 -V 2>&1 | grep 'Python 3', \
 	python3.8 -V 2>&1 | grep 'Python 3', \
 	python3.7 -V 2>&1 | grep 'Python 3', \
-	python3.6 -V 2>&1 | grep 'Python 3', \
-	python3.5 -V 2>&1 | grep 'Python 3', \
-	python3 -V 2>&1 | grep -E 'Python 3\.([5-9]|[0-9][0-9])\.?'))
+	python3 -V 2>&1 | grep -E 'Python 3\.([7-9]|[0-9][0-9])\.?'))
 
 $(eval $(call TestHostCommand,python3-distutils, \
 	Please install the Python3 distutils module, \
