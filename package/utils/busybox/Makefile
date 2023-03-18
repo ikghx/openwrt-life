@@ -5,18 +5,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=busybox
-PKG_VERSION:=1.34.1
+PKG_VERSION:=1.33.2
 PKG_RELEASE:=1
 PKG_FLAGS:=essential
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://www.busybox.net/downloads \
 		http://sources.buildroot.net
-PKG_HASH:=415fbd89e5344c96acf449d94a6f956dbed62e18e835fc83e064db33a34bd549
+PKG_HASH:=6843ba7977081e735fa0fdb05893e3c002c8c5ad7c9c80da206e603cc0ac47e7
 
 PKG_BUILD_DEPENDS:=BUSYBOX_CONFIG_PAM:libpam
 PKG_BUILD_PARALLEL:=1
 PKG_CHECK_FORMAT_SECURITY:=0
+
+#Busybox use it's own PIE config flag and LDFLAGS are used with ld, not gcc.
+PKG_ASLR_PIE:=0
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=LICENSE archival/libarchive/bz/LICENSE
@@ -96,7 +99,7 @@ endif
 LDLIBS += $(call BUSYBOX_IF_ENABLED,PAM,pam pam_misc pthread)
 
 ifeq ($(CONFIG_USE_GLIBC),y)
-  LDLIBS += $(call BUSYBOX_IF_ENABLED,NSLOOKUP,resolv)
+  LDLIBS += $(call BUSYBOX_IF_ENABLED,NSLOOKUP_OPENWRT,resolv)
 endif
 
 ifeq ($(BUILD_VARIANT),selinux)
@@ -139,14 +142,7 @@ endef
 
 define Package/busybox/install
 	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_DIR) $(1)/usr/sbin
-ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_INSTALL_NO_USR),)
-	$(INSTALL_DIR) $(1)/bin
-	$(INSTALL_DIR) $(1)/sbin
-	# This link is used by Luci
-	ln -s -r -f $(1)/bin/busybox $(1)/usr/bin/env
-endif
 	$(CP) $(PKG_INSTALL_DIR)/* $(1)/
 ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_SYSLOG)$(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_FEATURE_SYSLOGD_CFG),)
 	touch $(1)/etc/syslog.conf
