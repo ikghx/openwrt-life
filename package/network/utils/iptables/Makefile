@@ -54,10 +54,6 @@ define Package/iptables
 $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool
   DEPENDS+= +xtables-legacy
-  ALTERNATIVES:=\
-    200:/usr/sbin/iptables:/usr/sbin/xtables-legacy-multi \
-    200:/usr/sbin/iptables-restore:/usr/sbin/xtables-legacy-multi \
-    200:/usr/sbin/iptables-save:/usr/sbin/xtables-legacy-multi
 endef
 
 define Package/iptables/description
@@ -103,7 +99,7 @@ endef
 define Package/xtables-nft
 $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool nft
-  DEPENDS:=+libnftnl +libiptext +IPV6:libiptext6 +libiptext-nft +kmod-nft-compat
+  DEPENDS:=@IPTABLES_NFTABLES +libnftnl +libiptext +IPV6:libiptext6 +libiptext-nft +kmod-nft-compat
 endef
 
 define Package/arptables-nft
@@ -111,10 +107,6 @@ $(call Package/iptables/Default)
   DEPENDS:=+kmod-nft-arp +xtables-nft +kmod-arptables
   TITLE:=ARP firewall administration tool nft
   PROVIDES:=arptables
-  ALTERNATIVES:=\
-    300:/usr/sbin/arptables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/arptables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/arptables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/ebtables-nft
@@ -122,10 +114,6 @@ $(call Package/iptables/Default)
   DEPENDS:=+kmod-nft-bridge +xtables-nft +kmod-ebtables
   TITLE:=Bridge firewall administration tool nft
   PROVIDES:=ebtables
-  ALTERNATIVES:=\
-    300:/usr/sbin/ebtables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ebtables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ebtables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/iptables-nft
@@ -133,10 +121,6 @@ $(call Package/iptables/Default)
   TITLE:=IP firewall administration tool nft
   DEPENDS:=+kmod-ipt-core +xtables-nft
   PROVIDES:=iptables
-  ALTERNATIVES:=\
-    300:/usr/sbin/iptables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/iptables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/iptables-nft/description
@@ -474,10 +458,6 @@ $(call Package/iptables/Default)
   DEPENDS:=@IPV6 +kmod-ip6tables +xtables-legacy
   CATEGORY:=Network
   TITLE:=IPv6 firewall administration tool
-  ALTERNATIVES:=\
-    200:/usr/sbin/ip6tables:/usr/sbin/xtables-legacy-multi \
-    200:/usr/sbin/ip6tables-restore:/usr/sbin/xtables-legacy-multi \
-    200:/usr/sbin/ip6tables-save:/usr/sbin/xtables-legacy-multi
 endef
 
 define Package/ip6tables-nft
@@ -485,10 +465,6 @@ $(call Package/iptables/Default)
   DEPENDS:=@IPV6 +kmod-ip6tables +xtables-nft
   TITLE:=IP firewall administration tool nft
   PROVIDES:=ip6tables
-  ALTERNATIVES:=\
-    300:/usr/sbin/ip6tables:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-restore:/usr/sbin/xtables-nft-multi \
-    300:/usr/sbin/ip6tables-save:/usr/sbin/xtables-nft-multi
 endef
 
 define Package/ip6tables-nft/description
@@ -576,7 +552,7 @@ define Package/libiptext-nft
  CATEGORY:=Libraries
  TITLE:=IPv4/IPv6 firewall - shared libiptext nft library
  ABI_VERSION:=0
- DEPENDS:=+libxtables
+ DEPENDS:=@IPTABLES_NFTABLES +libxtables
 endef
 
 define Package/libxtables
@@ -595,6 +571,12 @@ define Package/libxtables/config
 	default n
 	help
 		This enable connlabel support in iptables.
+
+  config IPTABLES_NFTABLES
+	bool "Enable Nftables support"
+	default n
+	help
+		This enable nftables support in iptables.
 endef
 
 TARGET_CPPFLAGS := \
@@ -619,6 +601,7 @@ CONFIGURE_ARGS += \
 	--with-xtlibdir=/usr/lib/iptables \
 	--with-xt-lock-name=/var/run/xtables.lock \
 	$(if $(CONFIG_IPTABLES_CONNLABEL),,--disable-connlabel) \
+	$(if $(CONFIG_IPTABLES_NFTABLES),,--disable-nftables) \
 	$(if $(CONFIG_IPV6),,--disable-ipv6)
 
 MAKE_FLAGS := \
