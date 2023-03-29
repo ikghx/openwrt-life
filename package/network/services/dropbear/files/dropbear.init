@@ -165,6 +165,8 @@ validate_section_dropbear()
 		'enable:bool:1' \
 		'Interface:string' \
 		'GatewayPorts:bool:0' \
+		'ForceCommand:string' \
+		'BlankPasswordLogin:bool:0' \
 		'RootPasswordAuth:bool:1' \
 		'RootLogin:bool:1' \
 		'rsakeyfile:file' \
@@ -228,6 +230,8 @@ dropbear_instance()
 	procd_set_param command "$PROG" -F -P "$pid_file"
 	[ "${PasswordAuth}" -eq 0 ] && procd_append_param command -s
 	[ "${GatewayPorts}" -eq 1 ] && procd_append_param command -a
+	[ -n "${ForceCommand}" ] && procd_append_param command -c "${ForceCommand}"
+	[ "${BlankPasswordLogin}" -eq 1 ] && procd_append_param command -B
 	[ "${RootPasswordAuth}" -eq 0 ] && procd_append_param command -g
 	[ "${RootLogin}" -eq 0 ] && procd_append_param command -w
 	if [ -n "${rsakeyfile}" ]; then
