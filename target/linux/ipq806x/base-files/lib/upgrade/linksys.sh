@@ -98,12 +98,8 @@ platform_do_upgrade_linksys() {
 
 
 		# complete std upgrade
-		if nand_upgrade_tar "$1" ; then
-			nand_do_upgrade_success
-		else
-			nand_do_upgrade_failure
-		fi
-
+		nand_upgrade_tar "$1" && nand_do_upgrade_success
+		nand_do_upgrade_failed
 	}
 	[ "$magic_long" = "27051956" ] && {
 		# check firmwares' rootfs types
