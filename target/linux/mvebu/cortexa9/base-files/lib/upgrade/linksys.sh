@@ -72,8 +72,12 @@ platform_do_upgrade_linksys() {
 			CI_UBIPART="rootfs2"
 		fi
 
-		nand_upgrade_tar "$1" && nand_do_upgrade_success
-		nand_do_upgrade_failed
+		if nand_upgrade_tar "$1" ; then
+			nand_do_upgrade_success
+		else
+			nand_do_upgrade_failed
+		fi
+
 	}
 	[ "$magic_long" = "27051956" -o "$magic_long" = "0000a0e1" ] && {
 		# check firmwares' rootfs types

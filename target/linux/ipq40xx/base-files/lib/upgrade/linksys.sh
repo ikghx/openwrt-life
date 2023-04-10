@@ -96,8 +96,11 @@ platform_do_upgrade_linksys() {
 		fi
 
 		# complete std upgrade
-		nand_upgrade_tar "$1" && nand_do_upgrade_success
-		nand_do_upgrade_failed
+		if nand_upgrade_tar "$1" ; then
+			nand_do_upgrade_success
+		else
+			nand_do_upgrade_failed
+		fi
 
 	}
 
