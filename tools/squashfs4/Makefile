@@ -8,8 +8,8 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=squashfs4
 PKG_CPE_ID:=cpe:/a:phillip_lougher:squashfs
-PKG_VERSION:=4.5.1
-PKG_RELEASE=1
+PKG_VERSION:=4.6.1
+PKG_RELEASE=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/plougher/squashfs-tools

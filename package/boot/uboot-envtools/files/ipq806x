@@ -1,4 +1,3 @@
-#!/bin/sh
 #
 # Copyright (C) 2016 LEDE
 #
@@ -27,6 +26,7 @@ ubootenv_mtdinfo () {
 	fi
 
 	sectors=$(( $ubootenv_size / $mtd_erase ))
+	sectors=$(printf "0x%x" $sectors )
 	echo /dev/$mtd_dev 0x0 $ubootenv_size $mtd_erase $sectors
 }
 
@@ -56,6 +56,6 @@ zyxel,nbg6817)
 esac
 
 config_load ubootenv
-config_foreach ubootenv_add_app_config
+config_foreach ubootenv_add_app_config ubootenv
 
 exit 0
