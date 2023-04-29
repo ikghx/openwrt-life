@@ -159,6 +159,29 @@ config_foreach() {
 	done
 }
 
+config_find() {
+	local ___function="$1"
+	[ "$#" -ge 1 ] && shift
+	local ___type="$1"
+	[ "$#" -ge 1 ] && shift
+	local section cfgtype
+
+	[ -z "$CONFIG_SECTIONS" ] && return 0
+	for section in ${CONFIG_SECTIONS}; do
+		config_get cfgtype "$section" TYPE
+		[ -n "$___type" ] && [ "x$cfgtype" != "x$___type" ] && continue
+		eval "$___function \"\$section\" \"\$@\""
+		case $? in
+		0)
+			echo "$section"
+			break
+			;;
+		1) ;;
+		*) return $? ;;
+		esac
+	done
+}
+
 config_list_foreach() {
 	[ "$#" -ge 3 ] || return 0
 	local section="$1"; shift
