@@ -9,23 +9,23 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=openssl
 PKG_BASE:=1.1.1
-PKG_BUGFIX:=t
+PKG_BUGFIX:=u
 PKG_VERSION:=$(PKG_BASE)$(PKG_BUGFIX)
-PKG_RELEASE:=3
+PKG_RELEASE:=1
 PKG_USE_MIPS16:=0
 
 PKG_BUILD_PARALLEL:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:= \
-	http://www.openssl.org/source/ \
-	http://www.openssl.org/source/old/$(PKG_BASE)/ \
-	http://ftp.fi.muni.cz/pub/openssl/source/ \
-	http://ftp.fi.muni.cz/pub/openssl/source/old/$(PKG_BASE)/ \
+	https://www.openssl.org/source/ \
+	https://www.openssl.org/source/old/$(PKG_BASE)/ \
+	https://ftp.fi.muni.cz/pub/openssl/source/ \
+	https://ftp.fi.muni.cz/pub/openssl/source/old/$(PKG_BASE)/ \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/ \
 	ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/old/$(PKG_BASE)/
 
-PKG_HASH:=8dee9b24bdb1dcbf0c3d1e9b02fb8f6bf22165e807f45adeb7c9677536859d3b
+PKG_HASH:=e2f8d84b523eecd06c7be7626830370300fbcc15386bf5142d72758f6963ebc6
 
 PKG_LICENSE:=OpenSSL
 PKG_LICENSE_FILES:=LICENSE
