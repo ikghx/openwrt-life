@@ -13,7 +13,7 @@ Signed-off-by: Jo-Philipp Wich <jo@mein.io>
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -296,6 +296,9 @@ AM_CONDITIONAL(PPP_WITH_PAM, test "x${with_pam}" = "xyes")
+@@ -296,6 +296,9 @@ AM_CONDITIONAL(PPP_WITH_PAM, test "x${wi
  # With libpcap support, activate pppd on network activity
  AX_CHECK_PCAP
  
@@ -46,7 +46,7 @@ Signed-off-by: Jo-Philipp Wich <jo@mein.io>
  if PPP_WITH_PLUGINS
  pppd_CPPFLAGS += -DPPPD_PLUGIN_DIR='"@PPPD_PLUGIN_DIR@"'
  pppd_LIBS += -ldl
- --- a/pppd/options.c
+--- a/pppd/options.c
 +++ b/pppd/options.c
 @@ -62,6 +62,7 @@
  
