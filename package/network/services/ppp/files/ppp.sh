@@ -88,6 +88,8 @@ ppp_generic_setup() {
 	local config="$1"; shift
 	local localip
 
+	[ -d /var/run/pppd/lock ] || mkdir -p /var/run/pppd/lock
+
 	json_get_vars ip6table demand keepalive keepalive_adaptive username password pppd_options pppname unnumbered persist maxfail holdoff peerdns
 
 	[ ! -e /proc/sys/net/ipv6 ] && ipv6=0 || json_get_var ipv6 ipv6

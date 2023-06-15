@@ -34,7 +34,7 @@ include $(INCLUDE_DIR)/package.mk
 # enable_microsoft_extensions should be yes for mppe/mppc, but it lead to openssl in upstream:
 # https://github.com/ppp-project/ppp/blob/master/pppd/crypto_ms.c#L125
 CONFIGURE_VARS += \
-    enable_microsoft_extensions=no \
+    enable_microsoft_extensions=yes \
 	enable_eaptls=no \
 	enable_peap=no
 

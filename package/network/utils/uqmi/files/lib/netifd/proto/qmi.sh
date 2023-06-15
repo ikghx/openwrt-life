@@ -264,7 +264,7 @@ proto_qmi_setup() {
 
 	pdptype="$(echo "$pdptype" | awk '{print tolower($0)}')"
 
-	[ "$pdptype" = "ip" -o "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" -o "$pdptype" = "ipv4-and-ipv6" ] || pdptype="ip"
+	[ "$pdptype" = "ip" -o "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" ] || pdptype="ip"
 
 	if [ "$pdptype" = "ip" ]; then
 		[ -z "$autoconnect" ] && autoconnect=1
@@ -273,7 +273,7 @@ proto_qmi_setup() {
 		[ "$autoconnect" = 1 ] || autoconnect=""
 	fi
 
-	[ "$pdptype" != "ipv6" ] && {
+	[ "$pdptype" = "ip" -o "$pdptype" = "ipv4v6" ] && {
 		cid_4=$(uqmi -s -d "$device" --get-client-id wds)
 		if ! [ "$cid_4" -eq "$cid_4" ] 2> /dev/null; then
 			echo "Unable to obtain client ID"
@@ -310,7 +310,7 @@ proto_qmi_setup() {
 		}
 	}
 
-	[ "$pdptype" != "ip" ] && {
+	[ "$pdptype" = "ipv6" -o "$pdptype" = "ipv4v6" ] && {
 		cid_6=$(uqmi -s -d "$device" --get-client-id wds)
 		if ! [ "$cid_6" -eq "$cid_6" ] 2> /dev/null; then
 			echo "Unable to obtain client ID"
@@ -320,21 +320,13 @@ proto_qmi_setup() {
 
 		uqmi -s -d "$device" --set-client-id wds,"$cid_6" --set-ip-family ipv6 > /dev/null 2>&1
 
-		local ipv6apn
-		local ipv6profile
-		if [ "$pdptype" = "ipv4-and-ipv6" ]; then
-			ipv6apn="$v6apn"
-			ipv6profile="$v6profile"
-			[ -z "$ipv6profile"] && ipv6profile="2"
-		else
-			ipv6apn="$apn"
-			ipv6profile="$profile"
-		fi
+		: "${v6apn:=${apn}}"
+		: "${v6profile:=${profile}}"
 
 		pdh_6=$(uqmi -s -d "$device" --set-client-id wds,"$cid_6" \
 			--start-network \
-			${ipv6apn:+--apn $ipv6apn} \
-			${ipv6profile:+--profile $ipv6profile} \
+			${v6apn:+--apn $v6apn} \
+			${v6profile:+--profile $v6profile} \
 			${auth:+--auth-type $auth} \
 			${username:+--username $username} \
 			${password:+--password $password} \
@@ -405,7 +397,7 @@ proto_qmi_setup() {
 			json_init
 			json_add_string name "${interface}_6"
 			json_add_string ifname "@$interface"
-			[ "$pdptype" = "ipv4v6" -o "$pdptype" = "ipv4-and-ipv6" ] && json_add_string iface_464xlat "0"
+			[ "$pdptype" = "ipv4v6" ] && json_add_string iface_464xlat "0"
 			json_add_string proto "dhcpv6"
 			[ -n "$ip6table" ] && json_add_string ip6table "$ip6table"
 			proto_add_dynamic_defaults
