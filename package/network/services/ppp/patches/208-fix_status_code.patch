@@ -17,9 +17,9 @@ Signed-off-by: Jo-Philipp Wich <jo@mein.io>
  	notice("Modem hangup");
  	hungup = 1;
 -	code = EXIT_HANGUP;
-+    if (code == EXIT_OK) {
-+        code = EXIT_HANGUP;
-+    }
++	if (code == EXIT_OK) {
++	    code = EXIT_HANGUP;
++	}
  	lcp_lowerdown(0);	/* serial link is no longer available */
  	link_terminated(0);
  	return;
