@@ -520,6 +520,11 @@ dhcp_boot_add() {
 	dhcp_option_add "$cfg" "$networkid" "$force"
 }
 
+eval_ipcalc() {
+	local output
+	output="$(ipcalc.sh "$@")" || return
+	eval "$output"
+}
 
 dhcp_add() {
 	local cfg="$1"
@@ -597,7 +602,7 @@ dhcp_add() {
 	fi
 
 	# make sure the DHCP range is not empty
-	if [ "$dhcpv4" != "disabled" ] && eval "$(ipcalc.sh "${subnet%%/*}" "$netmask" "$start" "$limit" && echo true || echo false)" ; then
+	if [ "$dhcpv4" != "disabled" ] && eval_ipcalc "${subnet%%/*}" "$netmask" "$start" "$limit" ; then
 		[ "$dynamicdhcpv4" = "0" ] && END="static"
 
 		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
