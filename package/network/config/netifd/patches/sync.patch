@@ -1,6 +1,6 @@
 --- a/system-linux.c
 +++ b/system-linux.c
-@@ -1703,7 +1703,7 @@
+@@ -1703,7 +1703,7 @@ int system_vlandev_del(struct device *vl
  }
  
  static void
@@ -9,7 +9,7 @@
  {
  	struct ethtool_cmd ecmd = {
  		.cmd = ETHTOOL_GSET,
-@@ -1731,7 +1731,7 @@
+@@ -1731,7 +1731,7 @@ system_set_ethtool_settings(struct devic
  	adv = ecmd.supported;
  	for (i = 0; i < ARRAY_SIZE(speed_mask); i++) {
  		if (s->flags & DEV_OPT_DUPLEX) {
@@ -18,7 +18,7 @@
  			adv &= ~(1 << bit);
  		}
  
-@@ -1753,6 +1753,77 @@
+@@ -1753,6 +1753,77 @@ system_set_ethtool_settings(struct devic
  	ioctl(sock_ioctl, SIOCETHTOOL, &ifr);
  }
  
