@@ -1,0 +1,123 @@
+--- a/src/dhcpv6.c
++++ b/src/dhcpv6.c
+@@ -1357,7 +1357,7 @@ static unsigned int dhcpv6_parse_ia(void
+ 	// Update address IA
+ 	dhcpv6_for_each_option(&ia_hdr[1], end, otype, olen, odata) {
+ 		struct odhcp6c_entry entry = {IN6ADDR_ANY_INIT, 0, 0,
+-				IN6ADDR_ANY_INIT, 0, 0, 0, 0, 0, 0};
++				IN6ADDR_ANY_INIT, 0, 0, 0, 0, 0, 0, 0};
+ 
+ 		entry.iaid = ia_hdr->iaid;
+ 
+--- a/src/odhcp6c.c
++++ b/src/odhcp6c.c
+@@ -33,6 +33,7 @@
+ #include <sys/syscall.h>
+ #include <arpa/inet.h>
+ #include <linux/if_addr.h>
++#include <netinet/icmp6.h>
+ 
+ #include "odhcp6c.h"
+ #include "ra.h"
+@@ -470,9 +471,7 @@ int main(_unused int argc, char* const a
+ 		if (mode != DHCPV6_STATELESS)
+ 			mode = dhcpv6_request(DHCPV6_MSG_SOLICIT);
+ 
+-		odhcp6c_signal_process();
+-
+-		if (mode < 0)
++		if (odhcp6c_signal_process() || mode < 0)
+ 			continue;
+ 
+ 		do {
+@@ -558,6 +557,9 @@ int main(_unused int argc, char* const a
+ 					continue; // Renew was successful
+ 				}
+ 
++				if (signal_usr2 || signal_term)
++					break; // Other signal type
++
+ 				odhcp6c_clear_state(STATE_SERVER_ID); // Remove binding
+ 				odhcp6c_clear_state(STATE_SERVER_ADDR);
+ 
+@@ -676,16 +678,43 @@ static uint8_t* odhcp6c_resize_state(enu
+ 	return n;
+ }
+ 
++static bool odhcp6c_server_advertised()
++{
++	size_t len;
++	uint8_t *start = odhcp6c_get_state(STATE_RA_ROUTE, &len);
++
++	for (struct odhcp6c_entry *c = (struct odhcp6c_entry*)start;
++			(uint8_t*)c < &start[len] &&
++			(uint8_t*)odhcp6c_next_entry(c) <= &start[len];
++			c = odhcp6c_next_entry(c)) {
++		// Only default route entries have flags
++		if (c->length != 0 || IN6_IS_ADDR_UNSPECIFIED(&c->router))
++			continue;
++
++		if (c->flags & (ND_RA_FLAG_MANAGED | ND_RA_FLAG_OTHER))
++			return true;
++	}
++
++	return false;
++}
++
+ bool odhcp6c_signal_process(void)
+ {
+ 	while (signal_io) {
+ 		signal_io = false;
+ 
++		size_t old_ra_prefix_size = state_len[STATE_RA_PREFIX];
+ 		bool ra_updated = ra_process();
+ 
+ 		if (ra_link_up()) {
+ 			signal_usr2 = true;
+ 			ra = false;
++		} else if (old_ra_prefix_size != state_len[STATE_RA_PREFIX] &&
++				odhcp6c_server_advertised()) {
++			// Restart DHCPv6 transaction when router advertisement flags
++			// show presence of a DHCPv6 server and new prefixes were
++			// added to STATE_RA_PREFIX state
++			signal_usr2 = true;
+ 		}
+ 
+ 		if (ra_updated && (bound || allow_slaac_only >= 0)) {
+@@ -797,6 +826,8 @@ bool odhcp6c_update_entry(enum odhcp6c_s
+ 				new->preferred - x->preferred < holdoff_interval)
+ 			return false;
+ 
++		x->flags = new->flags;
++		x->priority = new->priority;
+ 		x->valid = new->valid;
+ 		x->preferred = new->preferred;
+ 		x->t1 = new->t1;
+--- a/src/odhcp6c.h
++++ b/src/odhcp6c.h
+@@ -348,6 +348,7 @@ struct odhcp6c_entry {
+ 	uint8_t auxlen;
+ 	uint8_t length;
+ 	struct in6_addr target;
++	uint8_t flags;
+ 	int16_t priority;
+ 	uint32_t valid;
+ 	uint32_t preferred;
+--- a/src/ra.c
++++ b/src/ra.c
+@@ -432,6 +432,7 @@ bool ra_process(void)
+ 		entry->target = any;
+ 		entry->length = 0;
+ 		entry->router = from.sin6_addr;
++		entry->flags = adv->nd_ra_flags_reserved & (ND_RA_FLAG_MANAGED | ND_RA_FLAG_OTHER);
+ 		entry->priority = pref_to_priority(adv->nd_ra_flags_reserved);
+ 		if (entry->priority < 0)
+ 			entry->priority = pref_to_priority(0);
+@@ -440,6 +441,7 @@ bool ra_process(void)
+ 		entry->preferred = entry->valid;
+ 		changed |= odhcp6c_update_entry(STATE_RA_ROUTE, entry,
+ 						0, ra_holdoff_interval);
++		entry->flags = 0; // other STATE_RA_* entries don't have flags
+ 
+ 		// Parse hoplimit
+ 		changed |= ra_set_hoplimit(adv->nd_ra_curhoplimit);

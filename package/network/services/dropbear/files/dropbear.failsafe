@@ -1,0 +1,30 @@
+#!/bin/sh
+
+_dropbearkey()
+{
+	/usr/bin/dropbearkey "$@" <> /dev/null 2>&1
+}
+
+_ensurekey()
+{
+	_dropbearkey -y -f "$1" && return
+	rm -f "$1"
+	_dropbearkey -f "$@" <> /dev/null 2>&1 || {
+		rm -f "$1" ; return 1
+	}
+}
+
+failsafe_dropbear () {
+	tkey='/tmp/dropbear_failsafe_host_key'
+	while : ; do
+		if _ensurekey "${tkey}" -t ed25519       ; then break ; fi
+		if _ensurekey "${tkey}" -t ecdsa -s 256  ; then break ; fi
+		if _ensurekey "${tkey}" -t rsa   -s 1024 ; then break ; fi
+		# this shouldn't happen
+		return 1
+	done
+	chmod 0600 "${tkey}"
+	dropbear -r "${tkey}" <> /dev/null 2>&1
+}
+
+boot_hook_add failsafe failsafe_dropbear

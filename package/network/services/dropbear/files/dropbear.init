@@ -1,0 +1,366 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2010 OpenWrt.org
+# Copyright (C) 2006 Carlos Sobrinho
+
+START=19
+STOP=50
+
+USE_PROCD=1
+PROG=/usr/sbin/dropbear
+NAME=dropbear
+PIDCOUNT=0
+
+extra_command "killclients" "Kill ${NAME} processes except servers and yourself"
+
+_dropbearkey() { /usr/bin/dropbearkey "$@" <> /dev/null 2>&1; }
+
+# most of time real_stat() will be failing
+# due to missing "stat" binary (by default)
+real_stat() { env stat -L "$@" 2>/dev/null; }
+dumb_stat() { ls -Ldln "$1" | tr -s '\t ' ' '; }
+stat_perm()  { real_stat -c '%A' "$1" || dumb_stat "$1" | cut -d ' ' -f 1; }
+stat_owner() { real_stat -c '%u' "$1" || dumb_stat "$1" | cut -d ' ' -f 3; }
+
+# $1 - host key file name
+file_verify()
+{
+	[ -f "$1" ] || return 1
+	# checking file ownership
+	[ "$(stat_owner "$1")" = "0" ] || {
+		chown 0 "$1"
+		[ "$(stat_owner "$1")" = "0" ] || return 2
+	}
+	# checking file permissions
+	[ "$(stat_perm "$1")" = "-rw-------" ] || {
+		chmod 0600 "$1"
+		[ "$(stat_perm "$1")" = "-rw-------" ] || return 3
+	}
+	# file is host key or not?
+	[ "$2" = "nokey" ] && return 0
+	# checking file contents (finally)
+	[ -s "$1" ] || return 4
+	_dropbearkey -y -f "$1" || return 5
+	return 0
+}
+
+# $1 - file_verify() return code
+file_errmsg()
+{
+	case "$1" in
+	0) ;;
+	1) echo "file does not exist" ;;
+	2) echo "file has wrong owner (must be owned by root)" ;;
+	3) echo "file has wrong permissions (must not have group/other write bit)" ;;
+	4) echo "file has zero length" ;;
+	5) echo "file is not valid host key or not supported" ;;
+	*) echo "unknown error" ;;
+	esac
+}
+
+# $1 - config option
+# $2 - host key file name
+hk_config()
+{
+	local x m
+	file_verify "$2"; x=$?
+	case "$x" in
+	0)	procd_append_param command -r "$2"
+		;;
+	*)	m=$(file_errmsg "$x")
+		logger -s -t "${NAME}" -p daemon.warn \
+		  "Option '$1', value '$2': $m, skipping"
+		;;
+	esac
+}
+
+# $1 - host key file name
+hk_config__keyfile() { hk_config 'keyfile' "$1"; }
+
+ktype_all='ecdsa ed25519 rsa'
+
+hk_generate_as_needed()
+{
+	local hk_cfg_dir kgen ktype kfile hk_tmp_dir
+	hk_cfg_dir='/etc/dropbear'
+
+	if ! [ -d "${hk_cfg_dir}" ]; then
+		mkdir -p "${hk_cfg_dir}"
+	fi
+
+	kgen=''
+	for ktype in ${ktype_all}; do
+		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
+
+		if file_verify "${kfile}"; then continue; fi
+
+		kgen="${kgen} ${ktype}"
+	done
+
+	# all keys are sane?
+	[ -n "${kgen}" ] || return 0
+
+	hk_tmp_dir=$(mktemp -d)
+	# system in bad state?
+	[ -n "${hk_tmp_dir}" ] || return 1
+
+	chmod 0700 "${hk_tmp_dir}"
+
+	for ktype in ${kgen}; do
+		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+
+		if ! _dropbearkey -t ${ktype} -f "${kfile}"; then
+			# unsupported key type
+			rm -f "${kfile}"
+			continue
+		fi
+
+		chmod 0600 "${kfile}"
+	done
+
+	kgen=''
+	for ktype in ${ktype_all}; do
+		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+
+		[ -s "${kfile}" ] || continue
+
+		kgen="${kgen} ${ktype}"
+	done
+
+	if [ -n "${kgen}" ]; then
+		for ktype in ${kgen}; do
+			kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+			mv -f "${kfile}" "${hk_cfg_dir}/"
+		done
+	fi
+
+	# cleanup empty files
+	for ktype in ${ktype_all}; do
+		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
+
+		if [ -s "${kfile}" ]; then continue; fi
+
+		rm -f "${kfile}"
+	done
+
+	rm -rf "${hk_tmp_dir}"
+}
+
+# $1 - ip addresses
+# $2 - port
+append_ports()
+{
+	[ -n "$1" ] || {
+		procd_append_param command -p "$2"
+		return
+	}
+
+	local addr
+	for addr in $1; do
+		procd_append_param command -p "${addr}:$2"
+	done
+}
+
+validate_section_dropbear()
+{
+	uci_load_validate dropbear dropbear "$1" "$2" \
+		'PasswordAuth:bool:1' \
+		'enable:bool:1' \
+		'Interface:string' \
+		'GatewayPorts:bool:0' \
+		'ForceCommand:string' \
+		'RootPasswordAuth:bool:1' \
+		'RootLogin:bool:1' \
+		'rsakeyfile:file' \
+		'keyfile:list(file)' \
+		'BannerFile:file' \
+		'Port:port:22' \
+		'SSHKeepAlive:uinteger:300' \
+		'IdleTimeout:uinteger:0' \
+		'MaxAuthTries:uinteger:3' \
+		'RecvWindowSize:uinteger:0' \
+		'mdns:bool:1'
+}
+
+dropbear_instance()
+{
+	local ipaddrs
+
+	[ "$2" = 0 ] || {
+		echo "validation failed"
+		return 1
+	}
+
+	[ -n "${Interface}" ] && {
+		[ -n "${BOOT}" ] && return 0
+
+		case "${Interface}" in
+		*\ *)
+			logger -t "${NAME}" -p daemon.warn \
+			  "Option 'Interface' should specify SINGLE interface" \
+			  "but instead it lists interfaces: ${Interface}"
+			logger -t "${NAME}" -p daemon.warn \
+			  "Consider creating per-interface instance instead"
+		;;
+		esac
+
+		ipaddrs=''
+
+		local n
+		for n in ${Interface}; do
+			if_ipaddrs=''
+			network_get_ipaddrs_all if_ipaddrs "$n"
+			[ -n "${if_ipaddrs}" ] || {
+				logger -s -t "${NAME}" -p daemon.warn \
+				  "Interface \"$n\" has no physdev or physdev" \
+				  "has no suitable ip"
+				continue
+			}
+			ipaddrs="${ipaddrs}${ipaddrs:+ }${if_ipaddrs}"
+		done
+
+		[ -n "${ipaddrs}" ] || {
+			logger -s -t "${NAME}" -p daemon.warn \
+			  "No ip addresses are available for interface(s):" \
+			  "${Interface}"
+			return 1
+		}
+	}
+
+	[ "${enable}" = "0" ] && return 1
+	PIDCOUNT="$(( ${PIDCOUNT} + 1))"
+	local pid_file="/var/run/${NAME}.${PIDCOUNT}.pid"
+
+	procd_open_instance
+	procd_set_param command "$PROG" -F -P "$pid_file"
+	[ "${PasswordAuth}" -eq 0 ] && procd_append_param command -s
+	[ "${GatewayPorts}" -eq 1 ] && procd_append_param command -a
+	[ -n "${ForceCommand}" ] && procd_append_param command -c "${ForceCommand}"
+	[ "${RootPasswordAuth}" -eq 0 ] && procd_append_param command -g
+	[ "${RootLogin}" -eq 0 ] && procd_append_param command -w
+	config_list_foreach "$1" 'keyfile' hk_config__keyfile
+	if [ -n "${rsakeyfile}" ]; then
+		logger -s -t "${NAME}" -p daemon.warn \
+		  "Option 'rsakeyfile' is considered to be DEPRECATED and" \
+		  "will be REMOVED in future releases, use 'keyfile' instead"
+		sed -i -E -e 's/option(.+)rsakeyfile/list keyfile/' \
+		  "/etc/config/${NAME}"
+		logger -s -t "${NAME}" -p daemon.warn \
+		  "Auto-transition 'option rsakeyfile' => 'list keyfile' in" \
+		  "/etc/config/${NAME} is done, please verify your configuration"
+		hk_config 'rsakeyfile' "${rsakeyfile}"
+	fi
+	[ -n "${BannerFile}" ] && procd_append_param command -b "${BannerFile}"
+	append_ports "${ipaddrs}" "${Port}"
+	[ "${IdleTimeout}" -ne 0 ] && procd_append_param command -I "${IdleTimeout}"
+	[ "${SSHKeepAlive}" -ne 0 ] && procd_append_param command -K "${SSHKeepAlive}"
+	[ "${MaxAuthTries}" -ne 0 ] && procd_append_param command -T "${MaxAuthTries}"
+	[ "${RecvWindowSize}" -gt 0 -a "${RecvWindowSize}" -le 1048576 ] && \
+		procd_append_param command -W "${RecvWindowSize}"
+	[ "${mdns}" -ne 0 ] && procd_add_mdns "ssh" "tcp" "$Port" "daemon=dropbear"
+	procd_set_param respawn
+	procd_close_instance
+}
+
+load_interfaces()
+{
+	config_get interface "$1" Interface
+	config_get enable "$1" enable 1
+
+	[ "${enable}" = "1" ] && interfaces=" ${interface} ${interfaces}"
+}
+
+boot()
+{
+	BOOT=1
+	start "$@"
+}
+
+start_service()
+{
+	hk_generate_as_needed
+	file_verify /etc/dropbear/authorized_keys 'nokey'
+
+	. /lib/functions.sh
+	. /lib/functions/network.sh
+
+	config_load "${NAME}"
+	config_foreach validate_section_dropbear dropbear dropbear_instance
+}
+
+service_triggers()
+{
+	local interfaces
+
+	procd_add_config_trigger "config.change" "dropbear" /etc/init.d/dropbear reload
+
+	config_load "${NAME}"
+	config_foreach load_interfaces dropbear
+
+	[ -n "${interfaces}" ] && {
+		local n
+		for n in $interfaces ; do
+			procd_add_interface_trigger "interface.*" "$n" /etc/init.d/dropbear reload
+		done
+	}
+
+	procd_add_validation validate_section_dropbear
+}
+
+shutdown() {
+	# close all open connections
+	killall dropbear
+}
+
+killclients()
+{
+	local ignore=''
+	local server
+	local pid
+
+	# if this script is run from inside a client session, then ignore that session
+	pid="$$"
+	while [ "${pid}" -ne 0 ]
+	 do
+		# get parent process id
+		pid=$(cut -d ' ' -f 4 "/proc/${pid}/stat")
+		[ "${pid}" -eq 0 ] && break
+
+		# check if client connection
+		grep -F -q -e "${PROG}" "/proc/${pid}/cmdline" && {
+			append ignore "${pid}"
+			break
+		}
+	done
+
+	# get all server pids that should be ignored
+	for server in $(cat /var/run/${NAME}.*.pid)
+	 do
+		append ignore "${server}"
+	done
+
+	# get all running pids and kill client connections
+	local skip
+	for pid in $(pidof "${NAME}")
+	 do
+		# check if correct program, otherwise process next pid
+		grep -F -q -e "${PROG}" "/proc/${pid}/cmdline" || {
+			continue
+		}
+
+		# check if pid should be ignored (servers, ourself)
+		skip=0
+		for server in ${ignore}
+		 do
+			if [ "${pid}" = "${server}" ]
+			 then
+				skip=1
+				break
+			fi
+		done
+		[ "${skip}" -ne 0 ] && continue
+
+		# kill process
+		echo "${initscript}: Killing ${pid}..."
+		kill -KILL ${pid}
+	done
+}
