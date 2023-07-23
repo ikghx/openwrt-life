@@ -548,6 +548,7 @@ define KernelPackage/usb-audio
 	CONFIG_USB_AUDIO \
 	CONFIG_SND_USB=y \
 	CONFIG_SND_USB_AUDIO
+  DEPENDS:=+PACKAGE_kmod-multimedia:kmod-multimedia
   $(call AddDepends/usb)
   $(call AddDepends/sound)
   FILES:= \
@@ -1140,6 +1141,7 @@ endef
 
 define KernelPackage/usb-net-aqc111
   TITLE:=Support for USB-to-Ethernet Aquantia AQtion 5/2.5GbE
+  DEPENDS:=+kmod-libphy
   KCONFIG:=CONFIG_USB_NET_AQC111
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/aqc111.ko
   AUTOLOAD:=$(call AutoProbe,aqc111)
