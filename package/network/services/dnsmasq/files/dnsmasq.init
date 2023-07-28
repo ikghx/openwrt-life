@@ -601,16 +601,15 @@ dhcp_add() {
 	nettag="${networkid:+set:${networkid},}"
 
 	# make sure the DHCP range is not empty
-	if [ "$dhcpv4" != "disabled" ] && eval_ipcalc "${subnet%%/*}" "$netmask" "$start" "$limit" ; then
-		[ "$dynamicdhcpv4" = "0" ] && END="static"
+	local range_start range_end
+	if [ "$dhcpv4" != "disabled" ] && USE_RANGES=1 eval_ipcalc "${subnet%%/*}" "$netmask" "$start" "$limit" ; then
+		while read range; do
+			range_start="$(echo "$range" | cut -f1 -d,)"
+			range_end="$(echo "$range" | cut -f2 -d,)"
+			[ "$dynamicdhcpv4" = "0" ] && range_end=static
 
-		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
-	fi
-
-	if [ "$dynamicdhcpv6" = "0" ] ; then
-		dhcp6range="::,static"
-	else
-		dhcp6range="::1000,::ffff"
+			xappend "--dhcp-range=$tags$nettag$range_start,$range_end,$NETMASK,$leasetime${options:+ $options}"
+		done < <(echo "$RANGES" | tr ';' '\n')
 	fi
 
 

@@ -89,11 +89,22 @@ BEGIN {
 		exit(1)
 	}
 
-	if (ipaddr > start && ipaddr < end) {
-		print "ipaddr inside range" > "/dev/stderr"
-		exit(1)
+	if (ENVIRON["USE_RANGES"] != "1") {
+		if (ipaddr > start && ipaddr < end) {
+			print "ipaddr inside range" > "/dev/stderr"
+			exit(1)
+		}
+
+		print "START="int2ip(start)
+		print "END="int2ip(end)
+		exit(0)
 	}
 
-	print "START="int2ip(start)
-	print "END="int2ip(end)
+	if (ipaddr > start && ipaddr < end) {
+		print "RANGES='" \
+			int2ip(start)","int2ip(ipaddr-1) ";" \
+			int2ip(ipaddr+1)","int2ip(end)"'"
+	} else {
+		print "RANGES="int2ip(start)","int2ip(end)
+	}
 }

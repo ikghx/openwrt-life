@@ -477,6 +477,7 @@ define Device/buffalo_wsr-2533dhpl
   DEVICE_ALT0_MODEL := WSR-2533DHP
   IMAGE/sysupgrade.bin := trx | pad-rootfs | append-metadata
   DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
+  DEFAULT := n
 endef
 TARGET_DEVICES += buffalo_wsr-2533dhpl
 
@@ -916,6 +917,7 @@ define Device/elecom_wrc-2533ghbk2-t
 	elx-header 0107003b 8844A2D168B45A2D | \
 	elecom-product-header WRC-2533GHBK2-T
   DEVICE_PACKAGES := kmod-mt7615-firmware -uboot-envtools
+  DEFAULT := n
 endef
 TARGET_DEVICES += elecom_wrc-2533ghbk2-t
 

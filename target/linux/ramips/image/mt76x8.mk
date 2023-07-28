@@ -156,6 +156,7 @@ define Device/cudy_wr1000
   DEVICE_MODEL := WR1000
   DEVICE_PACKAGES := kmod-mt76x2
   SUPPORTED_DEVICES += wr1000
+  DEFAULT := n
 endef
 TARGET_DEVICES += cudy_wr1000
 
@@ -193,6 +194,7 @@ define Device/elecom_wrc-1167fs
 	xor-image -p 29944A25 -x | elecom-header 00228000 | \
 	elecom-product-header WRC-1167FS
   DEVICE_PACKAGES := kmod-mt76x2
+  DEFAULT := n
 endef
 TARGET_DEVICES += elecom_wrc-1167fs
 
@@ -559,6 +561,7 @@ define Device/tplink_archer-c20-v5
   TPLINK_HWREVADD := 0x5
   DEVICE_PACKAGES := kmod-mt76x0e
   IMAGES := sysupgrade.bin
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c20-v5
 
@@ -575,6 +578,7 @@ define Device/tplink_archer-c50-v3
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
   SUPPORTED_DEVICES += tplink,c50-v3
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c50-v3
 
@@ -590,6 +594,7 @@ define Device/tplink_archer-c50-v4
   DEVICE_PACKAGES := kmod-mt76x2
   IMAGES := sysupgrade.bin
   SUPPORTED_DEVICES += tplink,c50-v4
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c50-v4
 
@@ -665,6 +670,7 @@ define Device/tplink_tl-mr3020-v3
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-mr3020-v3
 
@@ -680,6 +686,7 @@ define Device/tplink_tl-mr3420-v5
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-mr3420-v5
 
@@ -696,6 +703,7 @@ define Device/tplink_tl-mr6400-v4
 	kmod-usb-serial-option kmod-usb-net-qmi-wwan uqmi
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v4
 
@@ -712,6 +720,7 @@ define Device/tplink_tl-mr6400-v5
 	kmod-usb-serial-option kmod-usb-net-qmi-wwan uqmi
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-mr6400-v5
 
@@ -810,6 +819,7 @@ define Device/tplink_tl-wr842n-v5
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-usb-ledtrig-usbport
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr842n-v5
 
@@ -839,6 +849,7 @@ define Device/tplink_tl-wr902ac-v3
 	kmod-usb-ledtrig-usbport
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr902ac-v3
 
