@@ -38,7 +38,7 @@ define Package/opkg
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=opkg package manager
-  DEPENDS:=+uclient-fetch +libpthread +libubox
+  DEPENDS:=+wget-ssl +libpthread +libubox
   URL:=$(PKG_SOURCE_URL)
   MENU:=1
 endef
