@@ -2350,7 +2350,7 @@ define Device/ubnt_usw-flex
   DEVICE_MODEL := UniFi Switch Flex
   DEVICE_DTS_CONFIG := config@1
   DEVICE_DTS_LOADADDR := 0x87000000
-  DEVICE_PACKAGES += -uboot-envtools
+  DEVICE_PACKAGES += -wpad-basic-mbedtls -uboot-envtools
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   IMAGE_SIZE := 14720k
 endef
