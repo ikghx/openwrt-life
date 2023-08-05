@@ -29,8 +29,7 @@ define KernelPackage/dvb-usb-v2
   DEPENDS:=+kmod-i2c-core +kmod-usb-core kmod-multimedia
   FILES:= \
 	$(LINUX_DIR)/drivers/media/dvb-core/dvb-core.ko \
-	$(LINUX_DIR)/drivers/media/usb/dvb-usb-v2/dvb_usb_v2.ko \
-	$(LINUX_DIR)/drivers/media/rc/rc-core.ko
+	$(LINUX_DIR)/drivers/media/usb/dvb-usb-v2/dvb_usb_v2.ko
   AUTOLOAD:=$(call AutoLoad,81,dvb-core dvb_usb_v2)
 endef
 define KernelPackage/dvb-usb-v2/description
