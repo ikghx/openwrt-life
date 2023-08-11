@@ -21,13 +21,20 @@ mediatek_setup_interfaces()
 	bananapi,bpi-r3)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4 sfp2" "eth1 wan"
 		;;
-	cudy,wr3000-v1)
+	cetron,ct3003-ubootmod|\
+	cudy,wr3000-v1|\
+	jcg,q30-ubootmod|\
+	livinet,zr-3020|\
+	livinet,zr-3020-ubootmod|\
+	qihoo,360t7|\
+	qihoo,360t7-ubootmod)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" "wan"
 		;;
 	glinet,gl-mt3000)
 		ucidef_set_interfaces_lan_wan eth1 eth0
 		;;
-	h3c,magic-nx30-pro)
+	h3c,magic-nx30-pro|\
+	imou,lc-hx3001)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" eth1
 		;;
 	mediatek,mt7986a-rfb)
@@ -42,9 +49,6 @@ mediatek_setup_interfaces()
 	mercusys,mr90x-v1)
 		ucidef_set_interfaces_lan_wan "lan0 lan1 lan2" eth1
 		;;
-	qihoo,360t7)
-		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" wan
-		;;
 	tplink,tl-xdr4288|\
 	tplink,tl-xdr6088)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3 lan4 lan5" eth1
@@ -55,6 +59,7 @@ mediatek_setup_interfaces()
 	xiaomi,mi-router-wr30u-112m-nmbm|\
 	xiaomi,mi-router-wr30u-stock|\
 	xiaomi,mi-router-wr30u-ubootmod|\
+	xiaomi,redmi-router-ax6000|\
 	xiaomi,redmi-router-ax6000-stock|\
 	xiaomi,redmi-router-ax6000-ubootmod)
 		ucidef_set_interfaces_lan_wan "lan2 lan3 lan4" wan
@@ -87,6 +92,11 @@ mediatek_setup_macs()
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac
 		;;
+	imou,lc-hx3001)
+		lan_mac=$(mtd_get_mac_ascii u-boot-env mac)
+		[ -n "$lan_mac" ] || lan_mac=$(macaddr_add $(mtd_get_mac_binary Factory 0x4) -1)
+		wan_mac=$(macaddr_add $lan_mac 2)
+		;;
 	mercusys,mr90x-v1)
 		label_mac=$(get_mac_binary "/tmp/tp_data/default-mac" 0)
 		lan_mac=$label_mac
@@ -103,6 +113,7 @@ mediatek_setup_macs()
 	xiaomi,mi-router-wr30u-112m-nmbm|\
 	xiaomi,mi-router-wr30u-stock|\
 	xiaomi,mi-router-wr30u-ubootmod|\
+	xiaomi,redmi-router-ax6000|\
 	xiaomi,redmi-router-ax6000-stock|\
 	xiaomi,redmi-router-ax6000-ubootmod)
 		wan_mac=$(mtd_get_mac_ascii Bdata ethaddr_wan)
