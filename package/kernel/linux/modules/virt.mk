@@ -117,3 +117,26 @@ define KernelPackage/vfio-pci/description
 endef
 
 $(eval $(call KernelPackage,vfio-pci))
+
+
+define KernelPackage/vhost
+  SUBMENU:=Virtualization
+  TITLE:=Host kernel accelerator for virtio (base)
+  KCONFIG:=CONFIG_VHOST
+  FILES:= $(LINUX_DIR)/drivers/vhost/vhost.ko \
+    $(LINUX_DIR)/drivers/vhost/vhost_iotlb.ko
+  AUTOLOAD:=$(call AutoProbe,vhost.ko vhost_iotlb.ko)
+endef
+
+$(eval $(call KernelPackage,vhost))
+
+define KernelPackage/vhost-net
+  SUBMENU:=Virtualization
+  TITLE:=Host kernel accelerator for virtio-net
+  DEPENDS:=+kmod-tun +kmod-vhost
+  KCONFIG:=CONFIG_VHOST_NET
+  FILES:= $(LINUX_DIR)/drivers/vhost/vhost_net.ko
+  AUTOLOAD:=$(call AutoProbe,vhost_net.ko)
+endef
+
+$(eval $(call KernelPackage,vhost-net))
