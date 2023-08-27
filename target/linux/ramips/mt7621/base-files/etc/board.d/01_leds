@@ -60,8 +60,8 @@ cudy,wr2100)
 	;;
 d-team,newifi-d2)
 	ucidef_set_led_netdev "internet" "internet" "amber:internet" "wan"
-	ucidef_set_led_netdev "wlan2g" "WiFi 2.4GHz" "blue:wlan2g" "wlan0"
-	ucidef_set_led_netdev "wlan5g" "WiFi 5GHz" "blue:wlan5g" "wlan1"
+	ucidef_set_led_netdev "wlan2g" "WiFi 2.4GHz" "blue:wlan2g" "phy0-ap0"
+	ucidef_set_led_netdev "wlan5g" "WiFi 5GHz" "blue:wlan5g" "phy1-ap0"
 	;;
 d-team,pbr-m1|\
 gehua,ghl-r-001|\
@@ -233,6 +233,10 @@ yuncore,fap690)
 yuncore,ax820)
 	ucidef_set_led_netdev "lan" "LAN" "green:lan" "lan"
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "wan"
+	;;
+zte,e8820s)
+	ucidef_set_led_netdev "wlan2g" "WiFi 2.4GHz" "white:wlan2g" "wlan0"
+	ucidef_set_led_netdev "wlan5g" "WiFi 5GHz" "white:wlan5g" "wlan1"
 	;;
 zyxel,lte3301-plus)
 	ucidef_set_led_netdev "internet" "internet" "white:internet" "wwan0"
