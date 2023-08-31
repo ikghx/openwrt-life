@@ -33,8 +33,10 @@ mediatek_setup_interfaces()
 	glinet,gl-mt3000)
 		ucidef_set_interfaces_lan_wan eth1 eth0
 		;;
+	cmcc,rax3000m-nand-ubootmod|\
 	h3c,magic-nx30-pro|\
-	imou,lc-hx3001)
+	h3c,magic-nx30-pro-nmbm|\
+	imou,lc-hx3001-ubootmod)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" eth1
 		;;
 	mediatek,mt7986a-rfb)
@@ -87,12 +89,13 @@ mediatek_setup_macs()
 	bananapi,bpi-r3)
 		wan_mac=$(macaddr_add $(cat /sys/class/net/eth0/address) 1)
 		;;
-	h3c,magic-nx30-pro)
+	h3c,magic-nx30-pro|\
+	h3c,magic-nx30-pro-nmbm)
 		wan_mac=$(mtd_get_mac_ascii pdt_data_1 ethaddr)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac
 		;;
-	imou,lc-hx3001)
+	imou,lc-hx3001-ubootmod)
 		lan_mac=$(mtd_get_mac_ascii u-boot-env mac)
 		[ -n "$lan_mac" ] || lan_mac=$(macaddr_add $(mtd_get_mac_binary Factory 0x4) -1)
 		wan_mac=$(macaddr_add $lan_mac 2)
