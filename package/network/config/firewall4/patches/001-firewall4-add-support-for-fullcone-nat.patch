@@ -383,7 +383,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  const fs = require("fs");
  const uci = require("uci");
  const ubus = require("ubus");
-@@ -490,6 +492,25 @@ function nft_try_hw_offload(devices) {
+@@ -489,6 +491,25 @@ function nft_try_hw_offload(devices) {
  	return (rc == 0);
  }
  
@@ -409,7 +409,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  
  return {
  	read_kernel_version: function() {
-@@ -840,6 +861,18 @@ return {
+@@ -832,6 +853,18 @@ return {
  			warn(`[!] ${msg}\n`);
  	},
  
@@ -428,7 +428,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  	get: function(sid, opt) {
  		return this.cursor.get("firewall", sid, opt);
  	},
-@@ -1021,6 +1054,21 @@ return {
+@@ -1013,6 +1046,21 @@ return {
  		}
  	},
  
@@ -450,7 +450,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  	parse_policy: function(val) {
  		return this.parse_enum(val, [
  			"accept",
-@@ -1460,6 +1508,7 @@ return {
+@@ -1452,6 +1500,7 @@ return {
  			"dnat",
  			"snat",
  			"masquerade",
@@ -458,7 +458,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  			"accept",
  			"reject",
  			"drop"
-@@ -1927,6 +1976,8 @@ return {
+@@ -1919,6 +1968,8 @@ return {
  		}
  
  		let defs = this.parse_options(data, {
@@ -467,7 +467,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  			input: [ "policy", "drop" ],
  			output: [ "policy", "drop" ],
  			forward: [ "policy", "drop" ],
-@@ -1961,6 +2012,11 @@ return {
+@@ -1953,6 +2004,11 @@ return {
  
  		delete defs.syn_flood;
  
@@ -479,7 +479,7 @@ Renew: ZiMing Mo <msylgj@immortalwrt.org>
  		this.state.defaults = defs;
  	},
  
-@@ -2186,10 +2242,23 @@ return {
+@@ -2178,10 +2234,23 @@ return {
  		zone.related_subnets = related_subnets;
  		zone.related_physdevs = related_physdevs;
  
