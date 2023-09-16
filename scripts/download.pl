@@ -259,9 +259,9 @@ foreach my $mirror (@ARGV) {
 		push @mirrors, "https://mirror.aarnet.edu.au/pub/apache/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/apache/$1";
 		push @mirrors, "https://archive.apache.org/dist/$1";
-		push @mirrors, "http://mirror.cogentco.com/pub/apache/$1";
-		push @mirrors, "http://mirror.navercorp.com/apache/$1";
-		push @mirrors, "http://ftp.jaist.ac.jp/pub/apache/$1";
+		push @mirrors, "https://mirror.cogentco.com/pub/apache/$1";
+		push @mirrors, "https://mirror.navercorp.com/apache/$1";
+		push @mirrors, "https://ftp.jaist.ac.jp/pub/apache/$1";
 		push @mirrors, "https://apache.cs.utah.edu/apache.org/$1";
 		push @mirrors, "http://apache.mirrors.ovh.net/ftp.apache.org/dist/$1";
 		push @mirrors, "https://mirrors.tuna.tsinghua.edu.cn/apache/$1";
@@ -274,9 +274,9 @@ foreach my $mirror (@ARGV) {
 	} elsif ($mirror =~ /^\@GNU\/(.+)$/) {
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnu/$1";
 		push @mirrors, "https://mirror.netcologne.de/gnu/$1";
-		push @mirrors, "http://ftp.kddilabs.jp/GNU/gnu/$1";
-		push @mirrors, "http://www.nic.funet.fi/pub/gnu/gnu/$1";
-		push @mirrors, "http://mirror.navercorp.com/gnu/$1";
+		push @mirrors, "https://ftp.kddilabs.jp/GNU/gnu/$1";
+		push @mirrors, "https://www.nic.funet.fi/pub/gnu/gnu/$1";
+		push @mirrors, "https://mirror.navercorp.com/gnu/$1";
 		push @mirrors, "https://mirrors.rit.edu/gnu/$1";
 		push @mirrors, "https://ftp.gnu.org/gnu/$1";
 		push @mirrors, "https://mirrors.tuna.tsinghua.edu.cn/gnu/$1";
@@ -284,10 +284,9 @@ foreach my $mirror (@ARGV) {
 	} elsif ($mirror =~ /^\@SAVANNAH\/(.+)$/) {
 		push @mirrors, "https://mirror.netcologne.de/savannah/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/nongnu/$1";
-		push @mirrors, "http://ftp.acc.umu.se/mirror/gnu.org/savannah/$1";
+		push @mirrors, "https://ftp.acc.umu.se/mirror/gnu.org/savannah/$1";
 		push @mirrors, "https://nongnu.uib.no/$1";
 		push @mirrors, "https://cdimage.debian.org/mirror/gnu.org/savannah/$1";
-		push @mirrors, "https://ftp.acc.umu.se/mirror/gnu.org/savannah/$1";
 	} elsif ($mirror =~ /^\@KERNEL\/(.+)$/) {
 		my @extra = ( $1 );
 		if ($filename =~ /linux-\d+\.\d+(?:\.\d+)?-rc/) {
@@ -307,7 +306,7 @@ foreach my $mirror (@ARGV) {
 	} elsif ($mirror =~ /^\@GNOME\/(.+)$/) {
 		push @mirrors, "https://download.gnome.org/sources/$1";
 		push @mirrors, "https://mirror.csclub.uwaterloo.ca/gnome/sources/$1";
-		push @mirrors, "http://ftp.acc.umu.se/pub/GNOME/sources/$1";
+		push @mirrors, "https://ftp.acc.umu.se/pub/GNOME/sources/$1";
 		push @mirrors, "http://ftp.cse.buffalo.edu/pub/Gnome/sources/$1";
 		push @mirrors, "http://ftp.nara.wide.ad.jp/pub/X11/GNOME/sources/$1";
 		push @mirrors, "https://mirrors.ustc.edu.cn/gnome/sources/$1";
