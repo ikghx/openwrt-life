@@ -9,15 +9,19 @@ function bitcount(c) {
 	return c
 }
 
-function ip2int(ip) {
+function ip2int(ip,   ret, n, x) {
 	ret=0
 	n=split(ip,a,"\\.")
+	if (n != 4)
+		return
 	for (x=1;x<=n;x++)
 		ret=or(lshift(ret,8),a[x])
 	return ret
 }
 
-function int2ip(ip,ret,x) {
+function int2ip(ip,   ret, x) {
+	if (use_decimal)
+		return ip
 	ret=and(ip,255)
 	ip=rshift(ip,8)
 	for(;x<3;x++) {
@@ -27,22 +31,50 @@ function int2ip(ip,ret,x) {
 	return ret
 }
 
-function compl32(v) {
+function compl32(v,   ret) {
 	ret=xor(v, 0xffffffff)
 	return ret
 }
 
+function notquad(addr) {
+	print "Not a dotted-quad "addr > "/dev/stderr"
+	exit(1)
+}
+
 BEGIN {
+	use_decimal=0
+##	if (ARGC >= 2 && ARGV[1] == "-d") {
+##		for (n=1;n<ARGC-1;++n)
+##			ARGV[n]=ARGV[n+1]
+##		--ARGC
+##		use_decimal=1
+##	}
+	if (ENVIRON["USEDECIMAL"] != "")
+		use_decimal=1
+
 	slpos=index(ARGV[1],"/")
+
+	if (ARGC < ((slpos != 0) ? 2 : 3)) {
+		print "Usage: "ARGV[0]" <ip> <netmask> [ <start> <num> ]" > "/dev/stderr"
+		exit(1)
+	}
+
 	if (slpos == 0) {
 		ipaddr=ip2int(ARGV[1])
+		if (ipaddr == "")
+			notquad(ARGV[1])
 		dotpos=index(ARGV[2],".")
 		if (dotpos == 0)
 			netmask=compl32(2**(32-int(ARGV[2]))-1)
-		else
+		else {
 			netmask=ip2int(ARGV[2])
+			if (netmask == "")
+				notquad(ARGV[2])
+		}
 	} else {
 		ipaddr=ip2int(substr(ARGV[1],0,slpos-1))
+		if (ipaddr == "")
+			notquad(substr(ARGV[1],0,slpos-1))
 		netmask=compl32(2**(32-int(substr(ARGV[1],slpos+1)))-1)
 		ARGV[4]=ARGV[3]
 		ARGV[3]=ARGV[2]
@@ -54,11 +86,12 @@ BEGIN {
 	print "IP="int2ip(ipaddr)
 	print "NETMASK="int2ip(netmask)
 	print "NETWORK="int2ip(network)
-	if (prefix<31) {
+	if (prefix<=30) {
 		broadcast=or(network,compl32(netmask))
 		print "BROADCAST="int2ip(broadcast)
 	}
 	print "PREFIX="prefix
+	print "HOSTS="compl32(netmask)
 
 	# range calculations:
 	# ipcalc <ip> <netmask> <range_start> <range_size>
@@ -66,7 +99,7 @@ BEGIN {
 	if (ARGC <= 3)
 		exit(0)
 
-	if (prefix<31)
+	if (prefix<=30)
 		limit=network+1
 	else
 		limit=network
@@ -75,7 +108,7 @@ BEGIN {
 	if (start<limit) start=limit
 	if (start==ipaddr) start=ipaddr+1
 
-	if (prefix<31)
+	if (prefix<=30)
 		limit=or(network,compl32(netmask))-1
 	else
 		limit=or(network,compl32(netmask))
@@ -89,22 +122,12 @@ BEGIN {
 		exit(1)
 	}
 
-	if (ENVIRON["USE_RANGES"] != "1") {
-		if (ipaddr > start && ipaddr < end) {
-			print "ipaddr inside range" > "/dev/stderr"
-			exit(1)
-		}
-
-		print "START="int2ip(start)
-		print "END="int2ip(end)
-		exit(0)
+	if (ipaddr >= start && ipaddr <= end) {
+		print "warning: ipaddr inside range - this might not be supported in future releases of Openwrt" > "/dev/stderr"
+		# turn this into an error after Openwrt 24 has been released
+		# exit(1)
 	}
 
-	if (ipaddr > start && ipaddr < end) {
-		print "RANGES='" \
-			int2ip(start)","int2ip(ipaddr-1) ";" \
-			int2ip(ipaddr+1)","int2ip(end)"'"
-	} else {
-		print "RANGES="int2ip(start)","int2ip(end)
-	}
+	print "START="int2ip(start)
+	print "END="int2ip(end)
 }

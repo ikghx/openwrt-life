@@ -172,8 +172,26 @@ define Device/bananapi_bpi-r3
 endef
 TARGET_DEVICES += bananapi_bpi-r3
 
+define Device/cetron_ct3003-stock
+  DEVICE_VENDOR := Cetron
+  DEVICE_MODEL := CT3003 (stock layout)
+  DEVICE_DTS := mt7981b-cetron-ct3003-stock
+  DEVICE_DTS_DIR := ../dts
+  SUPPORTED_DEVICES += cetron,ct3003 mediatek,mt7981-spim-snand-rfb
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 32768k
+  KERNEL_IN_UBI := 1
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGES += factory.bin
+  IMAGE/factory.bin := $$(IMAGE/sysupgrade.bin) | cetron-header rd30 CT3003
+endef
+TARGET_DEVICES += cetron_ct3003-stock
+
 define Device/cetron_ct3003-ubootmod
-  DEVICE_VENDOR := CETRON
+  DEVICE_VENDOR := Cetron
   DEVICE_MODEL := CT3003 (custom U-Boot layout)
   DEVICE_DTS := mt7981b-cetron-ct3003-ubootmod
   DEVICE_DTS_DIR := ../dts
@@ -192,6 +210,53 @@ define Device/cetron_ct3003-ubootmod
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
 endef
 TARGET_DEVICES += cetron_ct3003-ubootmod
+
+define Device/cmcc_rax3000m
+  DEVICE_VENDOR := CMCC
+  DEVICE_MODEL := RAX3000M (OpenWrt U-Boot layout)
+  DEVICE_DTS := mt7981b-cmcc-rax3000m
+  DEVICE_DTS_OVERLAY := mt7981b-cmcc-rax3000m-emmc mt7981b-cmcc-rax3000m-nand
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTC_FLAGS := --pad 4096
+  DEVICE_DTS_LOADADDR := 0x43f00000
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3 \
+	f2fsck mkf2fs
+  KERNEL_LOADADDR := 0x44000000
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  IMAGE_SIZE := $$(shell expr 64 + $$(CONFIG_TARGET_ROOTFS_PARTSIZE))m
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | \
+	pad-rootfs | append-metadata
+  ARTIFACTS := \
+	emmc-gpt.bin emmc-preloader.bin emmc-bl31-uboot.fip \
+	nand-preloader.bin nand-bl31-uboot.fip
+  ARTIFACT/emmc-gpt.bin := mt798x-gpt emmc
+  ARTIFACT/emmc-preloader.bin := mt7981-bl2 emmc-ddr4
+  ARTIFACT/emmc-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000m-emmc
+  ARTIFACT/nand-preloader.bin := mt7981-bl2 spim-nand-ddr4
+  ARTIFACT/nand-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000m-nand
+endef
+TARGET_DEVICES += cmcc_rax3000m
+
+define Device/cmcc_rax3000m-emmc-ubootmod
+  DEVICE_VENDOR := CMCC
+  DEVICE_MODEL := RAX3000M eMMC version (custom U-Boot layout)
+  DEVICE_DTS := mt7981b-cmcc-rax3000m-emmc-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3 \
+	f2fsck mkf2fs
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += cmcc_rax3000m-emmc-ubootmod
 
 define Device/cmcc_rax3000m-nand-ubootmod
   DEVICE_VENDOR := CMCC
@@ -249,6 +314,21 @@ define Device/glinet_gl-mt3000
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-gl-metadata
 endef
 TARGET_DEVICES += glinet_gl-mt3000
+
+define Device/glinet_gl-mt6000
+  DEVICE_VENDOR := GL.iNet
+  DEVICE_MODEL := GL-MT6000
+  DEVICE_DTS := mt7986a-glinet-gl-mt6000
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb3 kmod-mt7986-firmware mt7986-wo-firmware e2fsprogs f2fsck mkf2fs
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to 32M | append-rootfs
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-gl-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7986-bl2 emmc-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot glinet_gl-mt6000
+endef
+TARGET_DEVICES += glinet_gl-mt6000
 
 define Device/h3c_magic-nx30-pro
   DEVICE_VENDOR := H3C
@@ -597,6 +677,16 @@ define Device/tplink_tl-xdr6088
 endef
 TARGET_DEVICES += tplink_tl-xdr6088
 
+define Device/ubnt_unifi-6-plus
+  DEVICE_VENDOR := Ubiquiti
+  DEVICE_MODEL := UniFi 6 Plus
+  DEVICE_DTS := mt7981a-ubnt-unifi-6-plus
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware e2fsprogs f2fsck mkf2fs fdisk partx-utils
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += ubnt_unifi-6-plus
+
 define Device/xiaomi_mi-router-wr30u-112m-nmbm
   DEVICE_VENDOR := Xiaomi
   DEVICE_MODEL := Mi Router WR30U (custom U-Boot layout)
@@ -605,11 +695,15 @@ define Device/xiaomi_mi-router-wr30u-112m-nmbm
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 128k
   PAGESIZE := 2048
+  IMAGE_SIZE := 114688k
+  KERNEL_IN_UBI := 1
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
   ARTIFACTS := initramfs-factory.ubi
   ARTIFACT/initramfs-factory.ubi := append-image-stage initramfs-kernel.bin | ubinize-kernel
 endif
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += xiaomi_mi-router-wr30u-112m-nmbm

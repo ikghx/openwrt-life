@@ -200,6 +200,30 @@ define U-Boot/mt7629_rfb
   UBOOT_CONFIG:=mt7629_rfb
 endef
 
+define U-Boot/mt7981_cmcc_rax3000m-emmc
+  NAME:=CMCC RAX3000M
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=cmcc_rax3000m
+  UBOOT_CONFIG:=mt7981_cmcc_rax3000m-emmc
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=emmc
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr4
+  DEPENDS:=+trusted-firmware-a-mt7981-emmc-ddr4
+endef
+
+define U-Boot/mt7981_cmcc_rax3000m-nand
+  NAME:=CMCC RAX3000M
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=cmcc_rax3000m
+  UBOOT_CONFIG:=mt7981_cmcc_rax3000m-nand
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr4
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr4
+endef
+
 define U-Boot/mt7981_h3c_magic-nx30-pro
   NAME:=H3C Magic NX30 Pro
   BUILD_SUBTARGET:=filogic
@@ -295,6 +319,18 @@ define U-Boot/mt7986_bananapi_bpi-r3-nor
   BL2_DDRTYPE:=ddr4
   DEPENDS:=+trusted-firmware-a-mt7986-nor-ddr4
   FIP_COMPRESS:=1
+endef
+
+define U-Boot/mt7986_glinet_gl-mt6000
+  NAME:=GL.iNet GL-MT6000
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=glinet_gl-mt6000
+  UBOOT_CONFIG:=mt7986a_glinet_gl-mt6000
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=emmc
+  BL2_SOC:=mt7986
+  BL2_DDRTYPE:=ddr4
+  DEPENDS:=+trusted-firmware-a-mt7986-emmc-ddr4
 endef
 
 define U-Boot/mt7986_tplink_tl-xdr4288
@@ -424,6 +460,8 @@ UBOOT_TARGETS := \
 	mt7628_rfb \
 	ravpower_rp-wd009 \
 	mt7629_rfb \
+	mt7981_cmcc_rax3000m-emmc \
+	mt7981_cmcc_rax3000m-nand \
 	mt7981_h3c_magic-nx30-pro \
 	mt7981_qihoo_360t7 \
 	mt7981_xiaomi_mi-router-wr30u \
@@ -431,6 +469,7 @@ UBOOT_TARGETS := \
 	mt7986_bananapi_bpi-r3-sdmmc \
 	mt7986_bananapi_bpi-r3-snand \
 	mt7986_bananapi_bpi-r3-nor \
+	mt7986_glinet_gl-mt6000 \
 	mt7986_tplink_tl-xdr4288 \
 	mt7986_tplink_tl-xdr6086 \
 	mt7986_tplink_tl-xdr6088 \

@@ -30,10 +30,25 @@ case "$board" in
 		[ "$PHYNBR" = "0" ] && macaddr_unsetbit $addr 6 > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_setbit $addr 6 > /sys${DEVPATH}/macaddress
 		;;
+	cetron,ct3003-stock|\
 	cetron,ct3003-ubootmod)
 		addr=$(cat /sys/class/net/eth0/address)
 		[ "$PHYNBR" = "0" ] && macaddr_add $addr 1 > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_add $addr 2 > /sys${DEVPATH}/macaddress
+		;;
+	cmcc,rax3000m)
+		case "$(cmdline_get_var root)" in
+		/dev/mmc*)
+			addr=$(mmc_get_mac_binary factory 0xa)
+			;;
+		*)
+			addr=$(mtd_get_mac_binary factory 0xa)
+			;;
+		esac
+		[ "$PHYNBR" = "1" ] && echo "$addr" > /sys${DEVPATH}/macaddress
+		;;
+	cmcc,rax3000m-emmc-ubootmod)
+		[ "$PHYNBR" = "1" ] && mmc_get_mac_binary factory 0xa > /sys${DEVPATH}/macaddress
 		;;
 	cmcc,rax3000m-nand-ubootmod)
 		[ "$PHYNBR" = "1" ] && mtd_get_mac_binary Factory 0xa > /sys${DEVPATH}/macaddress
@@ -45,6 +60,11 @@ case "$board" in
 		# mac-address instead.
 		[ "$PHYNBR" = "0" ] && echo "$addr" > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_setbit_la $(macaddr_add $addr 1) > /sys${DEVPATH}/macaddress
+		;;
+	glinet,gl-mt6000)
+		addr=$(mmc_get_mac_binary factory 0x04)
+		[ "$PHYNBR" = "0" ] && echo "$addr" > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && macaddr_add $addr 1 > /sys${DEVPATH}/macaddress
 		;;
 	h3c,magic-nx30-pro|\
 	h3c,magic-nx30-pro-nmbm)
@@ -76,6 +96,11 @@ case "$board" in
 		hw_mac_addr=$(mtd_get_mac_ascii u-boot-env mac)
 		[ "$PHYNBR" = "0" ] && macaddr_add $hw_mac_addr 2 > /sys${DEVPATH}/macaddress
 		[ "$PHYNBR" = "1" ] && macaddr_add $hw_mac_addr 3 > /sys${DEVPATH}/macaddress
+		;;
+	ubnt,unifi-6-plus)
+		addr=$(mtd_get_mac_binary EEPROM 0x6)
+		[ "$PHYNBR" = "0" ] && echo "$addr" > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && macaddr_add $addr 1 > /sys${DEVPATH}/macaddress
 		;;
 	qihoo,360t7)
 		addr=$(mtd_get_mac_ascii factory lanMac)

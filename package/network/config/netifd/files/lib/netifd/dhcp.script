@@ -18,13 +18,13 @@ setup_interface () {
 	proto_add_ipv4_address "$ip" "${subnet:-255.255.255.0}"
 	# TODO: apply $broadcast
 
-	local ip_net
-	ip_net="$(ipcalc.sh "$ip/$mask" | sed -nE 's/^NETWORK=//p')"
+	local ip_net IP PREFIX NETWORK NETMASK BROADCAST
+	ipcalc "$ip/$mask" && ip_net="$NETWORK"
 
 	local i
 	for i in $router; do
 		local gw_net
-		gw_net="$(ipcalc.sh "$i/$mask" | sed -nE 's/^NETWORK=//p')"
+		ipcalc "$i/$mask" && gw_net="$NETWORK"
 
 		[ "$ip_net" != "$gw_net" ] && proto_add_ipv4_route "$i" 32 "" "$ip"
 		proto_add_ipv4_route 0.0.0.0 0 "$i" "$ip"

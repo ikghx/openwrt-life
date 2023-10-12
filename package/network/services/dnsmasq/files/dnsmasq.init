@@ -1,6 +1,8 @@
 #!/bin/sh /etc/rc.common
 # Copyright (C) 2007-2012 OpenWrt.org
 
+. /lib/functions.sh
+
 START=19
 
 USE_PROCD=1
@@ -523,12 +525,6 @@ dhcp_boot_add() {
 	dhcp_option_add "$cfg" "$networkid" "$force"
 }
 
-eval_ipcalc() {
-	local output
-	output="$(ipcalc.sh "$@")" || return
-	eval "$output"
-}
-
 dhcp_add() {
 	local cfg="$1"
 	local dhcp6range="::"
@@ -602,7 +598,7 @@ dhcp_add() {
 	nettag="${networkid:+set:${networkid},}"
 
 	# make sure the DHCP range is not empty
-	if [ "$dhcpv4" != "disabled" ] && eval "$(USE_RANGES=1 ipcalc.sh "${subnet%%/*}" "$netmask" "$start" "$limit")" ; then
+	if [ "$dhcpv4" != "disabled" ] && ipcalc "${subnet%%/*}" "$netmask" "$start" "$limit" ; then
 		for range in ${RANGES//;/ }; do
 			range_start="${range%%,*}"
 			range_end="${range##*,}"
@@ -1041,6 +1037,8 @@ dnsmasq_start()
 	append_parm "$cfg" "maxport" "--max-port"
 	append_parm "$cfg" "domain" "--domain"
 	append_parm "$cfg" "local" "--local"
+	append_parm "$cfg" "add_subnet" "--add-subnet"
+	append_parm "$cfg" "add_mac" "--add-mac"
 	config_list_foreach "$cfg" "listen_address" append_listenaddress
 	config_list_foreach "$cfg" "server" append_server
 	config_list_foreach "$cfg" "rev_server" append_rev_server

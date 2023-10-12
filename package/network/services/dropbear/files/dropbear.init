@@ -12,16 +12,19 @@ PIDCOUNT=0
 
 extra_command "killclients" "Kill ${NAME} processes except servers and yourself"
 
-_dropbearkey() { /usr/bin/dropbearkey "$@" <> /dev/null 2>&1; }
-
 # most of time real_stat() will be failing
 # due to missing "stat" binary (by default)
-real_stat() { env stat -L "$@" 2>/dev/null; }
-dumb_stat() { ls -Ldln "$1" | tr -s '\t ' ' '; }
-stat_perm()  { real_stat -c '%A' "$1" || dumb_stat "$1" | cut -d ' ' -f 1; }
-stat_owner() { real_stat -c '%u' "$1" || dumb_stat "$1" | cut -d ' ' -f 3; }
+real_stat() { env stat -L "$@" 2>/dev/null ; }
+dumb_stat() { ls -Ldln "$1" | tr -s '\t ' ' ' ; }
+stat_perm()  { real_stat -c '%A' "$1" || dumb_stat "$1" | cut -d ' ' -f 1 ; }
+stat_owner() { real_stat -c '%u' "$1" || dumb_stat "$1" | cut -d ' ' -f 3 ; }
 
-# $1 - host key file name
+_dropbearkey()
+{
+	/usr/bin/dropbearkey "$@" </dev/null >/dev/null 2>&1
+}
+
+# $1 - file name (host key or config)
 file_verify()
 {
 	[ -f "$1" ] || return 1
@@ -36,7 +39,9 @@ file_verify()
 		[ "$(stat_perm "$1")" = "-rw-------" ] || return 3
 	}
 	# file is host key or not?
-	[ "$2" = "nokey" ] && return 0
+	# if $2 is empty string - file is "host key"
+	# if $2 is non-empty string - file is "config"
+	[ -z "$2" ] || return 0
 	# checking file contents (finally)
 	[ -s "$1" ] || return 4
 	_dropbearkey -y -f "$1" || return 5
@@ -62,38 +67,35 @@ file_errmsg()
 hk_config()
 {
 	local x m
-	file_verify "$2"; x=$?
-	case "$x" in
-	0)	procd_append_param command -r "$2"
-		;;
-	*)	m=$(file_errmsg "$x")
-		logger -s -t "${NAME}" -p daemon.warn \
-		  "Option '$1', value '$2': $m, skipping"
-		;;
-	esac
+	file_verify "$2" ; x=$?
+	if [ "$x" = 0 ] ; then
+		procd_append_param command -r "$2"
+		return
+	fi
+	m=$(file_errmsg "$x")
+	logger -s -t "${NAME}" -p daemon.warn \
+	  "Option '$1', skipping '$2': $m"
 }
 
 # $1 - host key file name
-hk_config__keyfile() { hk_config 'keyfile' "$1"; }
+hk_config__keyfile() { hk_config keyfile "$1" ; }
 
-ktype_all='ecdsa ed25519 rsa'
+ktype_all='ed25519 ecdsa rsa'
 
 hk_generate_as_needed()
 {
 	local hk_cfg_dir kgen ktype kfile hk_tmp_dir
 	hk_cfg_dir='/etc/dropbear'
 
-	if ! [ -d "${hk_cfg_dir}" ]; then
-		mkdir -p "${hk_cfg_dir}"
-	fi
+	[ -d "${hk_cfg_dir}" ] || mkdir -p "${hk_cfg_dir}"
 
-	kgen=''
-	for ktype in ${ktype_all}; do
+	kgen=
+	for ktype in ${ktype_all} ; do
 		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
 
-		if file_verify "${kfile}"; then continue; fi
+		if file_verify "${kfile}" ; then continue ; fi
 
-		kgen="${kgen} ${ktype}"
+		kgen="${kgen}${kgen:+ }${ktype}"
 	done
 
 	# all keys are sane?
@@ -105,10 +107,10 @@ hk_generate_as_needed()
 
 	chmod 0700 "${hk_tmp_dir}"
 
-	for ktype in ${kgen}; do
+	for ktype in ${kgen} ; do
 		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
 
-		if ! _dropbearkey -t ${ktype} -f "${kfile}"; then
+		if ! _dropbearkey -t ${ktype} -f "${kfile}" ; then
 			# unsupported key type
 			rm -f "${kfile}"
 			continue
@@ -117,46 +119,58 @@ hk_generate_as_needed()
 		chmod 0600 "${kfile}"
 	done
 
-	kgen=''
-	for ktype in ${ktype_all}; do
+	kgen=
+	for ktype in ${ktype_all} ; do
 		kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
 
 		[ -s "${kfile}" ] || continue
 
-		kgen="${kgen} ${ktype}"
+		kgen="${kgen}${kgen:+ }${ktype}"
 	done
 
-	if [ -n "${kgen}" ]; then
-		for ktype in ${kgen}; do
+	if [ -n "${kgen}" ] ; then
+		for ktype in ${kgen} ; do
 			kfile="${hk_tmp_dir}/dropbear_${ktype}_host_key"
+			[ -s "${kfile}" ] || continue
 			mv -f "${kfile}" "${hk_cfg_dir}/"
 		done
 	fi
 
+	rm -rf "${hk_tmp_dir}"
+
 	# cleanup empty files
-	for ktype in ${ktype_all}; do
+	for ktype in ${ktype_all} ; do
 		kfile="${hk_cfg_dir}/dropbear_${ktype}_host_key"
 
-		if [ -s "${kfile}" ]; then continue; fi
-
-		rm -f "${kfile}"
+		[ -s "${kfile}" ] || rm -f "${kfile}"
 	done
-
-	rm -rf "${hk_tmp_dir}"
 }
 
-# $1 - ip addresses
-# $2 - port
+# $1 - port
+# $* - ip addresses
 append_ports()
 {
-	[ -n "$1" ] || {
-		procd_append_param command -p "$2"
-		return
-	}
+	[ -n "$1" ] || return
+
+	local port="$1" ; shift
+	# sync with upstream periodically
+	local addr_limit=10
+	# if this method is called then one "-p" directive is already supplied
+	local c=1
 
 	local addr
-	for addr in $1; do
-		procd_append_param command -p "${addr}:$2"
+	for addr ; do
+		[ -n "${addr}" ] || {
+			continue
+		}
+
+		c=$((c+1))
+		if [ $c -le ${addr_limit} ] ; then
+			procd_append_param command -p "${addr}:${port}"
+			continue
+		fi
+		logger -t "${NAME}" -p daemon.err \
+		  "Endpoint '${addr}:${port}' is not listened due to option limit exceed ($c > {addr_limit})"
 	done
 }
 
@@ -183,8 +197,6 @@ validate_section_dropbear()
 
 dropbear_instance()
 {
-	local ipaddrs
-
 	[ "$2" = 0 ] || {
 		echo "validation failed"
 		return 1
@@ -192,46 +204,102 @@ dropbear_instance()
 
 	[ -n "${Interface}" ] && {
 		[ -n "${BOOT}" ] && return 0
-
-		case "${Interface}" in
-		*\ *)
-			logger -t "${NAME}" -p daemon.warn \
-			  "Option 'Interface' should specify SINGLE interface" \
-			  "but instead it lists interfaces: ${Interface}"
-			logger -t "${NAME}" -p daemon.warn \
-			  "Consider creating per-interface instance instead"
-		;;
-		esac
-
-		ipaddrs=''
-
-		local n
-		for n in ${Interface}; do
-			if_ipaddrs=''
-			network_get_ipaddrs_all if_ipaddrs "$n"
-			[ -n "${if_ipaddrs}" ] || {
-				logger -s -t "${NAME}" -p daemon.warn \
-				  "Interface \"$n\" has no physdev or physdev" \
-				  "has no suitable ip"
-				continue
-			}
-			ipaddrs="${ipaddrs}${ipaddrs:+ }${if_ipaddrs}"
-		done
-
-		[ -n "${ipaddrs}" ] || {
-			logger -s -t "${NAME}" -p daemon.warn \
-			  "No ip addresses are available for interface(s):" \
-			  "${Interface}"
-			return 1
-		}
 	}
 
 	[ "${enable}" = "0" ] && return 1
 	PIDCOUNT="$(( ${PIDCOUNT} + 1))"
 	local pid_file="/var/run/${NAME}.${PIDCOUNT}.pid"
 
+	local int_ready int_1st_ready n ndev
+	int_ready=
+	int_1st_ready=
+	[ -n "${Interface}" ] && {
+		local count_all count_ready int_missing
+		count_all=0
+		count_ready=0
+		int_missing=
+		for n in ${Interface} ; do
+			[ -n "$n" ] || continue
+
+			count_all=$((count_all+1))
+			ndev=
+			network_get_device ndev "$n"
+			if [ -n "${ndev}" ] ; then
+				int_ready="${int_ready}${int_ready:+ }$n"
+				count_ready=$((count_ready+1))
+			else
+				int_missing="${int_missing}${int_missing:+ }$n"
+				logger -s -t "${NAME}" -p daemon.warn \
+				  "Interface '$n' has no correspoding device or is not ready yet"
+			fi
+		done
+
+		case "${count_all}" in
+		0)
+			logger -t "${NAME}" -p daemon.err \
+			  "Option 'Interface' should specify SINGLE interface but instead it contains only whitespaces!"
+		;;
+		1) ;;
+		*)
+			logger -t "${NAME}" -p daemon.warn \
+			  "Option 'Interface' should specify SINGLE interface but instead it lists interfaces:${int_ready:+ }${int_ready}${int_missing:+ }${int_missing}"
+			logger -t "${NAME}" -p daemon.warn \
+			  "Consider creating per-interface instances instead!"
+		;;
+		esac
+
+		case "${count_ready}" in
+		0)
+			if [ -n "${int_missing}" ] ; then
+				logger -t "${NAME}" -p daemon.err \
+				  "Going to listen on ALL interfaces because specified interfaces are not ready: ${int_missing}"
+			fi
+		;;
+		*)
+			int_1st_ready="${int_ready%% *}"
+
+			logger -t "${NAME}" -p daemon.info \
+			  "Bind directly to interface: ${int_1st_ready}"
+
+			if [ ${count_ready} != 1 ] ; then
+				logger -t "${NAME}" -p daemon.warn \
+				  "Bind to interface(s) on per-address basis (if any): ${int_ready#* }"
+			fi
+
+			if [ -n "${int_missing}" ] ; then
+				logger -t "${NAME}" -p daemon.warn \
+				  "Specified interfaces are not ready: ${int_missing}"
+			fi
+		;;
+		esac
+	}
+
 	procd_open_instance
 	procd_set_param command "$PROG" -F -P "$pid_file"
+	if [ -z "${int_ready}" ] ; then
+		procd_append_param command -p "${Port}"
+	else
+		local ipaddrs if_ipaddrs
+		ipaddrs=
+		for n in ${int_ready} ; do
+			if [ "$n" = "${int_1st_ready}" ] ; then
+				ndev=
+				network_get_device ndev "$n"
+				procd_append_param command -l "${ndev}" -p "${Port}"
+				continue
+			fi
+
+			if_ipaddrs=
+			network_get_ipaddrs_all if_ipaddrs "$n"
+			[ -n "${if_ipaddrs}" ] || {
+				logger -s -t "${NAME}" -p daemon.warn \
+				  "Interface '$n' has no suitable ip"
+				continue
+			}
+			ipaddrs="${ipaddrs}${ipaddrs:+ }${if_ipaddrs}"
+		done
+		append_ports "${Port}" ${ipaddrs}
+	fi
 	[ "${PasswordAuth}" -eq 0 ] && procd_append_param command -s
 	[ "${GatewayPorts}" -eq 1 ] && procd_append_param command -a
 	[ -n "${ForceCommand}" ] && procd_append_param command -c "${ForceCommand}"
@@ -239,18 +307,15 @@ dropbear_instance()
 	[ "${RootLogin}" -eq 0 ] && procd_append_param command -w
 	config_list_foreach "$1" 'keyfile' hk_config__keyfile
 	if [ -n "${rsakeyfile}" ]; then
-		logger -s -t "${NAME}" -p daemon.warn \
-		  "Option 'rsakeyfile' is considered to be DEPRECATED and" \
-		  "will be REMOVED in future releases, use 'keyfile' instead"
-		sed -i -E -e 's/option(.+)rsakeyfile/list keyfile/' \
+		logger -s -t "${NAME}" -p daemon.crit \
+		  "Option 'rsakeyfile' is considered to be DEPRECATED and will be REMOVED in future releases, use 'keyfile' list instead"
+		sed -i.before-upgrade -E -e 's/option(\s+)rsakeyfile/list keyfile/' \
 		  "/etc/config/${NAME}"
-		logger -s -t "${NAME}" -p daemon.warn \
-		  "Auto-transition 'option rsakeyfile' => 'list keyfile' in" \
-		  "/etc/config/${NAME} is done, please verify your configuration"
+		logger -s -t "${NAME}" -p daemon.crit \
+		  "Auto-transition 'option rsakeyfile' => 'list keyfile' in /etc/config/${NAME} is done, please verify your configuration"
 		hk_config 'rsakeyfile' "${rsakeyfile}"
 	fi
 	[ -n "${BannerFile}" ] && procd_append_param command -b "${BannerFile}"
-	append_ports "${ipaddrs}" "${Port}"
 	[ "${IdleTimeout}" -ne 0 ] && procd_append_param command -I "${IdleTimeout}"
 	[ "${SSHKeepAlive}" -ne 0 ] && procd_append_param command -K "${SSHKeepAlive}"
 	[ "${MaxAuthTries}" -ne 0 ] && procd_append_param command -T "${MaxAuthTries}"
@@ -278,7 +343,7 @@ boot()
 start_service()
 {
 	hk_generate_as_needed
-	file_verify /etc/dropbear/authorized_keys 'nokey'
+	file_verify /etc/dropbear/authorized_keys config
 
 	. /lib/functions.sh
 	. /lib/functions/network.sh
@@ -298,8 +363,9 @@ service_triggers()
 
 	[ -n "${interfaces}" ] && {
 		local n
+		interfaces=$(printf '%s\n' $interfaces | sort -u)
 		for n in $interfaces ; do
-			procd_add_interface_trigger "interface.*" "$n" /etc/init.d/dropbear reload
+			procd_add_interface_trigger "interface.*" $n /etc/init.d/dropbear reload
 		done
 	}
 
