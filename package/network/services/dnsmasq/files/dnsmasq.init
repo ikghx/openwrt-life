@@ -599,13 +599,9 @@ dhcp_add() {
 
 	# make sure the DHCP range is not empty
 	if [ "$dhcpv4" != "disabled" ] && ipcalc "${subnet%%/*}" "$netmask" "$start" "$limit" ; then
-		for range in ${RANGES//;/ }; do
-			range_start="${range%%,*}"
-			range_end="${range##*,}"
-			[ "$dynamicdhcpv4" = "0" ] && range_end=static
+		[ "$dynamicdhcpv4" = "0" ] && END="static"
 
-			xappend "--dhcp-range=$tags$nettag$range_start,$range_end,$NETMASK,$leasetime${options:+ $options}"
-		done
+		xappend "--dhcp-range=$tags$nettag$START,$END,$NETMASK,$leasetime${options:+ $options}"
 	fi
 
 	if [ "$dynamicdhcpv6" = "0" ] ; then
