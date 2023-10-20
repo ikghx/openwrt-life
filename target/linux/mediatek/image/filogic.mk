@@ -90,6 +90,27 @@ define Build/zyxel-nwa-fit-filogic
 	@mv $@.new $@
 endef
 
+define Device/abt_asr3000-ubootmod
+  DEVICE_VENDOR := ABT
+  DEVICE_MODEL := ASR3000 (custom U-Boot layout)
+  DEVICE_DTS := mt7981b-abt-asr3000-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 113152k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  KERNEL = kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS = kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
+endef
+TARGET_DEVICES += abt_asr3000-ubootmod
+
 define Device/asus_tuf-ax4200
   DEVICE_VENDOR := ASUS
   DEVICE_MODEL := TUF-AX4200
@@ -210,6 +231,27 @@ define Device/cetron_ct3003-ubootmod
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
 endef
 TARGET_DEVICES += cetron_ct3003-ubootmod
+
+define Device/cmcc_a10-ubootmod
+  DEVICE_VENDOR := CMCC
+  DEVICE_MODEL := A10 (custom U-Boot layout)
+  DEVICE_DTS := mt7981b-cmcc-a10-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 114688k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  KERNEL = kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS = kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
+endef
+TARGET_DEVICES += cmcc_a10-ubootmod
 
 define Device/cmcc_rax3000m
   DEVICE_VENDOR := CMCC
@@ -332,7 +374,7 @@ TARGET_DEVICES += glinet_gl-mt6000
 
 define Device/h3c_magic-nx30-pro
   DEVICE_VENDOR := H3C
-  DEVICE_MODEL := Magic NX30 Pro
+  DEVICE_MODEL := Magic NX30 Pro (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-h3c-magic-nx30-pro
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5

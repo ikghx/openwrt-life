@@ -41,6 +41,52 @@ config KERNEL_DEBUG_FS
 	  write to these files. Many common debugging facilities, such as
 	  ftrace, require the existence of debugfs.
 
+config KERNEL_CONFIGFS_FS
+	bool "Compile the kernel with configuration filesystem support"
+	default n
+	help
+	  configfs is a RAM-based filesystem that provides the converse
+	  of sysfs's functionality. Where sysfs is a filesystem-based
+	  view of kernel objects, configfs is a filesystem-based manager
+	  of kernel objects, or config_items.
+
+	  Both sysfs and configfs can and should exist together on the
+	  same system. One is not a replacement for the other.
+
+config KERNEL_ACPI_TABLE_UPGRADE
+	bool "Compile the kernel with ACPI tables upgrading via initrd"
+	depends on x86_64
+	default n
+	help
+	  This option provides functionality to upgrade arbitrary ACPI tables
+	  via initrd. No functional change if no ACPI tables are passed via
+	  initrd, therefore it's safe to say Y.
+	  See Documentation/admin-guide/acpi/initrd_table_override.rst for details
+
+config KERNEL_ACPI_CONFIGFS
+	bool "Compile the kernel with ACPI enabled configfs support"
+	default n
+	depends on x86_64
+	select KERNEL_CONFIGFS_FS
+	help
+	  Select this option to enable support for ACPI configuration from
+	  userspace. The configurable ACPI groups will be visible under
+	  /config/acpi, assuming configfs is mounted under /config.
+
+config KERNEL_ACPI_DEBUG
+	bool "Compile the kernel with ACPI debugging support"
+	default n
+	depends on x86_64
+	select KERNEL_ACPI_CONFIGFS
+	help
+	  The ACPI subsystem can produce debug output.  Saying Y enables this
+	  output and increases the kernel size by around 50K.
+
+	  Use the acpi.debug_layer and acpi.debug_level kernel command-line
+	  parameters documented in Documentation/firmware-guide/acpi/debug.rst and
+	  Documentation/admin-guide/kernel-parameters.rst to control the type and
+	  amount of debug output.
+
 config KERNEL_MIPS_FP_SUPPORT
 	bool
 	default y if TARGET_pistachio
@@ -364,6 +410,7 @@ config KERNEL_DEBUG_INFO
 config KERNEL_DEBUG_INFO_BTF
 
 	bool "Enable additional BTF type information"
+	default y if TARGET_armsr || TARGET_bcm27xx || TARGET_ipq807x || TARGET_mediatek_filogic || TARGET_mvebu_cortexa53 || TARGET_mvebu_cortexa72 || TARGET_rockchip || TARGET_sunxi || TARGET_x86_64
 	depends on !HOST_OS_MACOS
 	depends on KERNEL_DEBUG_INFO && !KERNEL_DEBUG_INFO_REDUCED
 	select DWARVES
@@ -374,9 +421,20 @@ config KERNEL_DEBUG_INFO_BTF
 
 	  Required to run BPF CO-RE applications.
 
+config KERNEL_MODULE_ALLOW_BTF_MISMATCH
+	bool "Allow loading modules with non-matching BTF type info"
+	depends on KERNEL_DEBUG_INFO_BTF
+	default y
+	help
+	  For modules whose split BTF does not match vmlinux, load without
+	  BTF rather than refusing to load. The default behavior with
+	  module BTF enabled is to reject modules with such mismatches;
+	  this option will still load module BTF where possible but ignore
+	  it when a mismatch is found.
+
 config KERNEL_DEBUG_INFO_REDUCED
 	bool "Reduce debugging information"
-	default y
+	default y if !(TARGET_armsr || TARGET_bcm27xx || TARGET_ipq807x || TARGET_mediatek_filogic || TARGET_mvebu_cortexa53 || TARGET_mvebu_cortexa72 || TARGET_rockchip || TARGET_sunxi || TARGET_x86_64)
 	depends on KERNEL_DEBUG_INFO
 	help
 	  If you say Y here gcc is instructed to generate less debugging
@@ -464,6 +522,7 @@ config KERNEL_KPROBE_EVENTS
 config KERNEL_BPF_EVENTS
 	bool "Compile the kernel with BPF event support"
 	select KERNEL_KPROBES
+	default y if KERNEL_DEBUG_INFO_BTF
 	help
 	  Allows to attach BPF programs to kprobe, uprobe and tracepoint events.
 	  This is required to use BPF maps of type BPF_MAP_TYPE_PERF_EVENT_ARRAY
@@ -474,6 +533,11 @@ config KERNEL_BPF_KPROBE_OVERRIDE
 	bool
 	depends on KERNEL_KPROBES
 	default n
+
+config KERNEL_BPF_STREAM_PARSER
+	bool "Allow a TCP stream parser to be used with BPF_MAP_TYPE_SOCKMAP"
+	depends on KERNEL_CGROUP_BPF
+	default y if KERNEL_DEBUG_INFO_BTF
 
 config KERNEL_AIO
 	bool "Compile the kernel with asynchronous IO support"
