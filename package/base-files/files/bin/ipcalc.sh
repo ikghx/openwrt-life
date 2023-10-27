@@ -1,133 +1,119 @@
-#!/usr/bin/awk -f
+#!/bin/sh
 
-function bitcount(c) {
-	c=and(rshift(c, 1),0x55555555)+and(c,0x55555555)
-	c=and(rshift(c, 2),0x33333333)+and(c,0x33333333)
-	c=and(rshift(c, 4),0x0f0f0f0f)+and(c,0x0f0f0f0f)
-	c=and(rshift(c, 8),0x00ff00ff)+and(c,0x00ff00ff)
-	c=and(rshift(c,16),0x0000ffff)+and(c,0x0000ffff)
-	return c
+. /lib/functions/ipv4.sh
+
+prog=$(basename "$0")
+
+# wrapper to convert an integer to an address, unless we're using
+# decimal output format.
+_int2ip() {
+    if [ "$decimal" -eq 0 ]; then
+        int2ip "$1"
+    else
+	echo "$1"
+    fi
 }
 
-function ip2int(ip,   ret, n, x) {
-	ret=0
-	n=split(ip,a,"\\.")
-	if (n != 4)
-		return
-	for (x=1;x<=n;x++)
-		ret=or(lshift(ret,8),a[x])
-	return ret
+usage() {
+    echo "Usage: $prog address/prefix [ start limit ]" >&2
+    exit 1
 }
 
-function int2ip(ip,   ret, x) {
-	if (use_decimal)
-		return ip
-	ret=and(ip,255)
-	ip=rshift(ip,8)
-	for(;x<3;x++) {
-		ret=and(ip,255)"."ret
-		ip=rshift(ip,8)
-	}
-	return ret
-}
+decimal=0
+if [ "$1" = "-d" ]; then
+    decimal=1
+    shift
+fi
 
-function compl32(v,   ret) {
-	ret=xor(v, 0xffffffff)
-	return ret
-}
+if [ $# -eq 0 ]; then
+    usage
+fi
 
-function notquad(addr) {
-	print "Not a dotted-quad "addr > "/dev/stderr"
-	exit(1)
-}
+case "$1" in
+*/*.*)
+    # data is n.n.n.n/m.m.m.m format, like on a Cisco router
+    ipaddr=$(ip2int "${1%/*}")
+    netmask=$(ip2int "${1#*/}")
+    shift
+    ;;
+*/*)
+    # more modern prefix notation of n.n.n.n/p
+    ipaddr=$(ip2int "${1%/*}")
+    n=$(check_uint32 "${1#*/}")
+    if [ "$n" -gt 32 ]; then
+	echo "Prefix out of range ($n)" >&2
+	exit 1
+    fi
+    netmask=$((~((1 << (32 - n)) - 1) & 0xffffffff))
+    shift
+    ;;
+*)
+    # address and netmask as two separate arguments
+    ipaddr=$(ip2int "$1")
+    netmask=$(ip2int "$2")
+    shift 2
+    ;;
+esac
 
-BEGIN {
-	use_decimal=0
-##	if (ARGC >= 2 && ARGV[1] == "-d") {
-##		for (n=1;n<ARGC-1;++n)
-##			ARGV[n]=ARGV[n+1]
-##		--ARGC
-##		use_decimal=1
-##	}
-	if (ENVIRON["USEDECIMAL"] != "")
-		use_decimal=1
+# we either have no arguments left, or we have a range start and length
+if [ $# -ne 0 ] && [ $# -ne 2 ]; then
+    usage
+fi
 
-	slpos=index(ARGV[1],"/")
+# complement of the netmask, i.e. the hostmask
+hostmask=$((netmask ^ 0xffffffff))
 
-	if (ARGC < ((slpos != 0) ? 2 : 3)) {
-		print "Usage: "ARGV[0]" <ip> <netmask> [ <start> <num> ]" > "/dev/stderr"
-		exit(1)
-	}
+network=$((ipaddr & netmask))
+prefix=$((32 - $(bitcount $hostmask)))
+broadcast=$((network | hostmask))
 
-	if (slpos == 0) {
-		ipaddr=ip2int(ARGV[1])
-		if (ipaddr == "")
-			notquad(ARGV[1])
-		dotpos=index(ARGV[2],".")
-		if (dotpos == 0)
-			netmask=compl32(2**(32-int(ARGV[2]))-1)
-		else {
-			netmask=ip2int(ARGV[2])
-			if (netmask == "")
-				notquad(ARGV[2])
-		}
-	} else {
-		ipaddr=ip2int(substr(ARGV[1],0,slpos-1))
-		if (ipaddr == "")
-			notquad(substr(ARGV[1],0,slpos-1))
-		netmask=compl32(2**(32-int(substr(ARGV[1],slpos+1)))-1)
-		ARGV[4]=ARGV[3]
-		ARGV[3]=ARGV[2]
-	}
+count=$((hostmask + 1))
 
-	network=and(ipaddr,netmask)
-	prefix=32-bitcount(compl32(netmask))
+# don't include this-network or broadcast addresses
+[ "$prefix" -le 30 ] && count=$((count - 2))
 
-	print "IP="int2ip(ipaddr)
-	print "NETMASK="int2ip(netmask)
-	print "NETWORK="int2ip(network)
-	if (prefix<=30) {
-		broadcast=or(network,compl32(netmask))
-		print "BROADCAST="int2ip(broadcast)
-	}
-	print "PREFIX="prefix
-	print "HOSTS="compl32(netmask)
+echo "IP=$(_int2ip "$ipaddr")"
+echo "NETMASK=$(_int2ip "$netmask")"
+[ "$prefix" -le 30 ] && echo "BROADCAST=$(_int2ip "$broadcast")"
+echo "NETWORK=$(_int2ip "$network")"
+echo "PREFIX=$prefix"
+echo "COUNT=$count"
 
-	# range calculations:
-	# ipcalc <ip> <netmask> <range_start> <range_size>
+# if there's no range, we're done
+[ $# -eq 0 ] && exit 0
 
-	if (ARGC <= 3)
-		exit(0)
+if [ "$prefix" -le 30 ]; then
+    limit=$((network + 1))
+else
+    limit="$network"
+fi
 
-	if (prefix<=30)
-		limit=network+1
-	else
-		limit=network
+start=$(check_uint32 "$1")
+start=$((network | (start & hostmask)))
+[ "$start" -lt "$limit" ] && start="$limit"
+[ "$start" -eq "$ipaddr" ] && start=$((ipaddr + 1))
 
-	start=or(network,and(ip2int(ARGV[3]),compl32(netmask)))
-	if (start<limit) start=limit
-	if (start==ipaddr) start=ipaddr+1
+if [ "$prefix" -le 30 ]; then
+    limit=$(((network | hostmask) - 1))
+else
+    limit="$network"
+fi
 
-	if (prefix<=30)
-		limit=or(network,compl32(netmask))-1
-	else
-		limit=or(network,compl32(netmask))
+end=$((start + $(check_uint32 "$2") - 1))
+[ "$end" -gt "$limit" ] && end="$limit"
+[ "$end" -eq "$ipaddr" ] && end=$((ipaddr - 1))
 
-	end=start+ARGV[4]-1
-	if (end>limit) end=limit
-	if (end==ipaddr) end=ipaddr-1
+if [ "$start" -gt "$end" ]; then
+    echo "network ($(_int2ip "$network")/$prefix) too small" >&2
+    exit 1
+fi
 
-	if (start>end) {
-		print "network ("int2ip(network)"/"prefix") too small" > "/dev/stderr"
-		exit(1)
-	}
+if [ "$start" -le "$ipaddr" ] && [ "$ipaddr" -le "$end" ]; then
+    echo "error: address $ipaddr inside range $start..$end" >&2
+    exit 1
+fi
 
-	if (ipaddr >= start && ipaddr <= end) {
-		print "warning: ipaddr inside range - this might not be supported in future releases of Openwrt" > "/dev/stderr"
-		# turn this into an error after Openwrt 24 has been released
-		# exit(1)
-	}
+echo "START=$(_int2ip "$start")"
+echo "END=$(_int2ip "$end")"
 
-	print "START="int2ip(start)
-	print "END="int2ip(end)
-}
+exit 0
