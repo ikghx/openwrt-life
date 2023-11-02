@@ -1395,7 +1395,6 @@ $(eval $(call KernelPackage,mlx5-core))
 define KernelPackage/mlxfw
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Mellanox Technologies firmware flash module
-  DEPENDS:=@TARGET_x86_64
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxfw/mlxfw.ko
   KCONFIG:=CONFIG_MLXFW
   AUTOLOAD:=$(call AutoProbe,mlxfw)
@@ -1412,7 +1411,7 @@ $(eval $(call KernelPackage,mlxfw))
 define KernelPackage/mlxsw-core
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Mellanox Technologies Switch ASICs support
-  DEPENDS:=@TARGET_x86_64 +kmod-mlxfw +kmod-hwmon-core
+  DEPENDS:=+kmod-mlxfw +kmod-hwmon-core
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxsw/mlxsw_core.ko
   KCONFIG:= \
   CONFIG_MLXSW_CORE \
@@ -1431,7 +1430,7 @@ $(eval $(call KernelPackage,mlxsw-core))
 define KernelPackage/mlxsw-i2c
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=I2C bus implementation for Mellanox Technologies Switch ASICs
-  DEPENDS:=@TARGET_x86_64 +kmod-mlxsw-core +kmod-i2c-core
+  DEPENDS:=+kmod-mlxsw-core +kmod-i2c-core
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxsw/mlxsw_i2c.ko
   KCONFIG:=CONFIG_MLXSW_I2C
   AUTOLOAD:=$(call AutoProbe,mlxsw_i2c)
@@ -1447,7 +1446,7 @@ $(eval $(call KernelPackage,mlxsw-i2c))
 define KernelPackage/mlxsw-minimal
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Mellanox Technologies minimal I2C support
-  DEPENDS:=@TARGET_x86_64 +kmod-mlxsw-core +kmod-mlxsw-i2c
+  DEPENDS:=+kmod-mlxsw-core +kmod-mlxsw-i2c
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxsw/mlxsw_minimal.ko
   KCONFIG:=CONFIG_MLXSW_MINIMAL
   AUTOLOAD:=$(call AutoProbe,mlxsw_minimal)
@@ -1464,7 +1463,7 @@ $(eval $(call KernelPackage,mlxsw-minimal))
 define KernelPackage/mlxsw-pci
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=PCI bus implementation for Mellanox Technologies Switch ASICs
-  DEPENDS:=@(PCI_SUPPORT||TARGET_x86_64) +kmod-mlxsw-core
+  DEPENDS:=@PCI_SUPPORT +kmod-mlxsw-core
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxsw/mlxsw_pci.ko
   KCONFIG:=CONFIG_MLXSW_PCI
   AUTOLOAD:=$(call AutoProbe,mlxsw_pci)
@@ -1481,7 +1480,6 @@ define KernelPackage/mlxsw-spectrum
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Mellanox Technologies Spectrum family support
   DEPENDS:= \
-  @TARGET_x86_64 \
   +kmod-mlxsw-core +kmod-mlxsw-pci +kmod-lib-objagg +kmod-lib-parman \
   +kmod-ip6-tunnel +kmod-ptp +kmod-sched-act-sample +kmod-vxlan
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/mellanox/mlxsw/mlxsw_spectrum.ko
