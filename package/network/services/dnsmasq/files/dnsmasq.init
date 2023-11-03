@@ -527,7 +527,6 @@ dhcp_add() {
 	local cfg="$1"
 	local dhcp6range="::"
 	local nettag
-	local range_start range_end
 	local tags
 
 	config_get net "$cfg" interface

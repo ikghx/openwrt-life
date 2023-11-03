@@ -85,12 +85,8 @@ proto_qmi_setup() {
 	echo "Waiting for SIM initialization"
 	local uninitialized_timeout=0
 
-	# kill pending uqmi if needed uncomment next line
-	#kill -15 $(pgrep -f "uqmi -s -d $device") &>/dev/null
-	#timeout 3s for first call to avoid hanging uqmi
+	# timeout 3s for first call to avoid hanging uqmi
 	uqmi -d "$device" --get-pin-status -t 3000 > /dev/null 2>&1
-	# kill pending uqmi if needed uncomment next line
-	#kill -15 $(pgrep -f "uqmi -s -d $device") &>/dev/null
 	
 	while uqmi -s -d "$device" -t 1000 --get-pin-status | grep '"UIM uninitialized"' > /dev/null; do
 		[ -e "$device" ] || return 1
@@ -136,8 +132,8 @@ proto_qmi_setup() {
 		fi
 	done
 
-	if uqmi -s -d "$device" -t 1000 --uim-get-sim-state | grep -q '"Not supported"\|"Invalid QMI command"' &&
-	   uqmi -s -d "$device" -t 1000 --get-pin-status | grep -q '"Not supported"\|"Invalid QMI command"' ; then
+	if uqmi -s -d "$device" --uim-get-sim-state | grep -q '"Not supported"\|"Invalid QMI command"' &&
+	   uqmi -s -d "$device" --get-pin-status | grep -q '"Not supported"\|"Invalid QMI command"' ; then
 		[ -n "$pincode" ] && {
 			uqmi -s -d "$device" -t 1000 --verify-pin1 "$pincode" > /dev/null || uqmi -s -d "$device" -t 1000 --uim-verify-pin1 "$pincode" > /dev/null || {
 				echo "Unable to verify PIN"
