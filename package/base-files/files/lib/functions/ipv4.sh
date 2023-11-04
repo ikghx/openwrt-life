@@ -136,3 +136,11 @@ int2ip() {
 
     echo "$((n >> 24)).$(((n >> 16) & 255)).$(((n >> 8) & 255)).$((n & 255))"
 }
+
+# convert prefix into an integer bitmask
+prefix2netmask() {
+    local n="$1"
+
+    echo "$(((~(uint_max >> n)) & uint_max))"
+}
+

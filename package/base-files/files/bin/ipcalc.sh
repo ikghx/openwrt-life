@@ -44,7 +44,7 @@ case "$1" in
 	echo "Prefix out of range ($n)" >&2
 	exit 1
     fi
-    netmask=$((~((1 << (32 - n)) - 1) & 0xffffffff))
+    netmask=$(prefix2netmask "$n")
     shift
     ;;
 *)
