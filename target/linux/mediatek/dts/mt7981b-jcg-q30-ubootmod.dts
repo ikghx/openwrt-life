@@ -71,7 +71,7 @@
 		reg = <0>;
 		phy-mode = "2500base-x";
 
-		nvmem-cells = <&macaddr_factory_a002a>;
+		nvmem-cells = <&macaddr_factory_a002a 0>;
 		nvmem-cell-names = "mac-address";
 
 		fixed-link {
@@ -113,8 +113,8 @@
 		spi-cal-addrlen = <5>;
 		spi-cal-addr = /bits/ 32 <0x0 0x0 0x0 0x0 0x0>;
 
-		spi-tx-buswidth = <4>;
-		spi-rx-buswidth = <4>;
+		spi-tx-bus-width = <4>;
+		spi-rx-bus-width = <4>;
 		mediatek,nmbm;
 		mediatek,bmt-max-ratio = <1>;
 		mediatek,bmt-max-reserved-blocks = <64>;
@@ -139,15 +139,22 @@
 				reg = <0x180000 0x200000>;
 
 				compatible = "nvmem-cells";
-				#address-cells = <1>;
-				#size-cells = <1>;
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
 
-				macaddr_factory_a002a: macaddr@a002a {
-					reg = <0xa002a 0x6>;
-				};
+					macaddr_factory_a002a: macaddr@a002a {
+						compatible = "mac-base";
+						reg = <0xa002a 0x6>;
+						#nvmem-cell-cells = <1>;
+					};
 
-				macaddr_factory_a0024: macaddr@a0024 {
-					reg = <0xa0024 0x6>;
+					macaddr_factory_a0024: macaddr@a0024 {
+						compatible = "mac-base";
+						reg = <0xa0024 0x6>;
+						#nvmem-cell-cells = <1>;
+					};
 				};
 			};
 
@@ -173,7 +180,7 @@
 			reg = <0>;
 			label = "wan";
 
-			nvmem-cells = <&macaddr_factory_a0024>;
+			nvmem-cells = <&macaddr_factory_a0024 0>;
 			nvmem-cell-names = "mac-address";
 		};
 
