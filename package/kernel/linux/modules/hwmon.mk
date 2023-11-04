@@ -79,7 +79,6 @@ $(eval $(call KernelPackage,hwmon-adt7475))
 
 define KernelPackage/hwmon-coretemp
   TITLE:=Intel Core/Core2/Atom temperature sensor
-  DEPENDS:=@TARGET_x86
   KCONFIG:=CONFIG_SENSORS_CORETEMP
   FILES:=$(LINUX_DIR)/drivers/hwmon/coretemp.ko
   AUTOLOAD:=$(call AutoProbe,coretemp)
@@ -233,6 +232,21 @@ define KernelPackage/hwmon-it87/description
 endef
 
 $(eval $(call KernelPackage,hwmon-it87))
+
+
+define KernelPackage/hwmon-jc42
+  TITLE:=Jedec JC42.4 compliant temperature sensors support
+  KCONFIG:=CONFIG_SENSORS_JC42
+  FILES:=$(LINUX_DIR)/drivers/hwmon/jc42.ko
+  AUTOLOAD:=$(call AutoProbe,jc42)
+  $(call AddDepends/hwmon,+kmod-i2c-core +kmod-regmap-i2c)
+endef
+
+define KernelPackage/hwmon-jc42/description
+ Kernel module for Jedec JC42.4 compliant temperature sensors
+endef
+
+$(eval $(call KernelPackage,hwmon-jc42))
 
 
 define KernelPackage/hwmon-lm63

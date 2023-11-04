@@ -554,7 +554,7 @@ dhcp_add() {
 	[ static = "$proto" ] || return 0
 
 	# Override interface netmask with dhcp config if applicable
-	config_get netmask "$cfg" netmask "${subnet##*/}"
+	config_get netmask "$cfg" netmask "$(int2ip "$(prefix_to_netmask "${subnet##*/}")")"
 
 	#check for an already active dhcp server on the interface, unless 'force' is set
 	config_get_bool force "$cfg" force 0

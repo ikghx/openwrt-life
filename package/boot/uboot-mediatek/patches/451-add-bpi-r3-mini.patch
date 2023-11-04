@@ -279,7 +279,6 @@
 +CONFIG_USB_STORAGE=y
 +CONFIG_ZSTD=y
 +CONFIG_HEXDUMP=y
-+CONFIG_LMB_MAX_REGIONS=64
 --- /dev/null
 +++ b/arch/arm/dts/mt7986a-bpi-r3-mini.dts
 @@ -0,0 +1,253 @@
