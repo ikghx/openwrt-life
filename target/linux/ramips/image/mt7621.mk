@@ -514,6 +514,35 @@ define Device/bolt_arion
 endef
 TARGET_DEVICES += bolt_arion
 
+define Device/comfast_cf-e390ax
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 15808k
+  DEVICE_VENDOR := ComFast
+  DEVICE_MODEL := CF-E390AX
+  DEVICE_PACKAGES := kmod-mt7915-firmware -uboot-envtools
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | \
+	check-size | append-metadata
+  IMAGE/factory.bin := append-kernel | append-rootfs | pad-rootfs | check-size
+endef
+TARGET_DEVICES += comfast_cf-e390ax
+
+define Device/comfast_cf-ew72-v2
+    $(Device/dsa-migration)
+    $(Device/uimage-lzma-loader)
+    IMAGE_SIZE := 15808k
+    DEVICE_VENDOR := ComFast
+    DEVICE_MODEL := CF-EW72 V2
+    DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+        -uboot-envtools
+    IMAGES += factory.bin
+    IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | \
+        check-size | append-metadata
+    IMAGE/factory.bin := append-kernel | append-rootfs | pad-rootfs | check-size
+endef
+TARGET_DEVICES += comfast_cf-ew72-v2
+
 define Device/cudy_m1800
   $(Device/dsa-migration)
   DEVICE_VENDOR := Cudy
@@ -1539,6 +1568,17 @@ define Device/mediatek_mt7621-eval-board
   SUPPORTED_DEVICES += mt7621
 endef
 TARGET_DEVICES += mediatek_mt7621-eval-board
+
+define Device/meig_slt866
+  $(Device/dsa-migration)
+  IMAGE_SIZE := 15104k
+  DEVICE_VENDOR := MeiG
+  DEVICE_MODEL := SLT866
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7663-firmware-ap \
+	kmod-usb-net-qmi-wwan kmod-usb-serial-option kmod-usb3 \
+	kmod-usb-net-rndis
+endef
+TARGET_DEVICES += meig_slt866
 
 define Device/mercusys_mr70x-v1
   $(Device/dsa-migration)
@@ -2844,21 +2884,18 @@ endef
 TARGET_DEVICES += zio_freezio
 
 define Device/zte_e8820s
-  $(Device/dsa-migration)
+  $(Device/nand)
   $(Device/uimage-lzma-loader)
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  KERNEL_SIZE := 4096k
-  UBINIZE_OPTS := -E 5
-  IMAGE_SIZE := 32768k
-  IMAGES += factory.bin
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
-	check-size
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820S
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 \
-	kmod-usb-ledtrig-usbport
+	kmod-usb-ledtrig-usbport automount
+  DEVICE_COMPAT_VERSION := 2.0
+  DEVICE_COMPAT_MESSAGE := Partition table has changed to fit the new U-Boot
+  IMAGE_SIZE := 121728k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size
 endef
 TARGET_DEVICES += zte_e8820s
 

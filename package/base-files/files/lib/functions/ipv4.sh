@@ -1,7 +1,38 @@
 uint_max=4294967295
 
-# return a count of the number of bits set in $1
-bitcount() {
+# Common error handler
+__die() {
+    local fmt="$1"
+    shift
+
+    printf "$fmt\n" "$@" >&2
+    exit 1
+}
+
+# check that $1 is only base 10 digits, and that it doesn't
+# exceed 2^32-1
+assert_uint32() {
+    local n="$1"
+
+    if [ -z "$n" -o -n "${n//[0-9]/}" ]; then
+	printf "Not a decimal integer (%s)" "$n ">&2
+	return 1
+    fi
+
+    if [ "$n" -gt $uint_max ]; then
+	printf "Out of range (%s)" "$n" >&2
+	return 1
+    fi
+
+    if [ "$((n + 0))" != "$n" ]; then
+	echo "Not normalized notation (%s)" "$n" >&2
+	return 1
+    fi
+
+    return 0
+}
+
+_bitcount() {
     local c="$1"
 
     c=$((((c >> 1) & 0x55555555) + (c & 0x55555555)))
@@ -13,29 +44,18 @@ bitcount() {
     echo "$c"
 }
 
-# check that $1 is only base 10 digits, and that it doesn't
-# exceed 2^32-1
-check_uint32() {
-    local n="$1"
+# return a count of the number of bits set in $1
+bitcount() {
+    local c="$1"
+    assert_uint32 "$c" || exit 1
 
-    if [ -n "${n//[0-9]/}" ]; then
-	echo "Not a decimal integer ($n)" >&2
-	exit 1
-    fi
-
-    if [ "$n" -gt $uint_max ]; then
-	echo "Out of range ($n)" >&2
-	exit 1
-    fi
-
-    echo "$n"
+    _bitcount "$c"
 }
 
 # tedious but portable with busybox's limited shell
 # we check each octet to be in the range of 0..255,
-# and also make sure there's no extaneous characters
-# after the last octet.
-ip2int() {
+# and also make sure there's no extaneous characters.
+str2ip() {
     local ip="$1" n ret=0
 
     case "$ip" in
@@ -52,8 +72,7 @@ ip2int() {
 	ip="${ip:4}"
 	;;
     *)
-	echo "Not a dotted quad ($1)" >&2
-	exit 1
+	__die "Not a dotted quad (%s)" "$1"
 	;;
     esac
 
@@ -73,8 +92,7 @@ ip2int() {
 	ip="${ip:4}"
 	;;
     *)
-	echo "Not a dotted quad ($1)" >&2
-	exit 1
+	__die "Not a dotted quad (%s)" "$1"
 	;;
     esac
 
@@ -94,8 +112,7 @@ ip2int() {
 	ip="${ip:4}"
 	;;
     *)
-	echo "Not a dotted quad ($1)" >&2
-	exit 1
+	__die "Not a dotted quad (%s)" "$1"
 	;;
     esac
 
@@ -115,32 +132,77 @@ ip2int() {
 	ip="${ip:3}"
 	;;
     *)
-	echo "Not a dotted quad." >&2
-	exit 1
+	__die "Not a dotted quad (%s)" "$1"
 	;;
     esac
 
     ret=$((ret + n))
 
-    if [ -n "$ip" ]; then
-	echo "Not a dotted quad ($1)" >&2
-	exit 1
-    fi
+    [ -n "$ip" ] && __die "Not a dotted quad (%s)" "$1"
 
     echo "$ret"
 }
 
-# convert back from an integer to dotted-quad.
-int2ip() {
+_ip2str() {
     local n="$1"
 
     echo "$((n >> 24)).$(((n >> 16) & 255)).$(((n >> 8) & 255)).$((n & 255))"
 }
 
-# convert prefix into an integer bitmask
-prefix2netmask() {
+# convert back from an integer to dotted-quad.
+ip2str() {
+    local n="$1"
+    assert_uint32 "$n" || exit 1
+
+    _ip2str "$n"
+}
+
+_prefix2netmask() {
     local n="$1"
 
     echo "$(((~(uint_max >> n)) & uint_max))"
 }
 
+# convert prefix into an integer bitmask
+prefix2netmask() {
+    local n="$1"
+    assert_uint32 "$n" || exit 1
+
+    [ "$n" -gt 32 ] && __die "Prefix out-of-range (%s)" "$n"
+
+    _prefix2netmask "$n"
+}
+
+_is_contiguous() {
+    local x="$1"	# no checking done
+    local y=$((~x & uint_max))
+    local z=$(((y + 1) & uint_max))
+
+    [ $((z & y)) -eq 0 ]
+}
+
+# check argument as being contiguous upper bits (and yes,
+# 0 doesn't have any discontiguous bits).
+is_contiguous() {
+    local x="$1"
+    assert_uint32 "$x" || exit 1
+
+    _is_contiguous "$x"
+}
+
+_netmask2prefix() {
+    local n="$1"
+
+    echo "$((32 - $(bitcount $n)))"
+}
+
+# convert mask to prefix, validating that it's a conventional
+# (contiguous) netmask.
+netmask2prefix() {
+    local n="$1"
+    assert_uint32 "$n" || exit 1
+
+    _is_contiguous "$n" || __die "Not a contiguous netmask (%08x)" "$n"
+
+    _netmask2prefix "$n"
+}
