@@ -2889,7 +2889,7 @@ define Device/zte_e8820s
   DEVICE_VENDOR := ZTE
   DEVICE_MODEL := E8820S
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb3 \
-	kmod-usb-ledtrig-usbport automount
+	kmod-usb-ledtrig-usbport
   DEVICE_COMPAT_VERSION := 2.0
   DEVICE_COMPAT_MESSAGE := Partition table has changed to fit the new U-Boot
   IMAGE_SIZE := 121728k
