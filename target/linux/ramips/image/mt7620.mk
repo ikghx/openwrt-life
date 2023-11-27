@@ -1087,6 +1087,27 @@ define Device/ravpower_rp-wd03
 endef
 TARGET_DEVICES += ravpower_rp-wd03
 
+define Device/rostelecom_rt-fl-1
+  $(Device/sercomm_cpj)
+  DEVICE_MODEL := RT-FL-1
+  DEVICE_ALT0_MODEL := RT-FL-1
+  ARTIFACT/initramfs-factory.img := \
+	append-image-stage initramfs-kernel.bin | check-size | \
+	sercomm-factory-cpj | gzip | sercomm-payload | \
+	sercomm-pid-setbit 0x11 | sercomm-crypto
+endef
+TARGET_DEVICES += rostelecom_rt-fl-1
+
+define Device/rostelecom_s1010
+  $(Device/sercomm_cpj)
+  DEVICE_MODEL := S1010
+  DEVICE_ALT0_MODEL := S1010.RT
+  ARTIFACT/initramfs-factory.img := \
+	append-image-stage initramfs-kernel.bin | check-size | \
+	sercomm-factory-cpj | gzip | sercomm-payload | sercomm-crypto
+endef
+TARGET_DEVICES += rostelecom_s1010
+
 define Device/sanlinking_d240
   SOC := mt7620a
   IMAGE_SIZE := 16064k

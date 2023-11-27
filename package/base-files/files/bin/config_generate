@@ -167,7 +167,7 @@ generate_network() {
 			esac
 
 			netm=${netmask:-"255.255.255.0"}
-			prefix=$(netmask2prefix "$netm")
+			prefix=$(netmask2prefix prefix "$netm")
 
 			uci -q batch <<-EOF
 				set network.$1.proto='static'
