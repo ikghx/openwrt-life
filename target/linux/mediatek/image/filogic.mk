@@ -111,6 +111,22 @@ define Device/abt_asr3000-ubootmod
 endef
 TARGET_DEVICES += abt_asr3000-ubootmod
 
+define Device/acer_predator-w6
+  DEVICE_VENDOR := Acer
+  DEVICE_MODEL := Predator W6
+  DEVICE_DTS := mt7986a-acer-predator-w6
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7986-firmware kmod-mt7916-firmware \
+	mt7986-wo-firmware f2fsck mkf2fs automount
+  IMAGES := sysupgrade.bin
+  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += acer_predator-w6
+
 define Device/asus_tuf-ax4200
   DEVICE_VENDOR := ASUS
   DEVICE_MODEL := TUF-AX4200
@@ -142,21 +158,6 @@ define Device/asus_tuf-ax6000
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += asus_tuf-ax6000
-
-define Device/acer_predator-w6
-  DEVICE_VENDOR := Acer
-  DEVICE_MODEL := Predator W6
-  DEVICE_DTS := mt7986a-acer-predator-w6
-  DEVICE_DTS_DIR := ../dts
-  DEVICE_DTS_LOADADDR := 0x47000000
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7986-firmware kmod-mt7916-firmware mt7986-wo-firmware e2fsprogs f2fsck mkf2fs
-  IMAGES := sysupgrade.bin
-  KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-endef
-TARGET_DEVICES += acer_predator-w6
 
 define Device/bananapi_bpi-r3
   DEVICE_VENDOR := Bananapi
@@ -245,7 +246,8 @@ TARGET_DEVICES += bananapi_bpi-r3-mini
 
 define Device/cetron_ct3003-ubootmod
   DEVICE_VENDOR := Cetron
-  DEVICE_MODEL := CT3003 (custom U-Boot layout)
+  DEVICE_MODEL := CT3003
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-cetron-ct3003-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -266,7 +268,8 @@ TARGET_DEVICES += cetron_ct3003-ubootmod
 
 define Device/cmcc_a10-ubootmod
   DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := A10 (custom U-Boot layout)
+  DEVICE_MODEL := A10
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-cmcc-a10-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -287,7 +290,8 @@ TARGET_DEVICES += cmcc_a10-ubootmod
 
 define Device/cmcc_rax3000m
   DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := RAX3000M (OpenWrt U-Boot layout)
+  DEVICE_MODEL := RAX3000M
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-cmcc-rax3000m
   DEVICE_DTS_OVERLAY := mt7981b-cmcc-rax3000m-emmc mt7981b-cmcc-rax3000m-nand
   DEVICE_DTS_DIR := ../dts
@@ -320,7 +324,8 @@ TARGET_DEVICES += cmcc_rax3000m
 
 define Device/cmcc_rax3000m-emmc-ubootmod
   DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := RAX3000M eMMC version (custom U-Boot layout)
+  DEVICE_MODEL := RAX3000M eMMC version
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-cmcc-rax3000m-emmc-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware kmod-usb3 \
@@ -334,7 +339,8 @@ TARGET_DEVICES += cmcc_rax3000m-emmc-ubootmod
 
 define Device/cmcc_rax3000m-nand-ubootmod
   DEVICE_VENDOR := CMCC
-  DEVICE_MODEL := RAX3000M NAND version (custom U-Boot layout)
+  DEVICE_MODEL := RAX3000M NAND version
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-cmcc-rax3000m-nand-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware \
@@ -373,6 +379,23 @@ define Device/cudy_wr3000-v1
 endef
 TARGET_DEVICES += cudy_wr3000-v1
 
+define Device/glinet_gl-mt2500
+  DEVICE_VENDOR := GL.iNet
+  DEVICE_MODEL := GL-MT2500
+  DEVICE_DTS := mt7981b-glinet-gl-mt2500
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  DEVICE_PACKAGES := kmod-usb3
+  SUPPORTED_DEVICES += glinet,mt2500-emmc
+  IMAGES := sysupgrade.bin
+  KERNEL := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += glinet_gl-mt2500
+
 define Device/glinet_gl-mt3000
   DEVICE_VENDOR := GL.iNet
   DEVICE_MODEL := GL-MT3000
@@ -394,7 +417,8 @@ define Device/glinet_gl-mt6000
   DEVICE_MODEL := GL-MT6000
   DEVICE_DTS := mt7986a-glinet-gl-mt6000
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-usb2 kmod-usb3 kmod-mt7986-firmware mt7986-wo-firmware e2fsprogs f2fsck mkf2fs
+  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware kmod-usb3 \
+	f2fsck mkf2fs
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to 32M | append-rootfs
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-gl-metadata
@@ -406,7 +430,8 @@ TARGET_DEVICES += glinet_gl-mt6000
 
 define Device/h3c_magic-nx30-pro
   DEVICE_VENDOR := H3C
-  DEVICE_MODEL := Magic NX30 Pro (OpenWrt U-Boot layout)
+  DEVICE_MODEL := Magic NX30 Pro
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-h3c-magic-nx30-pro
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
@@ -431,7 +456,8 @@ TARGET_DEVICES += h3c_magic-nx30-pro
 
 define Device/h3c_magic-nx30-pro-nmbm
   DEVICE_VENDOR := H3C
-  DEVICE_MODEL := Magic NX30 Pro (NMBM layout)
+  DEVICE_MODEL := Magic NX30 Pro
+  DEVICE_VARIANT := (NMBM layout)
   DEVICE_DTS := mt7981b-h3c-magic-nx30-pro-nmbm
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -452,7 +478,8 @@ TARGET_DEVICES += h3c_magic-nx30-pro-nmbm
 
 define Device/imou_lc-hx3001-ubootmod
   DEVICE_VENDOR := Imou
-  DEVICE_MODEL := LC-HX3001 (custom U-Boot layout)
+  DEVICE_MODEL := LC-HX3001
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-imou-lc-hx3001-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -474,11 +501,14 @@ TARGET_DEVICES += imou_lc-hx3001-ubootmod
 
 define Device/jcg_q30
   DEVICE_VENDOR := JCG
-  DEVICE_MODEL := Q30 (OpenWrt U-Boot layout)
+  DEVICE_MODEL := Q30
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_ALT0_VENDOR := JCG
-  DEVICE_ALT0_MODEL := Q30 Pro (OpenWrt U-Boot layout)
+  DEVICE_ALT0_MODEL := Q30 Pro
+  DEVICE_ALT0_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_ALT1_VENDOR := CMCC
-  DEVICE_ALT1_MODEL := MR3000D-CIq (OpenWrt U-Boot layout)
+  DEVICE_ALT1_MODEL := MR3000D-CIq
+  DEVICE_ALT1_VARIANT := (OpenWrt U-Boot layout)
   SUPPORTED_DEVICES += jcg,q30-pro
   DEVICE_DTS := mt7981b-jcg-q30
   DEVICE_DTS_DIR := ../dts
@@ -503,11 +533,14 @@ TARGET_DEVICES += jcg_q30
 
 define Device/jcg_q30-ubootmod
   DEVICE_VENDOR := JCG
-  DEVICE_MODEL := Q30 (custom U-Boot layout)
+  DEVICE_MODEL := Q30
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_ALT0_VENDOR := JCG
-  DEVICE_ALT0_MODEL := Q30 Pro (custom U-Boot layout)
+  DEVICE_ALT0_MODEL := Q30 Pro
+  DEVICE_ALT0_VARIANT := (custom U-Boot layout)
   DEVICE_ALT1_VENDOR := CMCC
-  DEVICE_ALT1_MODEL := MR3000D-CIq (custom U-Boot layout)
+  DEVICE_ALT1_MODEL := MR3000D-CIq
+  DEVICE_ALT1_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-jcg-q30-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -528,6 +561,7 @@ TARGET_DEVICES += jcg_q30-ubootmod
 
 define Device/livinet_zr-3020-common
   DEVICE_VENDOR := Livinet
+  DEVICE_MODEL := ZR-3020
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
   UBINIZE_OPTS := -E 5
@@ -544,7 +578,7 @@ define Device/livinet_zr-3020-common
 endef
 
 define Device/livinet_zr-3020
-  DEVICE_MODEL := ZR-3020 (stock layout)
+  DEVICE_VARIANT := (stock layout)
   DEVICE_DTS := mt7981b-livinet-zr-3020
   SUPPORTED_DEVICES += mediatek,mt7981-spim-snand-gsw-rfb
   IMAGE_SIZE := 65536k
@@ -553,30 +587,12 @@ endef
 TARGET_DEVICES += livinet_zr-3020
 
 define Device/livinet_zr-3020-ubootmod
-  DEVICE_MODEL := ZR-3020 (custom U-Boot layout)
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-livinet-zr-3020-ubootmod
   IMAGE_SIZE := 98304k
   $(call Device/livinet_zr-3020-common)
 endef
 TARGET_DEVICES += livinet_zr-3020-ubootmod
-
-define Device/netgear_wax220
-  DEVICE_VENDOR := NETGEAR
-  DEVICE_MODEL := WAX220
-  DEVICE_DTS := mt7986b-netgear-wax220
-  DEVICE_DTS_DIR := ../dts
-  NETGEAR_ENC_MODEL := WAX220
-  NETGEAR_ENC_REGION := US
-  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware
-  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
-  IMAGE_SIZE := 32768k
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  IMAGES += factory.img
-  # Padding to 10M seems to be required by OEM web interface
-  IMAGE/factory.img := sysupgrade-tar | \
-	  pad-to 10M | check-size | netgear-encrypted-factory
-endef
-TARGET_DEVICES += netgear_wax220
 
 define Device/mediatek_mt7981-rfb
   DEVICE_VENDOR := MediaTek
@@ -749,9 +765,28 @@ define Device/mercusys_mr90x-v1
 endef
 TARGET_DEVICES += mercusys_mr90x-v1
 
+define Device/netgear_wax220
+  DEVICE_VENDOR := NETGEAR
+  DEVICE_MODEL := WAX220
+  DEVICE_DTS := mt7986b-netgear-wax220
+  DEVICE_DTS_DIR := ../dts
+  NETGEAR_ENC_MODEL := WAX220
+  NETGEAR_ENC_REGION := US
+  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  IMAGE_SIZE := 32768k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGES += factory.img
+  # Padding to 10M seems to be required by OEM web interface
+  IMAGE/factory.img := sysupgrade-tar | \
+	  pad-to 10M | check-size | netgear-encrypted-factory
+endef
+TARGET_DEVICES += netgear_wax220
+
 define Device/qihoo_360t7
   DEVICE_VENDOR := Qihoo
-  DEVICE_MODEL := 360T7 (OpenWrt U-Boot layout)
+  DEVICE_MODEL := 360T7
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-qihoo-360t7
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
@@ -775,7 +810,8 @@ TARGET_DEVICES += qihoo_360t7
 
 define Device/qihoo_360t7-ubootmod
   DEVICE_VENDOR := Qihoo
-  DEVICE_MODEL := 360T7 (custom U-Boot layout)
+  DEVICE_MODEL := 360T7
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-qihoo-360t7-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware
@@ -851,7 +887,8 @@ TARGET_DEVICES += ubnt_unifi-6-plus
 
 define Device/xiaomi_mi-router-wr30u-112m-nmbm
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Mi Router WR30U (custom U-Boot layout)
+  DEVICE_MODEL := Mi Router WR30U
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7981b-xiaomi-mi-router-wr30u-112m-nmbm
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
@@ -872,7 +909,8 @@ TARGET_DEVICES += xiaomi_mi-router-wr30u-112m-nmbm
 
 define Device/xiaomi_mi-router-wr30u-stock
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Mi Router WR30U (stock layout)
+  DEVICE_MODEL := Mi Router WR30U
+  DEVICE_VARIANT := (stock layout)
   DEVICE_DTS := mt7981b-xiaomi-mi-router-wr30u-stock
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
@@ -889,7 +927,8 @@ TARGET_DEVICES += xiaomi_mi-router-wr30u-stock
 
 define Device/xiaomi_mi-router-wr30u-ubootmod
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Mi Router WR30U (OpenWrt U-Boot layout)
+  DEVICE_MODEL := Mi Router WR30U
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7981b-xiaomi-mi-router-wr30u-ubootmod
   DEVICE_DTS_DIR := ../dts
   UBINIZE_OPTS := -E 5
@@ -917,7 +956,8 @@ TARGET_DEVICES += xiaomi_mi-router-wr30u-ubootmod
 
 define Device/xiaomi_redmi-router-ax6000
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Redmi Router AX6000 (custom U-Boot layout)
+  DEVICE_MODEL := Redmi Router AX6000
+  DEVICE_VARIANT := (custom U-Boot layout)
   DEVICE_DTS := mt7986a-xiaomi-redmi-router-ax6000
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-leds-ws2812b kmod-mt7986-firmware mt7986-wo-firmware
@@ -935,7 +975,8 @@ TARGET_DEVICES += xiaomi_redmi-router-ax6000
 
 define Device/xiaomi_redmi-router-ax6000-stock
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Redmi Router AX6000 (stock layout)
+  DEVICE_MODEL := Redmi Router AX6000
+  DEVICE_VARIANT := (stock layout)
   DEVICE_DTS := mt7986a-xiaomi-redmi-router-ax6000-stock
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-leds-ws2812b kmod-mt7986-firmware mt7986-wo-firmware
@@ -952,7 +993,8 @@ TARGET_DEVICES += xiaomi_redmi-router-ax6000-stock
 
 define Device/xiaomi_redmi-router-ax6000-ubootmod
   DEVICE_VENDOR := Xiaomi
-  DEVICE_MODEL := Redmi Router AX6000 (OpenWrt U-Boot layout)
+  DEVICE_MODEL := Redmi Router AX6000
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
   DEVICE_DTS := mt7986a-xiaomi-redmi-router-ax6000-ubootmod
   DEVICE_DTS_DIR := ../dts
   DEVICE_PACKAGES := kmod-leds-ws2812b kmod-mt7986-firmware mt7986-wo-firmware
@@ -978,12 +1020,30 @@ endif
 endef
 TARGET_DEVICES += xiaomi_redmi-router-ax6000-ubootmod
 
+define Device/zbtlink_zbt-z8102ax
+  DEVICE_VENDOR := Zbtlink
+  DEVICE_MODEL := ZBT-Z8102AX
+  DEVICE_DTS := mt7981b-zbtlink-zbt-z8102ax
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7981-firmware mt7981-wo-firmware kmod-usb-net-qmi-wwan kmod-usb-serial-option
+  KERNEL_IN_UBI := 1
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  IMAGES += factory.bin
+  IMAGE/factory.bin := append-ubi | check-size $$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += zbtlink_zbt-z8102ax
+
 define Device/zyxel_ex5601-t0-stock
   DEVICE_VENDOR := Zyxel
-  DEVICE_MODEL := EX5601-T0 (stock layout)
+  DEVICE_MODEL := EX5601-T0
+  DEVICE_VARIANT := (stock layout)
   DEVICE_DTS := mt7986a-zyxel-ex5601-t0-stock
   DEVICE_DTS_DIR := ../dts
-  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware kmod-usb3
   SUPPORTED_DEVICES := mediatek,mt7986a-rfb-snand
   UBINIZE_OPTS := -E 5
   BLOCKSIZE := 256k
@@ -999,6 +1059,50 @@ define Device/zyxel_ex5601-t0-stock
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
 endef
 TARGET_DEVICES += zyxel_ex5601-t0-stock
+
+define Device/zyxel_ex5601-t0-ubootmod
+  DEVICE_VENDOR := Zyxel
+  DEVICE_MODEL := EX5601-T0
+  DEVICE_VARIANT := (OpenWrt U-Boot layout)
+  DEVICE_DTS := mt7986a-zyxel-ex5601-t0-ubootmod
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7986-firmware mt7986-wo-firmware kmod-usb3
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  IMAGES := sysupgrade.itb
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 256k
+  PAGESIZE := 4096
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  KERNEL := kernel-bin | lzma
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
+  IMAGE/sysupgrade.itb := append-kernel | \
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7986-bl2 spim-nand-4k-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot zyxel_ex5601-t0
+ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
+  ARTIFACTS += initramfs-factory.ubi
+  ARTIFACT/initramfs-factory.ubi := append-image-stage initramfs-recovery.itb | ubinize-kernel
+endif
+endef
+TARGET_DEVICES += zyxel_ex5601-t0-ubootmod
+
+define Device/zyxel_ex5700-telenor
+  DEVICE_VENDOR := ZyXEL
+  DEVICE_MODEL := EX5700 (Telenor)
+  DEVICE_DTS := mt7986a-zyxel-ex5700-telenor
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7916-firmware kmod-ubootenv-nvram kmod-usb3 \
+	kmod-mt7986-firmware mt7986-wo-firmware
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 65536k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+endef
+TARGET_DEVICES += zyxel_ex5700-telenor
 
 define Device/zyxel_nwa50ax-pro
   DEVICE_VENDOR := ZyXEL

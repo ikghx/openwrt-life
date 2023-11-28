@@ -768,7 +768,7 @@ $(eval $(call KernelPackage,video-gspca-konica))
 #
 
 define KernelPackage/video-mem2mem
-  SUBMENU:=$(VIDEO_MENU)
+  SUBMENU:=$(MMEDIA_MENU)
   TITLE:=Memory 2 Memory device support
   HIDDEN:=1
   DEPENDS:=+kmod-video-videobuf2
@@ -785,7 +785,7 @@ endef
 $(eval $(call KernelPackage,video-mem2mem))
 
 define KernelPackage/video-dma
-  SUBMENU:=$(VIDEO_MENU)
+  SUBMENU:=$(MMEDIA_MENU)
   TITLE:=Video DMA support
   HIDDEN:=1
   DEPENDS:=+kmod-video-videobuf2

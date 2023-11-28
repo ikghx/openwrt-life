@@ -1201,7 +1201,7 @@ $(eval $(call KernelPackage,fixed-phy))
 define KernelPackage/of-mdio
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=OpenFirmware MDIO support
-  DEPENDS:=+kmod-libphy +kmod-fixed-phy @!TARGET_x86
+  DEPENDS:=+kmod-libphy +kmod-fixed-phy
   KCONFIG:=CONFIG_OF_MDIO
   FILES:= \
 	$(LINUX_DIR)/drivers/net/mdio/of_mdio.ko \
@@ -1602,6 +1602,18 @@ define KernelPackage/stmmac-core
 endef
 
 $(eval $(call KernelPackage,stmmac-core))
+
+
+define KernelPackage/pcs-xpcs
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Synopsis DesignWare PCS driver
+  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8
+  KCONFIG:=CONFIG_PCS_XPCS
+  FILES:=$(LINUX_DIR)/drivers/net/pcs/pcs_xpcs.ko
+  AUTOLOAD:=$(call AutoLoad,20,pcs_xpcs)
+endef
+
+$(eval $(call KernelPackage,pcs-xpcs))
 
 
 define KernelPackage/igc
