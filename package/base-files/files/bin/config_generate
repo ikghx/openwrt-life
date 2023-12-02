@@ -166,7 +166,8 @@ generate_network() {
 				*) ipad=${ipaddr:-"192.168.$((addr_offset++)).1"} ;;
 			esac
 
-			netm=${netmask:-"255.255.255.0"}
+			netm="${netmask:-255.255.255.0}"
+			str2ip netm "$netm"
 			netmask2prefix prefix "$netm"
 
 			uci -q batch <<-EOF
