@@ -118,7 +118,7 @@ define Device/acer_predator-w6
   DEVICE_DTS_DIR := ../dts
   DEVICE_DTS_LOADADDR := 0x47000000
   DEVICE_PACKAGES := kmod-usb3 kmod-mt7986-firmware kmod-mt7916-firmware \
-	mt7986-wo-firmware f2fsck mkf2fs automount
+	mt7986-wo-firmware f2fsck mkf2fs
   IMAGES := sysupgrade.bin
   KERNEL := kernel-bin | lzma | fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS := kernel-bin | lzma | \
@@ -220,7 +220,7 @@ define Device/bananapi_bpi-r3-mini
   DEVICE_DTC_FLAGS := --pad 4096
   DEVICE_DTS_LOADADDR := 0x43f00000
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-mt7986-firmware mt7986-wo-firmware \
-	kmod-usb3 automount f2fsck mkf2fs \
+	kmod-nvme kmod-usb3 f2fsck mkf2fs \
 	kmod-usb-net-cdc-mbim kmod-usb-net-qmi-wwan kmod-usb-serial-option uqmi \
 	luci-proto-mbim luci-proto-qmi
   KERNEL_LOADADDR := 0x44000000
