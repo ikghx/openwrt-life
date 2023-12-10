@@ -68,8 +68,8 @@ property. This way, the MAC address can be accessed using procfs.
 +		return ret;
 +
 +found:
-+	of_add_mac_address(np, addr);
-+	return 0;
++	ret = of_add_mac_address(np, addr);
++	return ret;
  }
  EXPORT_SYMBOL(of_get_mac_address);
  
