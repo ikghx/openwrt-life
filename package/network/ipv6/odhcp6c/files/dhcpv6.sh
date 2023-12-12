@@ -15,7 +15,7 @@ proto_dhcpv6_init_config() {
 	proto_config_add_string 'noslaaconly:bool'
 	proto_config_add_string 'forceprefix:bool'
 	proto_config_add_string 'extendprefix:bool'
-	proto_config_add_string 'norelease:bool'
+	proto_config_add_string 'norelease:bool:1'
 	proto_config_add_string 'noserverunicast:bool'
 	proto_config_add_string 'noclientfqdn:bool'
 	proto_config_add_string 'noacceptreconfig:bool'
