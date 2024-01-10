@@ -39,7 +39,6 @@
 		};
 
 		led_status_green: led-2 {
-			label = "green:status";
 			color = <LED_COLOR_ID_GREEN>;
 			function = LED_FUNCTION_STATUS;
 			gpios = <&gpio 18 GPIO_ACTIVE_LOW>;
