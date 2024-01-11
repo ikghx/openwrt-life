@@ -106,6 +106,13 @@ define Package/uhttpd-mod-ubus/install
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ubus.so $(1)/usr/lib/
 endef
 
+define Package/uhttpd-mod-ubus/postinst
+#!/bin/sh
+if [ -z "$${IPKG_INSTROOT}" ]; then
+	/etc/init.d/uhttpd reload
+fi
+endef
+
 define Package/uhttpd-mod-ucode/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/uhttpd_ucode.so $(1)/usr/lib/

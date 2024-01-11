@@ -64,6 +64,8 @@ define KernelPackage/sound-core
 endef
 
 define KernelPackage/sound-core/uml
+  KCONFIG:= \
+	CONFIG_UML_SOUND
   FILES:= \
 	$(LINUX_DIR)/sound/soundcore.ko \
 	$(LINUX_DIR)/arch/um/drivers/hostaudio.ko
@@ -119,6 +121,10 @@ $(eval $(call KernelPackage,sound-mpu401))
 
 define KernelPackage/sound-seq
   TITLE:=Sequencer support
+  KCONFIG:= \
+	CONFIG_SND_SEQUENCER \
+	CONFIG_SND_SEQ_MIDI \
+	CONFIG_SND_SEQ_MIDI_EVENT
   FILES:= \
 	$(LINUX_DIR)/sound/core/seq/snd-seq.ko \
 	$(LINUX_DIR)/sound/core/seq/snd-seq-midi-event.ko \
@@ -269,7 +275,7 @@ $(eval $(call KernelPackage,sound-soc-spdif))
 
 
 define KernelPackage/pcspkr
-  DEPENDS:=@TARGET_x86 +kmod-input-core
+  DEPENDS:=@(x86_64||x86) +kmod-input-core
   TITLE:=PC speaker support
   KCONFIG:= \
 	CONFIG_SND_PCSP
@@ -517,7 +523,7 @@ $(eval $(call KernelPackage,sound-hda-codec-hdmi))
 define KernelPackage/sound-hda-intel
   SUBMENU:=$(SOUND_MENU)
   TITLE:=HD Audio Intel Driver
-  DEPENDS:=@TARGET_x86
+  DEPENDS:=@(x86_64||x86)
   KCONFIG:= \
 	CONFIG_SOUND_PCI \
 	CONFIG_SND_HDA_INTEL

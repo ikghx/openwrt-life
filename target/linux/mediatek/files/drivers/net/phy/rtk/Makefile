@@ -61,6 +61,6 @@ rtl8367s_gsw-objs += rtl8367c/vlan.o
 
 ccflags-y += -Werror -D_LITTLE_ENDIAN -DMDC_MDIO_OPERATION
 
-ccflags-y += -Idrivers/net/phy/rtk/rtl8367c/include
-ccflags-y += -Iinclude/linux/
+ccflags-y += -I$(srctree)/drivers/net/phy/rtk/rtl8367c/include
+ccflags-y += -I$(srctree)/include/linux/
 

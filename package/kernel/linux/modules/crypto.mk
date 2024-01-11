@@ -13,10 +13,6 @@ CRYPTO_MODULES = \
 
 CRYPTO_TARGET = $(BOARD)/$(if $(SUBTARGET),$(SUBTARGET),generic)
 
-crypto_confvar=CONFIG_CRYPTO_$(word 1,$(subst =,$(space),$(1)))
-crypto_file=$(LINUX_DIR)/crypto/$(word 2,$(subst =,$(space),$(1))).ko
-crypto_name=$(if $(findstring y,$($(call crypto_confvar,$(1)))),,$(word 2,$(subst =,$(space),$(1))))
-
 define AddDepends/crypto
   SUBMENU:=$(CRYPTO_MENU)
   DEPENDS+= $(1)
@@ -323,8 +319,14 @@ $(eval $(call KernelPackage,crypto-ghash))
 
 define KernelPackage/crypto-hash
   TITLE:=CryptoAPI hash support
-  KCONFIG:=CONFIG_CRYPTO_HASH
-  FILES:=$(LINUX_DIR)/crypto/crypto_hash.ko
+  KCONFIG:= \
+	CONFIG_CRYPTO_HASH \
+	CONFIG_CRYPTO_HASH2 \
+	CONFIG_CRYPTO_ALGAPI \
+	CONFIG_CRYPTO_ALGAPI2
+  FILES:= \
+	$(LINUX_DIR)/crypto/crypto_algapi.ko \
+	$(LINUX_DIR)/crypto/crypto_hash.ko
   AUTOLOAD:=$(call AutoLoad,02,crypto_hash,1)
   $(call AddDepends/crypto)
 endef
@@ -347,7 +349,7 @@ $(eval $(call KernelPackage,crypto-hmac))
 define KernelPackage/crypto-hw-ccp
   TITLE:=AMD Cryptographic Coprocessor
   DEPENDS:= \
-	@TARGET_x86 \
+	@(x86_64||x86) \
 	+kmod-crypto-authenc \
 	+kmod-crypto-hash \
 	+kmod-crypto-manager \

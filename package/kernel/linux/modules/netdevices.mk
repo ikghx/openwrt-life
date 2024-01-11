@@ -817,7 +817,7 @@ $(eval $(call KernelPackage,igb))
 define KernelPackage/igbvf
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Intel(R) 82576 Virtual Function Ethernet support
-  DEPENDS:=@PCI_SUPPORT @TARGET_x86 +kmod-i2c-core +kmod-i2c-algo-bit +kmod-ptp
+  DEPENDS:=@PCI_SUPPORT @(x86_64||x86) +kmod-i2c-core +kmod-i2c-algo-bit +kmod-ptp
   KCONFIG:=CONFIG_IGBVF \
     CONFIG_IGB_HWMON=y \
     CONFIG_IGB_DCA=n
@@ -1201,7 +1201,7 @@ $(eval $(call KernelPackage,fixed-phy))
 define KernelPackage/of-mdio
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=OpenFirmware MDIO support
-  DEPENDS:=+kmod-libphy +kmod-fixed-phy
+  DEPENDS:=+kmod-libphy +kmod-fixed-phy @!x86_64 @!x86
   KCONFIG:=CONFIG_OF_MDIO
   FILES:= \
 	$(LINUX_DIR)/drivers/net/mdio/of_mdio.ko \
@@ -1588,7 +1588,7 @@ $(eval $(call KernelPackage,sfp))
 define KernelPackage/stmmac-core
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Synopsis Ethernet Controller core (NXP,STMMicro,others)
-  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8 +kmod-pcs-xpcs +kmod-ptp \
+  DEPENDS:=@x86_64||TARGET_armsr_armv8 +kmod-pcs-xpcs +kmod-ptp \
     +kmod-of-mdio
   KCONFIG:=CONFIG_STMMAC_ETH \
     CONFIG_STMMAC_SELFTESTS=n \
@@ -1607,7 +1607,7 @@ $(eval $(call KernelPackage,stmmac-core))
 define KernelPackage/pcs-xpcs
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Synopsis DesignWare PCS driver
-  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8 +kmod-phylink
+  DEPENDS:=@x86_64||TARGET_armsr_armv8 +kmod-phylink
   KCONFIG:=CONFIG_PCS_XPCS
   FILES:=$(LINUX_DIR)/drivers/net/pcs/pcs_xpcs.ko
   AUTOLOAD:=$(call AutoLoad,20,pcs_xpcs)
@@ -1784,7 +1784,7 @@ $(eval $(call KernelPackage,lan743x))
 define KernelPackage/amazon-ena
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Elastic Network Adapter (for Amazon AWS)
-  DEPENDS:=@TARGET_x86_64||TARGET_armsr_armv8
+  DEPENDS:=@x86_64||TARGET_armsr_armv8
   KCONFIG:=CONFIG_ENA_ETHERNET
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/amazon/ena/ena.ko
   AUTOLOAD:=$(call AutoLoad,12,ena)

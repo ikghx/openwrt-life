@@ -84,10 +84,8 @@ proto_qmi_setup() {
 
 	echo "Waiting for SIM initialization"
 	local uninitialized_timeout=0
-
 	# timeout 3s for first call to avoid hanging uqmi
-	uqmi -d "$device" --get-pin-status -t 3000 > /dev/null 2>&1
-	
+	uqmi -d "$device" -t 3000 --get-pin-status > /dev/null 2>&1
 	while uqmi -s -d "$device" -t 1000 --get-pin-status | grep '"UIM uninitialized"' > /dev/null; do
 		[ -e "$device" ] || return 1
 		if [ "$uninitialized_timeout" -lt "$timeout" -o "$timeout" = "0" ]; then
@@ -104,7 +102,7 @@ proto_qmi_setup() {
 	# Check if UIM application is stuck in illegal state
 	local uim_state_timeout=0
 	while true; do
-		json_load "$(uqmi -s -d "$device" --uim-get-sim-state)"
+		json_load "$(uqmi -s -d "$device" -t 1000 --uim-get-sim-state)"
 		json_get_var card_application_state card_application_state
 
 		# SIM card is either completely absent or state is labeled as illegal
@@ -113,9 +111,9 @@ proto_qmi_setup() {
 			echo "SIM in illegal state - Power-cycling SIM"
 
 			# Try to reset SIM application
-			uqmi -d "$device" --uim-power-off --uim-slot 1
+			uqmi -d "$device" -t 1000 --uim-power-off --uim-slot 1
 			sleep 3
-			uqmi -d "$device" --uim-power-on --uim-slot 1
+			uqmi -d "$device" -t 1000 --uim-power-on --uim-slot 1
 
 			if [ "$uim_state_timeout" -lt "$timeout" ] || [ "$timeout" = "0" ]; then
 				let uim_state_timeout++
@@ -132,8 +130,8 @@ proto_qmi_setup() {
 		fi
 	done
 
-	if uqmi -s -d "$device" --uim-get-sim-state | grep -q '"Not supported"\|"Invalid QMI command"' &&
-	   uqmi -s -d "$device" --get-pin-status | grep -q '"Not supported"\|"Invalid QMI command"' ; then
+	if uqmi -s -d "$device" -t 1000 --uim-get-sim-state | grep -q '"Not supported"\|"Invalid QMI command"' &&
+	   uqmi -s -d "$device" -t 1000 --get-pin-status | grep -q '"Not supported"\|"Invalid QMI command"' ; then
 		[ -n "$pincode" ] && {
 			uqmi -s -d "$device" -t 1000 --verify-pin1 "$pincode" > /dev/null || uqmi -s -d "$device" -t 1000 --uim-verify-pin1 "$pincode" > /dev/null || {
 				echo "Unable to verify PIN"
@@ -248,7 +246,7 @@ proto_qmi_setup() {
 
 	# PLMN selection must happen after the call to network-register
 	if [ -n "$mcc" -a -n "$mnc" ]; then
-		uqmi -s -d "$device" --set-plmn --mcc "$mcc" --mnc "$mnc" > /dev/null 2>&1 || {
+		uqmi -s -d "$device" -t 1000 --set-plmn --mcc "$mcc" --mnc "$mnc" > /dev/null 2>&1 || {
 			echo "Unable to set PLMN"
 			proto_notify_error "$interface" PLMN_FAILED
 			proto_block_restart "$interface"
@@ -257,10 +255,10 @@ proto_qmi_setup() {
 	fi
 
 	[ -n "$modes" ] && {
-		uqmi -s -d "$device" --set-network-modes "$modes" > /dev/null 2>&1
+		uqmi -s -d "$device" -t 1000 --set-network-modes "$modes" > /dev/null 2>&1
 		sleep 3
 		# Scan network to not rely on registration-timeout after RAT change
-		uqmi -s -d "$device" --network-scan > /dev/null 2>&1
+		uqmi -s -d "$device" -t 30000 --network-scan > /dev/null 2>&1
 	}
 
 	echo "Waiting for network registration"
@@ -304,7 +302,7 @@ proto_qmi_setup() {
 	# establish a non-LTE data session.
 	profile_pdptype="$pdptype"
 	[ "$profile_pdptype" = "ip" ] && profile_pdptype="ipv4"
-	uqmi -s -d "$device" --modify-profile "3gpp,1" --apn "$apn" --pdp-type "$profile_pdptype" > /dev/null 2>&1
+	uqmi -s -d "$device" -t 1000 --modify-profile "3gpp,1" --apn "$apn" --pdp-type "$profile_pdptype" > /dev/null 2>&1
 
 	if [ "$pdptype" = "ip" ]; then
 		[ -z "$autoconnect" ] && autoconnect=1
@@ -409,7 +407,7 @@ proto_qmi_setup() {
 
 	[ -n "$pdh_6" ] && {
 		if [ -z "$dhcpv6" -o "$dhcpv6" = 0 ]; then
-			json_load "$(uqmi -s -t 1000 -d $device --set-client-id wds,$cid_6 --get-current-settings)"
+			json_load "$(uqmi -s -d $device -t 1000 --set-client-id wds,$cid_6 --get-current-settings)"
 			json_select ipv6
 			json_get_var ip_6 ip
 			json_get_var gateway_6 gateway
@@ -451,7 +449,7 @@ proto_qmi_setup() {
 
 	[ -n "$pdh_4" ] && {
 		if [ "$dhcp" = 0 ]; then
-			json_load "$(uqmi -s -t 1000 -d $device --set-client-id wds,$cid_4 --get-current-settings)"
+			json_load "$(uqmi -s -d $device -t 1000 --set-client-id wds,$cid_4 --get-current-settings)"
 			json_select ipv4
 			json_get_var ip_4 ip
 			json_get_var gateway_4 gateway
