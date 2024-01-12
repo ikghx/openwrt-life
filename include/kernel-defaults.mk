@@ -87,30 +87,46 @@ else
 endif
 
 define Kernel/SetNoInitramfs
-	mv $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config.old
-	grep -v INITRAMFS $(LINUX_DIR)/.config.old > $(LINUX_DIR)/.config.set
-	echo 'CONFIG_INITRAMFS_SOURCE=""' >> $(LINUX_DIR)/.config.set
-	echo '# CONFIG_INITRAMFS_FORCE is not set' >> $(LINUX_DIR)/.config.set
+	mv $(LINUX_DIR)/.config$(1) $(LINUX_DIR)/.config.old
+	grep -v INITRAMFS $(LINUX_DIR)/.config.old > $(LINUX_DIR)/.config$(1)
+	echo 'CONFIG_INITRAMFS_SOURCE=""' >> $(LINUX_DIR)/.config$(1)
+	echo '# CONFIG_INITRAMFS_FORCE is not set' >> $(LINUX_DIR)/.config$(1)
+	echo "# CONFIG_INITRAMFS_PRESERVE_MTIME is not set" >> $(LINUX_DIR)/.config$(1)
+endef
+
+define Kernel/Setolddefconfig
+	+$(KERNEL_MAKE) olddefconfig
+endef
+
+define Kernel/Generate_vermagic
+	grep '=[ym]' $(LINUX_DIR)/.config$(1) | LC_ALL=C sort | $(MKHASH) md5 > $(LINUX_DIR)/.vermagic
 endef
 
 define Kernel/Configure/Default
 	rm -f $(LINUX_DIR)/localversion
+ifdef CONFIG_TARGET_armsr_armv8
+	$(LINUX_CONF_CMD) > $(LINUX_DIR)/.config
+	rm -rf $(KERNEL_BUILD_DIR)/modules
+	$(call Kernel/Setolddefconfig)
+	$(call Kernel/Generate_vermagic,)
+else
 	$(LINUX_CONF_CMD) > $(LINUX_DIR)/.config.target
-# copy CONFIG_KERNEL_* settings over to .config.target
+	# copy CONFIG_KERNEL_* settings over to .config.target
 	awk '/^(#[[:space:]]+)?CONFIG_KERNEL/{sub("CONFIG_KERNEL_","CONFIG_");print}' $(TOPDIR)/.config >> $(LINUX_DIR)/.config.target
 	echo "# CONFIG_KALLSYMS_EXTRA_PASS is not set" >> $(LINUX_DIR)/.config.target
 	echo "# CONFIG_KALLSYMS_ALL is not set" >> $(LINUX_DIR)/.config.target
 	echo "CONFIG_KALLSYMS_UNCOMPRESSED=y" >> $(LINUX_DIR)/.config.target
 	$(SCRIPT_DIR)/package-metadata.pl kconfig $(TMP_DIR)/.packageinfo $(TOPDIR)/.config $(KERNEL_PATCHVER) > $(LINUX_DIR)/.config.override
 	$(SCRIPT_DIR)/kconfig.pl 'm+' '+' $(LINUX_DIR)/.config.target /dev/null $(LINUX_DIR)/.config.override > $(LINUX_DIR)/.config.set
-	$(call Kernel/SetNoInitramfs)
+	$(call Kernel/SetNoInitramfs,.set)
 	rm -rf $(KERNEL_BUILD_DIR)/modules
 	cmp -s $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config.prev || { \
 		cp $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config; \
 		cp $(LINUX_DIR)/.config.set $(LINUX_DIR)/.config.prev; \
 	}
+	$(call Kernel/Generate_vermagic,.set)
+endif
 	$(_SINGLE) [ -d $(LINUX_DIR)/user_headers ] || $(KERNEL_MAKE) $(if $(findstring uml,$(BOARD)),ARCH=$(ARCH)) INSTALL_HDR_PATH=$(LINUX_DIR)/user_headers headers_install
-	grep '=[ym]' $(LINUX_DIR)/.config.set | LC_ALL=C sort | $(MKHASH) md5 > $(LINUX_DIR)/.vermagic
 endef
 
 define Kernel/Configure/Initramfs
@@ -151,10 +167,26 @@ define Kernel/CompileImage/Default
 	$(call Kernel/CopyImage)
 endef
 
+ifdef CONFIG_TARGET_armsr_armv8
+define Kernel/InstallModules
+	rm -rf $(TARGET_DIR)/lib/modules
+	# Modules are loaded from initrd init script
+	rm -rf $(TARGET_DIR)/etc/modules-boot.d $(TARGET_DIR)/etc/modules.d
+	$(KERNEL_MAKE) INSTALL_MOD_PATH=$(TARGET_DIR) modules_install
+	rm -f $(TARGET_DIR)/lib/modules/$(LINUX_VERSION)/source \
+		$(TARGET_DIR)/lib/modules/$(LINUX_VERSION)/build
+endef
+else
+define Kernel/InstallModules
+endef
+endif
+
+INITRAMFS_OTHER_FILES ?= $(GENERIC_PLATFORM_DIR)/other-files/init
+
 ifneq ($(CONFIG_TARGET_ROOTFS_INITRAMFS),)
 define Kernel/CompileImage/Initramfs
 	$(call Kernel/Configure/Initramfs)
-	$(CP) $(GENERIC_PLATFORM_DIR)/other-files/init $(TARGET_DIR)/init
+	$(CP) $(INITRAMFS_OTHER_FILES) $(TARGET_DIR)/init
 	$(if $(SOURCE_DATE_EPOCH),touch -hcd "@$(SOURCE_DATE_EPOCH)" $(TARGET_DIR) $(TARGET_DIR)/init)
 	rm -rf $(KERNEL_BUILD_DIR)/linux-$(LINUX_VERSION)/usr/initramfs_data.cpio*
 ifeq ($(CONFIG_TARGET_ROOTFS_INITRAMFS_SEPARATE),y)

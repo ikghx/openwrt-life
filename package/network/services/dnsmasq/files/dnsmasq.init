@@ -817,23 +817,23 @@ dhcp_hostrecord_add() {
 dhcp_dnsrr_add() {
 	#This adds arbitrary resource record types (of IN class) whose optional data must be hex
 	local cfg="$1"
-	local dnsrr rrnumber hexdata
+	local rrname rrnumber hexdata
 
-	config_get dnsrr "$cfg" dnsrr
-	[ -n "$dnsrr" ] || return 0
+	config_get rrname "$cfg" rrname
+	[ -n "$rrname" ] || return 0
 
 	config_get rrnumber "$cfg" rrnumber
 	[ -n "$rrnumber" ] && [ "$rrnumber" -gt 0 ] || return 0
 
 	config_get hexdata "$cfg" hexdata
 
-	# dnsmasq accepts XX:XX, XX XX, or XXXX forms or mixtures thereof
+	# dnsmasq accepts colon XX:XX:.., space XX XX .., or contiguous XXXX.. hex forms or mixtures thereof
 	if [ -n "${hexdata//[0-9a-fA-F\:\ ]/}" ]; then
 		# is invalid hex literal
 		return 1
 	fi
 
-	xappend "--dns-rr=${dnsrr},${rrnumber}${hexdata:+,$hexdata}"
+	xappend "--dns-rr=${rrname},${rrnumber}${hexdata:+,$hexdata}"
 }
 
 dhcp_relay_add() {
