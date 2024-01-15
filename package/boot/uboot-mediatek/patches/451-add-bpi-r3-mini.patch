@@ -141,7 +141,7 @@
 +CONFIG_LMB_MAX_REGIONS=64
 --- /dev/null
 +++ b/configs/mt7986a_bpi-r3-mini-snand_defconfig
-@@ -0,0 +1,137 @@
+@@ -0,0 +1,138 @@
 +CONFIG_ARM=y
 +CONFIG_SYS_HAS_NONCACHED_MEMORY=y
 +CONFIG_POSITION_INDEPENDENT=y
@@ -279,6 +279,7 @@
 +CONFIG_USB_STORAGE=y
 +CONFIG_ZSTD=y
 +CONFIG_HEXDUMP=y
++CONFIG_LMB_MAX_REGIONS=64
 --- /dev/null
 +++ b/arch/arm/dts/mt7986a-bpi-r3-mini.dts
 @@ -0,0 +1,253 @@
@@ -492,7 +493,7 @@
 +	spi_nand@0 {
 +		compatible = "spi-nand";
 +		reg = <0>;
-+		spi-max-frequency = <52000000>;
++		spi-max-frequency = <20000000>;
 +
 +		partitions {
 +			compatible = "fixed-partitions";

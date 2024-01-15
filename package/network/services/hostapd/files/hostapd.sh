@@ -398,7 +398,6 @@ hostapd_set_vlan() {
 
 	rm -f /var/run/hostapd-${ifname}.vlan
 	for_each_vlan hostapd_set_vlan_file ${ifname}
-	touch /var/run/hostapd-${ifname}.vlan
 }
 
 hostapd_set_psk_file() {
@@ -417,7 +416,6 @@ hostapd_set_psk() {
 
 	rm -f /var/run/hostapd-${ifname}.psk
 	for_each_station hostapd_set_psk_file ${ifname}
-	touch /var/run/hostapd-${ifname}.psk
 }
 
 append_iw_roaming_consortium() {
@@ -690,7 +688,9 @@ hostapd_set_bss_options() {
 				return 1
 			fi
 			[ -z "$wpa_psk_file" ] && set_default wpa_psk_file /var/run/hostapd-$ifname.psk
-			[ -n "$wpa_psk_file" ] && append bss_conf "wpa_psk_file=$wpa_psk_file" "$N"
+			[ -n "$wpa_psk_file" ] && {
+				[ -e "$wpa_psk_file" ] || touch "$wpa_psk_file"
+				append bss_conf "wpa_psk_file=$wpa_psk_file" "$N"
 				if [ "$auth_type" = "sae" ] || [ "$auth_type" = "psk-sae" ]; then
 					while IFS= read -r line; do
 						# Each line, except for empty lines and lines starting with #,
