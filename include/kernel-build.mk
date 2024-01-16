@@ -30,7 +30,6 @@ endef
 
 define Kernel/CompileImage
 	$(call Kernel/CompileImage/Default)
-	$(call Kernel/InstallModules)
 	$(call Kernel/CompileImage/Initramfs)
 endef
 
