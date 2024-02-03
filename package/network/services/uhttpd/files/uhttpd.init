@@ -232,28 +232,27 @@ uhttpd_interfaces()
 			continue
 			;;
 		*.*.*.*:*)
-			ips="$ips${listen%%:*}
+			ips="$ips ${listen%%:*}
 "
 			;;
 		\[*\]:* )
 			listen="${listen:1}"
-			ips="$ips${listen%%]:*}
+			ips="$ips ${listen%%]:*}
 "
 			;;
 		esac
 	done
-
-	echo "$ips" | sort -u
+	ips="$( echo "$ips" | sort -u )"
+	echo "$ips"
 }
 
 resolve_iface()
 {
 	local cfg="$1"
-	local ipaddr ip6addrs ipaddrs testip="$2"
+	local ipaddr ipaddrs testip="$2"
 
 	config_get ipaddrs "$cfg" ipaddr
-	config_get ip6addrs "$cfg" ip6addr
-	for ipaddr in $ipaddrs $ip6addrs; do
+	for ipaddr in $ipaddrs; do
 		[ "$ipaddr" = "$testip" ] && echo "$cfg"
 	done
 }
@@ -282,10 +281,10 @@ service_triggers()
 	done
 
 	if [ "$all" = "1" ]; then
-		procd_add_raw_trigger "interface.*.up" 1000 /etc/init.d/uhttpd reload
+		procd_add_raw_trigger "interface.*.up" 1000 /etc/init.d/uhttpd start
 	else
 		for iface in $ifaces; do
-			procd_add_raw_trigger "interface.$iface.up" 1000 /etc/init.d/uhttpd reload
+			procd_add_raw_trigger "interface.$iface.up" 1000 /etc/init.d/uhttpd start
 		done
 	fi
 }
