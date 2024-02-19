@@ -17,7 +17,7 @@ PKG_SOURCE_URL:=http://mirror2.openwrt.org/sources/
 PKG_HASH:=5d39aca7e34c33cb9b3e366117b2e86841b7bdd37933679d6b1e61be6b150648
 
 PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/backports-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_VERSION)
 PKG_BUILD_PARALLEL:=1
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
@@ -48,7 +48,13 @@ define KernelPackage/mac80211/Default
   MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 endef
 
-config_package=$(if $(CONFIG_PACKAGE_kmod-$(1)),m)
+# config_pacakge:
+# 1 = OpenWrt KernelPackage name
+# 2 = Optional list of variants for which the module may be selected:
+#     If empty, the module is only selected with the first variant
+#     Use $(ALL_VARIANTS) to allow module selection in all variants
+config_package=$(if $(and $(CONFIG_PACKAGE_kmod-$(1)),$(call mac80211_variant_check,$(2))),m)
+mac80211_variant_check=$(if $(ALL_VARIANTS),$(filter $(BUILD_VARIANT),$(if $(1),$(1),$(firstword $(ALL_VARIANTS)))),y)
 
 config-y:= \
 	WLAN \
@@ -73,10 +79,10 @@ config-y:= \
 	WLAN_VENDOR_TI \
 	WLAN_VENDOR_ZYDAS \
 
-config-$(call config_package,cfg80211) += CFG80211
+config-$(call config_package,cfg80211,$(ALL_VARIANTS)) += CFG80211
 config-$(CONFIG_PACKAGE_CFG80211_TESTMODE) += NL80211_TESTMODE
 
-config-$(call config_package,mac80211) += MAC80211
+config-$(call config_package,mac80211,$(ALL_VARIANTS)) += MAC80211
 config-$(CONFIG_PACKAGE_MAC80211_MESH) += MAC80211_MESH
 
 include ath.mk

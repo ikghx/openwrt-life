@@ -133,12 +133,30 @@ define Build/append-md5sum-ascii-salted
 	rm $@.salted
 endef
 
+UBI_NAND_SIZE_LIMIT = $(IMAGE_SIZE) - ($(NAND_SIZE)*20/1024 + 4*$(BLOCKSIZE))
+
 define Build/append-ubi
 	sh $(TOPDIR)/scripts/ubinize-image.sh \
 		$(if $(UBOOTENV_IN_UBI),--uboot-env) \
 		$(if $(KERNEL_IN_UBI),--kernel $(IMAGE_KERNEL)) \
 		$(foreach part,$(UBINIZE_PARTS),--part $(part)) \
 		--rootfs $(IMAGE_ROOTFS) \
+		$@.tmp \
+		-p $(BLOCKSIZE:%k=%KiB) -m $(PAGESIZE) \
+		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE)) \
+		$(if $(VID_HDR_OFFSET),-O $(VID_HDR_OFFSET)) \
+		$(UBINIZE_OPTS)
+	cat $@.tmp >> $@
+	rm $@.tmp
+	$(if $(and $(IMAGE_SIZE),$(NAND_SIZE)),\
+		$(call Build/check-size,$(UBI_NAND_SIZE_LIMIT)))
+endef
+
+define Build/ubinize-image
+	sh $(TOPDIR)/scripts/ubinize-image.sh \
+		$(if $(UBOOTENV_IN_UBI),--uboot-env) \
+		$(foreach part,$(UBINIZE_PARTS),--part $(part)) \
+		--part $(word 1,$(1))="$(BIN_DIR)/$(DEVICE_IMG_PREFIX)-$(word 2,$(1))" \
 		$@.tmp \
 		-p $(BLOCKSIZE:%k=%KiB) -m $(PAGESIZE) \
 		$(if $(SUBPAGESIZE),-s $(SUBPAGESIZE)) \
@@ -215,7 +233,7 @@ endef
 
 define Build/check-size
 	@imagesize="$$(stat -c%s $@)"; \
-	limitsize="$$(($(subst k,* 1024,$(subst m, * 1024k,$(if $(1),$(1),$(IMAGE_SIZE))))))"; \
+	limitsize="$$(($(call exp_units,$(if $(1),$(1),$(IMAGE_SIZE)))))"; \
 	[ $$limitsize -ge $$imagesize ] || { \
 		$(call ERROR_MESSAGE,    WARNING: Image file $@ is too big: $$imagesize > $$limitsize); \
 		rm -f $@; \
@@ -389,10 +407,17 @@ define Build/kernel-bin
 endef
 
 define Build/linksys-image
-	$(TOPDIR)/scripts/linksys-image.sh \
+	let \
+		size="$$(stat -c%s $@)" \
+		pad="$(call exp_units,$(PAGESIZE))" \
+		offset="256" \
+		pad="(pad - ((size + offset) % pad)) % pad"; \
+		dd if=/dev/zero bs=$$pad count=1 | tr '\000' '\377' >> $@
+	printf ".LINKSYS.01000409%-15s%08X%-8s%-16s" \
 		"$(call param_get_default,type,$(1),$(DEVICE_NAME))" \
-		$@ $@.new
-		mv $@.new $@
+		"$$(cksum $@ | cut -d ' ' -f1)" \
+		"0" "K0000000F0246434" >> $@
+	dd if=/dev/zero bs=192 count=1 >> $@
 endef
 
 define Build/lzma
@@ -402,6 +427,15 @@ endef
 define Build/lzma-no-dict
 	$(STAGING_DIR_HOST)/bin/lzma e $@ $(1) $@.new
 	@mv $@.new $@
+endef
+
+define Build/moxa-encode-fw
+	$(TOPDIR)/scripts/moxa-encode-fw.py \
+		--input $@ \
+		--output $@ \
+		--magic $(MOXA_MAGIC) \
+		--hwid $(MOXA_HWID) \
+		--buildid 00000000
 endef
 
 define Build/netgear-chk
@@ -457,8 +491,8 @@ endef
 define Build/pad-offset
 	let \
 		size="$$(stat -c%s $@)" \
-		pad="$(subst k,* 1024,$(word 1, $(1)))" \
-		offset="$(subst k,* 1024,$(word 2, $(1)))" \
+		pad="$(call exp_units,$(word 1, $(1)))" \
+		offset="$(call exp_units,$(word 2, $(1)))" \
 		pad="(pad - ((size + offset) % pad)) % pad" \
 		newsize='size + pad'; \
 		dd if=$@ of=$@.new bs=$$newsize count=1 conv=sync
@@ -620,7 +654,7 @@ endef
 
 define Build/zyxel-ras-image
 	let \
-		newsize="$(subst k,* 1024,$(RAS_ROOTFS_SIZE))"; \
+		newsize="$(call exp_units,$(RAS_ROOTFS_SIZE))"; \
 		$(STAGING_DIR_HOST)/bin/mkrasimage \
 			-b $(RAS_BOARD) \
 			-v $(RAS_VERSION) \

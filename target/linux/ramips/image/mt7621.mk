@@ -1218,7 +1218,7 @@ define Device/iodata_wn-ax1167gr
   IMAGE_SIZE := 15552k
   DEVICE_VENDOR := I-O DATA
   DEVICE_MODEL := WN-AX1167GR
-  ARTIFACTS := initramfs-factory.bin
+  # ARTIFACTS := initramfs-factory.bin
   ARTIFACT/initramfs-factory.bin := append-image-stage initramfs-kernel.bin | \
 	check-size 7680k | senao-header -r 0x30a -p 0x1055 -t 4
   DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 -uboot-envtools
@@ -1444,12 +1444,23 @@ define Device/jcg_y2
 endef
 TARGET_DEVICES += jcg_y2
 
+define Device/jdcloud_re-cp-02
+  $(Device/dsa-migration)
+  $(Device/uimage-lzma-loader)
+  IMAGE_SIZE := 16000k
+  DEVICE_VENDOR := JD-Cloud
+  DEVICE_MODEL := RE-CP-02
+  DEVICE_PACKAGES := kmod-mt7915-firmware kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += jdcloud_re-cp-02
+
 define Device/jdcloud_re-sp-01b
+  $(Device/dsa-migration)
   IMAGE_SIZE := 27328k
   DEVICE_VENDOR := JDCloud
   DEVICE_MODEL := RE-SP-01B
-  DEVICE_PACKAGES := kmod-fs-ext4 kmod-mt7603 \
-	kmod-mt7615-firmware kmod-sdhci-mt7620 kmod-usb3
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt7615e kmod-mt7615-firmware \
+	kmod-sdhci-mt7620 kmod-usb3
 endef
 TARGET_DEVICES += jdcloud_re-sp-01b
 
