@@ -401,6 +401,19 @@ endef
 
 $(eval $(call KernelPackage,crypto-hw-hifn-795x))
 
+define KernelPackage/crypto-hw-ixp4xx
+  TITLE:=Intel IXP4xx crypto accelerator
+  DEPENDS:=@TARGET_ixp4xx +kmod-random-core +kmod-crypto-manager +kmod-crypto-authenc +kmod-crypto-des
+  KCONFIG:= \
+	CONFIG_CRYPTO_HW=y \
+	CONFIG_CRYPTO_DEV_IXP4XX
+  FILES:=$(LINUX_DIR)/drivers/crypto/ixp4xx_crypto.ko
+  AUTOLOAD:=$(call AutoProbe,ixp4xx_crypto)
+  $(call AddDepends/crypto)
+endef
+
+$(eval $(call KernelPackage,crypto-hw-ixp4xx))
+
 
 define KernelPackage/crypto-hw-padlock
   TITLE:=VIA PadLock ACE with AES/SHA hw crypto module
@@ -525,6 +538,8 @@ define KernelPackage/crypto-lib-chacha20/arm
   FILES:=$(LINUX_DIR)/arch/arm/crypto/chacha-neon.ko
 endef
 
+KernelPackage/crypto-lib-chacha20/armeb=$(KernelPackage/crypto-lib-chacha20/arm)
+
 define KernelPackage/crypto-lib-chacha20/aarch64
   KCONFIG+=CONFIG_CRYPTO_CHACHA20_NEON
   FILES+=$(LINUX_DIR)/arch/arm64/crypto/chacha-neon.ko
@@ -617,6 +632,8 @@ define KernelPackage/crypto-lib-poly1305/arm
   KCONFIG+=CONFIG_CRYPTO_POLY1305_ARM
   FILES:=$(LINUX_DIR)/arch/arm/crypto/poly1305-arm.ko
 endef
+
+KernelPackage/crypto-lib-poly1305/armeb=$(KernelPackage/crypto-lib-poly1305/arm)
 
 define KernelPackage/crypto-lib-poly1305/aarch64
   KCONFIG+=CONFIG_CRYPTO_POLY1305_NEON
@@ -920,8 +937,13 @@ endef
 
 KernelPackage/crypto-sha1/imx=$(KernelPackage/crypto-sha1/arm-neon)
 KernelPackage/crypto-sha1/ipq40xx=$(KernelPackage/crypto-sha1/arm-neon)
+KernelPackage/crypto-sha1/mediatek/filogic=$(KernelPackage/crypto-sha1/aarch64-ce)
+KernelPackage/crypto-sha1/mediatek/mt7622=$(KernelPackage/crypto-sha1/aarch64-ce)
 KernelPackage/crypto-sha1/mvebu/cortexa9=$(KernelPackage/crypto-sha1/arm-neon)
+KernelPackage/crypto-sha1/mvebu/cortexa53=$(KernelPackage/crypto-sha1/aarch64-ce)
+KernelPackage/crypto-sha1/mvebu/cortexa72=$(KernelPackage/crypto-sha1/aarch64-ce)
 KernelPackage/crypto-sha1/qualcommax=$(KernelPackage/crypto-sha1/aarch64-ce)
+KernelPackage/crypto-sha1/rockchip/armv8=$(KernelPackage/crypto-sha1/aarch64-ce)
 
 define KernelPackage/crypto-sha1/octeon
   FILES+=$(LINUX_DIR)/arch/mips/cavium-octeon/crypto/octeon-sha1.ko
@@ -1007,7 +1029,12 @@ define KernelPackage/crypto-sha256/x86_64
 endef
 endif
 
+KernelPackage/crypto-sha256/mediatek/filogic=$(KernelPackage/crypto-sha256/aarch64-ce)
+KernelPackage/crypto-sha256/mediatek/mt7622=$(KernelPackage/crypto-sha256/aarch64-ce)
+KernelPackage/crypto-sha256/mvebu/cortexa53=$(KernelPackage/crypto-sha256/aarch64-ce)
+KernelPackage/crypto-sha256/mvebu/cortexa72=$(KernelPackage/crypto-sha256/aarch64-ce)
 KernelPackage/crypto-sha256/qualcommax=$(KernelPackage/crypto-sha256/aarch64-ce)
+KernelPackage/crypto-sha256/rockchip/armv8=$(KernelPackage/crypto-sha256/aarch64-ce)
 
 ifdef KernelPackage/crypto-sha256/$(ARCH)
   KernelPackage/crypto-sha256/$(CRYPTO_TARGET)=\
