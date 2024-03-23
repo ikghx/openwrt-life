@@ -108,10 +108,6 @@ platform_do_upgrade() {
 			;;
 		esac
 		;;
-	cudy,wr3000-v1|\
-	cudy,re3000-v1)
-		default_do_upgrade "$1"
-		;;
 	cmcc,rax3000m-emmc-ubootmod|\
 	glinet,gl-mt2500|\
 	glinet,gl-mt6000)
@@ -119,7 +115,8 @@ platform_do_upgrade() {
 		CI_ROOTPART="rootfs"
 		emmc_do_upgrade "$1"
 		;;
-	cudy,wr3000-v1)
+	cudy,wr3000-v1|\
+	cudy,re3000-v1)
 		default_do_upgrade "$1"
 		;;
 	h3c,magic-nx30-pro|\
