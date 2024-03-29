@@ -548,6 +548,7 @@ define Device/tplink_archer-c20-v4
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
   SUPPORTED_DEVICES += tplink,c20-v4
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_archer-c20-v4
 
@@ -734,6 +735,7 @@ define Device/tplink_tl-wa801nd-v5
   TPLINK_HWREVADD := 0x5
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wa801nd-v5
 
@@ -747,6 +749,7 @@ define Device/tplink_tl-wr802n-v4
   TPLINK_HWREVADD := 0x4
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr802n-v4
 
@@ -761,6 +764,7 @@ define Device/tplink_tl-wr840n-v4
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
   SUPPORTED_DEVICES += tl-wr840n-v4
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr840n-v4
 
@@ -790,6 +794,7 @@ define Device/tplink_tl-wr841n-v13
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
   SUPPORTED_DEVICES += tl-wr841n-v13
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr841n-v13
 
@@ -833,6 +838,7 @@ define Device/tplink_tl-wr850n-v2
   TPLINK_HWREVADD := 0x2
   IMAGES := sysupgrade.bin tftp-recovery.bin
   IMAGE/tftp-recovery.bin := pad-extra 128k | $$(IMAGE/factory.bin)
+  DEFAULT := n
 endef
 TARGET_DEVICES += tplink_tl-wr850n-v2
 

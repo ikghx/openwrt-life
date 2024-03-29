@@ -1055,6 +1055,8 @@ dnsmasq_start()
 	append_bool "$cfg" "noroundrobin" "--no-round-robin"
 	append_bool "$cfg" "strip_mac" "--strip-mac"
 	append_bool "$cfg" "strip_subnet" "--strip-subnet"
+	append_parm "$cfg" "filter_rr" "--filter-rr"
+	append_parm "$cfg" "cache_rr" "--cache-rr"
 
 	append_parm "$cfg" "logfacility" "--log-facility"
 	config_get logfacility "$cfg" "logfacility"
