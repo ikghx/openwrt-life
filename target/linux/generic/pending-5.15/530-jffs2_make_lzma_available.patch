@@ -3,12 +3,6 @@ Subject: fs: add jffs2/lzma support (not activated by default yet)
 
 lede-commit: c2c88d315fa0e881f8b19da07b62859b915b11b2
 Signed-off-by: Alexandros C. Couloumbis <alex@ozo.com>
-
-Fix building with split source/build directories.  While not used
-by everyone, the kernel is meant to be able to build object files
-in a directory separate from the kernel source.
-
-Signed-off-by: Elliott Mitchell <ehem+openwrt@m5p.com>
 ---
  fs/jffs2/Kconfig             |    9 +
  fs/jffs2/Makefile            |    3 +
@@ -4584,4 +4578,4 @@ Signed-off-by: Elliott Mitchell <ehem+openwrt@m5p.com>
 +obj-$(CONFIG_LZMA_COMPRESS) += lzma_compress.o
 +obj-$(CONFIG_LZMA_DECOMPRESS) += lzma_decompress.o
 +
-+EXTRA_CFLAGS += -I$(srctree)/include/linux -Iinclude/linux -Iinclude/linux/lzma -include types.h
++EXTRA_CFLAGS += -Iinclude/linux -Iinclude/linux/lzma -include types.h
