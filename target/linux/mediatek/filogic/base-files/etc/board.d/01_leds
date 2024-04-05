@@ -27,7 +27,8 @@ cudy,re3000-v1)
 cudy,wr3000-v1)
 	ucidef_set_led_netdev "wan" "wan" "blue:wan" "wan"
 	;;
-imou,lc-hx3001-ubootmod)
+imou,lc-hx3001-ubootmod|\
+nokia,ea0326gmp)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1" "link"
 	ucidef_set_led_netdev "lan" "LAN" "green:lan" "br-lan" "link"
 	ucidef_set_led_netdev "wlan" "WLAN" "green:wlan" "phy1-ap0" "link"
@@ -59,7 +60,7 @@ routerich,ax3000)
 xiaomi,mi-router-wr30u-112m-nmbm|\
 xiaomi,mi-router-wr30u-stock|\
 xiaomi,mi-router-wr30u-ubootmod)
-	ucidef_set_led_netdev "wan" "wan" "blue:network" "wan"
+	ucidef_set_led_netdev "wan" "wan" "blue:wan" "wan" "link tx rx"
 	;;
 xiaomi,redmi-router-ax6000|\
 xiaomi,redmi-router-ax6000-stock|\
