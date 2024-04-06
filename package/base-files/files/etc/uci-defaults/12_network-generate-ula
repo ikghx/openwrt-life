@@ -1,9 +1,7 @@
 [ "$(uci -q get network.globals.ula_prefix)" != "auto" ] && exit 0
 
-r1=$(hexdump -vn 5 -e '5/1 "%02x"' /dev/urandom)
-
 uci -q batch <<-EOF >/dev/null
-	set network.globals.ula_prefix=fd${r1:0:2}:${r1:2:4}:${r1:6:4}::/48
+	set network.globals.ula_prefix="$(hexdump -vn 5 -e '"fd" 1/1 "%02x:" 2/2 "%x:"' /dev/urandom):/48"
 	commit network
 EOF
 
