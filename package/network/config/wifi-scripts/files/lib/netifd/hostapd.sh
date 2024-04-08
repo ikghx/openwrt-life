@@ -1424,7 +1424,18 @@ wpa_supplicant_add_network() {
 			case "$eap_type" in
 				tls)
 					json_get_vars client_cert priv_key priv_key_pwd
-					append network_data "client_cert=\"$client_cert\"" "$N$T"
+					# When PKCS#12/PFX file (.p12/.pfx) is used, client_cert should be commented out
+					if [ -n "$priv_key" ]; then
+						case "$priv_key" in
+							*".p12")
+							;;
+							*".pfx")
+							;;
+							*)
+							append network_data "client_cert=\"$client_cert\"" "$N$T"
+							;;
+						esac
+					fi
 					append network_data "private_key=\"$priv_key\"" "$N$T"
 					append network_data "private_key_passwd=\"$priv_key_pwd\"" "$N$T"
 
