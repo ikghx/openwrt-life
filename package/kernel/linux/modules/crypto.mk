@@ -11,7 +11,7 @@ CRYPTO_MODULES = \
 	ALGAPI2=crypto_algapi \
 	BLKCIPHER2=crypto_blkcipher
 
-CRYPTO_TARGET = $(BOARD)/$(if $(SUBTARGET),$(SUBTARGET),generic)
+CRYPTO_TARGET = $(BOARD)/$(SUBTARGET)
 
 define AddDepends/crypto
   SUBMENU:=$(CRYPTO_MENU)
