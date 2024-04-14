@@ -12,5 +12,5 @@
 		}
 	},
 	"publish": [ "hostapd", "hostapd.*", "wpa_supplicant", "wpa_supplicant.*" ],
-	"send": [ "bss.*", "wps_credentials" ]
+	"send": [ "bss.*", "wps_credentials", "wps_station_credentials" ]
 }

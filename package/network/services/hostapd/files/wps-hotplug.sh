@@ -38,6 +38,26 @@ wps_catch_credentials() {
 	done
 }
 
+wps_station_catch_credentials() {
+	local ifname key mac_addr
+
+	. /usr/share/libubox/jshn.sh
+	ubus -S -t 30 listen wps_station_credentials | while read creds; do
+		json_init
+		json_load "$creds"
+		json_select wps_station_credentials || continue
+		json_get_vars ifname key mac_addr
+
+		ubus -S call uci add "{\"config\":\"wireless\", \"type\":\"wifi-station\",	\
+					\"values\": { \"mac\": \"$mac_addr\",			\
+							\"ifname\": \"$ifname\",		\
+							\"key\": \"$key\",			\
+							\"wps\": \"1\" } }"
+		ubus -S call uci commit '{"config": "wireless"}'
+		ubus -S call uci apply
+	done
+}
+
 if [ "$ACTION" = "released" ] && [ "$BUTTON" = "wps" ]; then
 	# If the button was pressed for 3 seconds or more, trigger WPS on
 	# wpa_supplicant only, no matter if hostapd is running or not.  If
@@ -50,7 +70,7 @@ if [ "$ACTION" = "released" ] && [ "$BUTTON" = "wps" ]; then
 		for ubusobj in $ubusobjs; do
 			ubus -S call $ubusobj wps_start && wps_done=1
 		done
-		[ $wps_done = 0 ] || return 0
+		[ $wps_done = 0 ] || wps_station_catch_credentials & return 0
 	fi
 	wps_done=0
 	ubusobjs="$( ubus -S list wpa_supplicant.* )"

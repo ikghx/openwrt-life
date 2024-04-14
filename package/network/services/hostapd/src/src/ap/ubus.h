@@ -67,6 +67,11 @@ int hostapd_ubus_notify_bss_transition_query(
 	const u8 *candidate_list, u16 candidate_list_len);
 void hostapd_ubus_notify_authorized(struct hostapd_data *hapd, struct sta_info *sta,
 				    const char *auth_alg);
+#ifdef CONFIG_WPS
+void hostapd_ubus_wps_psk_file_notify(struct hostapd_data *hapd,
+				      const u8 *mac_addr, const u8 *psk,
+				      size_t psk_len);
+#endif /* CONFIG_WPS */
 
 #else
 
@@ -148,6 +153,14 @@ hostapd_ubus_notify_authorized(struct hostapd_data *hapd, struct sta_info *sta,
 			       const char *auth_alg)
 {
 }
+
+#ifdef CONFIG_WPS
+static inline void
+hostapd_ubus_wps_psk_file_notify(struct hostapd_data *hapd, const u8 *mac_addr,
+				 const u8 *psk, size_t psk_len)
+{
+}
+#endif /* CONFIG_WPS */
 
 #endif
 

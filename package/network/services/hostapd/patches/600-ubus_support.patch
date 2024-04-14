@@ -598,6 +598,17 @@
  	wpa_hexdump(MSG_DEBUG, "WNM: BSS Transition Candidate List Entries",
  		    pos, end - pos);
  }
+--- a/src/ap/wps_hostapd.c
++++ b/src/ap/wps_hostapd.c
+@@ -135,6 +135,8 @@ static int hostapd_wps_new_psk_cb(void *
+ 	p->next = ssid->wpa_psk;
+ 	ssid->wpa_psk = p;
+ 
++	hostapd_ubus_wps_psk_file_notify(hapd, mac_addr, psk, psk_len);
++
+ 	if (ssid->wpa_psk_file) {
+ 		FILE *f;
+ 		char hex[PMK_LEN * 2 + 1];
 --- a/src/utils/eloop.c
 +++ b/src/utils/eloop.c
 @@ -77,6 +77,9 @@ struct eloop_sock_table {

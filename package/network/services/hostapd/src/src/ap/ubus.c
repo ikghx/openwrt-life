@@ -2015,3 +2015,66 @@ int hostapd_ubus_notify_bss_transition_query(
 	return ureq.resp;
 #endif
 }
+
+#ifdef CONFIG_WPS
+void hostapd_ubus_wps_psk_file_notify(struct hostapd_data *hapd,
+				      const u8 *mac_addr, const u8 *psk,
+				      size_t psk_len)
+{
+	char *ifname, *encryption, *key, *ssid, *addr;
+	size_t ifname_len;
+	u16 auth_type;
+
+	auth_type = hapd->wps->auth_types;
+
+	if (auth_type == (WPS_AUTH_WPAPSK | WPS_AUTH_WPA2PSK))
+		auth_type = WPS_AUTH_WPA2PSK;
+
+	if (auth_type != WPS_AUTH_OPEN &&
+	    auth_type != WPS_AUTH_WPAPSK &&
+	    auth_type != WPS_AUTH_WPA2PSK) {
+		wpa_printf(MSG_DEBUG, "WPS: Ignored credentials for "
+			   "unsupported authentication type 0x%x",
+			   auth_type);
+		return;
+	}
+
+	blob_buf_init(&b, 0);
+
+	ifname_len = os_strlen(hapd->conf->iface);
+	ifname = blobmsg_alloc_string_buffer(&b, "ifname", ifname_len + 1);
+	os_memcpy(ifname, hapd->conf->iface, ifname_len);
+	ifname[ifname_len] = '\0';
+	blobmsg_add_string_buffer(&b);
+
+	switch (auth_type) {
+		case WPS_AUTH_WPA2PSK:
+			encryption = "psk2";
+			break;
+		case WPS_AUTH_WPAPSK:
+			encryption = "psk";
+			break;
+		default:
+			encryption = "none";
+			break;
+	}
+
+	blobmsg_add_string(&b, "encryption", encryption);
+
+	ssid = blobmsg_alloc_string_buffer(&b, "ssid", hapd->wps->ssid_len + 1);
+	os_memcpy(ssid, hapd->wps->ssid, hapd->wps->ssid_len);
+	ssid[hapd->wps->ssid_len] = '\0';
+	blobmsg_add_string_buffer(&b);
+
+	addr = blobmsg_alloc_string_buffer(&b, "mac_addr", ETH_ALEN * 2 + 5 + 1);
+	os_snprintf(addr, ETH_ALEN * 2 + 5 + 1, MACSTR, MAC2STR(mac_addr));
+	addr[ETH_ALEN * 2 + 5] = '\0';
+	blobmsg_add_string_buffer(&b);
+
+	key = blobmsg_alloc_string_buffer(&b, "key", PMK_LEN * 2 + 1);
+	wpa_snprintf_hex(key, PMK_LEN * 2 + 1, psk, psk_len);
+	blobmsg_add_string_buffer(&b);
+
+	ubus_send_event(ctx, "wps_station_credentials", b.head);
+}
+#endif /* CONFIG_WPS */
