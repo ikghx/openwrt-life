@@ -10,7 +10,7 @@ Signed-off-by: Eneas U de Queiroz <cote2004-github@yahoo.com>
 
 --- a/Configure
 +++ b/Configure
-@@ -1741,7 +1741,9 @@ $config{CFLAGS} = [ map { $_ eq '--ossl-
+@@ -1753,7 +1753,9 @@ $config{CFLAGS} = [ map { $_ eq '--ossl-
  
  unless ($disabled{afalgeng}) {
      $config{afalgeng}="";

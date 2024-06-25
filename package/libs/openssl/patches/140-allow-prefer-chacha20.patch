@@ -55,7 +55,7 @@ Signed-off-by: Eneas U de Queiroz <cote2004-github@yahoo.com>
       * 3) AES > rest
       * 4) TLS 1.2 > legacy
       *
-@@ -2263,7 +2281,13 @@ const char *OSSL_default_cipher_list(voi
+@@ -2265,7 +2283,13 @@ const char *OSSL_default_cipher_list(voi
   */
  const char *OSSL_default_ciphersuites(void)
  {
