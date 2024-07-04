@@ -13,7 +13,7 @@
          }
  
 +        if (devname)
-+                strlcpy(dev->name, devname, IFNAMSIZ);
++                strscpy(dev->name, devname, IFNAMSIZ);
 +
          SET_MODULE_OWNER(dev);
          SET_NETDEV_DEV(dev, &pdev->dev);

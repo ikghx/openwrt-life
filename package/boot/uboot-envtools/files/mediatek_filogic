@@ -46,7 +46,8 @@ cetron,ct3003-ubootmod|\
 cmcc,rax3000m-nand-ubootmod|\
 h3c,magic-nx30-pro-nmbm|\
 netgear,wax220|\
-zbtlink,zbt-z8102ax)
+zbtlink,zbt-z8102ax|\
+zbtlink,zbt-z8103ax)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x20000"
 	;;
 cmcc,rax3000m)
@@ -65,6 +66,9 @@ cmcc,rax3000m)
 		ubootenv_add_uci_config "$envdev2" "0x0" "0x1f000" "0x1f000" "1"
 		;;
 	esac
+	;;
+comfast,cf-e393ax)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x80000"
 	;;
 cmcc,rax3000m-emmc-ubootmod)
 	ubootenv_add_uci_config "/dev/mmcblk0p1" "0x0" "0x80000" "0x80000"

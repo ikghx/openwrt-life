@@ -11,6 +11,11 @@ set_preinit_iface() {
 		ip link set eth0 up
 		ifname=eth0
 		;;
+	smartrg,sdg-8622|\
+	smartrg,sdg-8632)
+		ip link set lan up
+		ifname=lan
+		;;
 	xiaomi,mi-router-wr30u-stock|\
 	xiaomi,mi-router-wr30u-ubootmod|\
 	xiaomi,redmi-router-ax6000-stock|\

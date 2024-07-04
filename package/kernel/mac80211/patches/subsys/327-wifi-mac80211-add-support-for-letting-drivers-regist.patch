@@ -37,7 +37,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  /**
 --- a/net/mac80211/driver-ops.h
 +++ b/net/mac80211/driver-ops.h
-@@ -1470,6 +1470,23 @@ static inline int drv_net_fill_forward_p
+@@ -1473,6 +1473,23 @@ static inline int drv_net_fill_forward_p
  	return ret;
  }
  

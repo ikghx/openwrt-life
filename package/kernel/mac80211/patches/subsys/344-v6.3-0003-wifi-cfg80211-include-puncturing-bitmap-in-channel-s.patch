@@ -91,7 +91,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
   * ieee80211_operating_class_to_band - convert operating class to band
 --- a/net/mac80211/cfg.c
 +++ b/net/mac80211/cfg.c
-@@ -3600,7 +3600,8 @@ static int __ieee80211_csa_finalize(stru
+@@ -3599,7 +3599,8 @@ static int __ieee80211_csa_finalize(stru
  	if (err)
  		return err;
  
@@ -101,7 +101,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  
  	return 0;
  }
-@@ -3872,7 +3873,7 @@ __ieee80211_channel_switch(struct wiphy
+@@ -3871,7 +3872,7 @@ __ieee80211_channel_switch(struct wiphy
  
  	cfg80211_ch_switch_started_notify(sdata->dev,
  					  &sdata->deflink.csa_chandef, 0,

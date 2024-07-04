@@ -275,7 +275,7 @@ $(eval $(call KernelPackage,mlx_wdt))
 define KernelPackage/mlxreg
   SUBMENU:=$(OTHER_MENU)
   TITLE:=Mellanox platform register access
-  DEPENDS:=+kmod-i2c-mux-mlxcpld
+  DEPENDS:=@(x86_64||x86) +kmod-i2c-mux-mlxcpld
   KCONFIG:= \
   CONFIG_MELLANOX_PLATFORM=y \
   CONFIG_MLX_PLATFORM \
@@ -776,11 +776,24 @@ endef
 $(eval $(call KernelPackage,rtc-s35390a))
 
 
+define KernelPackage/mfd
+  SUBMENU:=$(OTHER_MENU)
+  TITLE:=Multifunction device drivers
+  HIDDEN:=1
+  KCONFIG:=CONFIG_MFD_CORE
+  FILES:=$(LINUX_DIR)/drivers/mfd/mfd-core.ko
+  AUTOLOAD:=$(call AutoLoad,10,mfd-core)
+endef
+
+$(eval $(call KernelPackage,mfd))
+
+
 define KernelPackage/mtdtests
   SUBMENU:=$(OTHER_MENU)
   TITLE:=MTD subsystem tests
   KCONFIG:=CONFIG_MTD_TESTS
   FILES:=\
+	$(LINUX_DIR)/drivers/mtd/tests/mtd_nandbiterrs.ko \
 	$(LINUX_DIR)/drivers/mtd/tests/mtd_nandecctest.ko \
 	$(LINUX_DIR)/drivers/mtd/tests/mtd_oobtest.ko \
 	$(LINUX_DIR)/drivers/mtd/tests/mtd_pagetest.ko \
@@ -1246,7 +1259,7 @@ $(eval $(call KernelPackage,tpm))
 define KernelPackage/tpm-tis
   SUBMENU:=$(OTHER_MENU)
   TITLE:=TPM TIS 1.2 Interface / TPM 2.0 FIFO Interface
-	DEPENDS:= @(x86_64||x86) +kmod-tpm
+  DEPENDS:= @(x86_64||x86) +kmod-tpm
   KCONFIG:= CONFIG_TCG_TIS
   FILES:= \
 	$(LINUX_DIR)/drivers/char/tpm/tpm_tis.ko \
