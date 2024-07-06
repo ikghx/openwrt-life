@@ -63,6 +63,23 @@ platform_do_upgrade() {
 	local board=$(board_name)
 
 	case "$board" in
+	abt,asr3000|\
+	h3c,magic-nx30-pro|\
+	jcg,q30|\
+	mediatek,mt7981-rfb|\
+	netcore,n60|\
+	nokia,ea0326gmp|\
+	qihoo,360t7|\
+	tplink,tl-xdr4288|\
+	tplink,tl-xdr6086|\
+	tplink,tl-xdr6088|\
+	tplink,tl-xtr8488|\
+	xiaomi,mi-router-ax3000t-ubootmod|\
+	xiaomi,mi-router-wr30u-ubootmod|\
+	xiaomi,redmi-router-ax6000-ubootmod)
+		CI_KERNPART="fit"
+		nand_do_upgrade "$1"
+		;;
 	acer,predator-w6|\
 	smartrg,sdg-8612|\
 	smartrg,sdg-8614|\
@@ -123,22 +140,6 @@ platform_do_upgrade() {
 	cudy,wr3000-v1|\
 	yuncore,ax835)
 		default_do_upgrade "$1"
-		;;
-	h3c,magic-nx30-pro|\
-	jcg,q30|\
-	mediatek,mt7981-rfb|\
-	netcore,n60|\
-	nokia,ea0326gmp|\
-	qihoo,360t7|\
-	tplink,tl-xdr4288|\
-	tplink,tl-xdr6086|\
-	tplink,tl-xdr6088|\
-	tplink,tl-xtr8488|\
-	xiaomi,mi-router-ax3000t-ubootmod|\
-	xiaomi,mi-router-wr30u-ubootmod|\
-	xiaomi,redmi-router-ax6000-ubootmod)
-		CI_KERNPART="fit"
-		nand_do_upgrade "$1"
 		;;
 	jdcloud,re-cp-03)
 		CI_KERNPART="production"
