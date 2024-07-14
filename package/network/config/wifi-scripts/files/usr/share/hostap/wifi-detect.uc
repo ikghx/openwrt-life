@@ -59,6 +59,8 @@ function wiphy_detect() {
 		return;
 
 	for (let phy in phys) {
+		if (!phy)
+			continue;
 		let name = phy.wiphy_name;
 		let path = phy_path(name);
 		let info = {

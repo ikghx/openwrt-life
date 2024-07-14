@@ -67,11 +67,11 @@ cmcc,rax3000m)
 		;;
 	esac
 	;;
-comfast,cf-e393ax)
-	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x80000"
-	;;
 cmcc,rax3000m-emmc-ubootmod)
 	ubootenv_add_uci_config "/dev/mmcblk0p1" "0x0" "0x80000" "0x80000"
+	;;
+comfast,cf-e393ax)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x20000" "0x80000"
 	;;
 glinet,gl-mt2500|\
 glinet,gl-mt6000)
@@ -80,6 +80,9 @@ glinet,gl-mt6000)
 	;;
 glinet,gl-mt3000)
 	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x80000" "0x20000"
+	;;
+dlink,aquila-pro-ai-m30-a1)
+	ubootenv_add_uci_config "/dev/mtd1" "0x0" "0x40000" "0x40000"
 	;;
 h3c,magic-nx30-pro|\
 jcg,q30|\

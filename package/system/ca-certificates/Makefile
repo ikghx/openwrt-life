@@ -16,6 +16,8 @@ PKG_RELEASE:=1
 PKG_MAINTAINER:=
 
 PKG_SOURCE:=certdata.txt
+PKG_LICENSE:=GPL-2.0-or-later MPL-2.0
+PKG_LICENSE_FILES:=debian/copyright
 PKG_VERSION_URL:=$(subst .,_,$(PKG_VERSION))
 PKG_SOURCE_URL:=https://hg.mozilla.org/projects/nss/raw-file/NSS_$(PKG_VERSION_URL)_RTM/lib/ckfw/builtins
 PKG_HASH:=3ff8bd209b5f2e739b9f2b96eacb694a774114685b02978257824f37ff528f71

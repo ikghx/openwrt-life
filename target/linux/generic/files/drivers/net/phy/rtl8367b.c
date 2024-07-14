@@ -16,7 +16,6 @@
 #include <linux/of_platform.h>
 #include <linux/delay.h>
 #include <linux/skbuff.h>
-#include <linux/mii.h>
 #include <linux/rtl8367.h>
 
 #include "rtl8366_smi.h"
@@ -235,7 +234,6 @@
 
 #define RTL8367B_CPU_PORT_NUM		5
 #define RTL8367B_NUM_PORTS		8
-#define RTL8367B_NUM_PHYS		5
 #define RTL8367B_NUM_VLANS		32
 #define RTL8367B_NUM_VIDS		4096
 #define RTL8367B_PRIORITYMAX		7
@@ -259,8 +257,6 @@
 	(RTL8367B_PORT_0 | RTL8367B_PORT_1 | RTL8367B_PORT_2 |	\
 	 RTL8367B_PORT_3 | RTL8367B_PORT_4 | RTL8367B_PORT_E1 |	\
 	 RTL8367B_PORT_E2)
-
-#define RTL8367B_FLAG_MATCH_CHIP_NUM	BIT(0)
 
 struct rtl8367b_initval {
 	u16 reg;
@@ -609,20 +605,6 @@ static const struct rtl8367b_initval rtl8367r_vb_initvals_1[] = {
 	{0x133E, 0x000E}, {0x133F, 0x0010},
 };
 
-static const struct rtl8367b_initval rtl8367c_initvals[] = {
-	{0x13c2, 0x0000}, {0x0018, 0x0f00}, {0x0038, 0x0f00}, {0x0058, 0x0f00},
-	{0x0078, 0x0f00}, {0x0098, 0x0f00}, {0x1d15, 0x0a69}, {0x2000, 0x1340},
-	{0x2020, 0x1340}, {0x2040, 0x1340}, {0x2060, 0x1340}, {0x2080, 0x1340},
-	{0x13eb, 0x15bb}, {0x1303, 0x06d6}, {0x1304, 0x0700}, {0x13E2, 0x003F},
-	{0x13F9, 0x0090}, {0x121e, 0x03CA}, {0x1233, 0x0352}, {0x1237, 0x00a0},
-	{0x123a, 0x0030}, {0x1239, 0x0084}, {0x0301, 0x1000}, {0x1349, 0x001F},
-	{0x18e0, 0x4004}, {0x122b, 0x641c}, {0x1305, 0xc000}, {0x1200, 0x7fcb},
-	{0x0884, 0x0003}, {0x06eb, 0x0001}, {0x00cf, 0xffff}, {0x00d0, 0x0007},
-	{0x00ce, 0x48b0}, {0x00ce, 0x48b0}, {0x0398, 0xffff}, {0x0399, 0x0007},
-	{0x0300, 0x0001}, {0x03fa, 0x0007}, {0x08c8, 0x00c0}, {0x0a30, 0x020e},
-	{0x0800, 0x0000}, {0x0802, 0x0000}, {0x09da, 0x0017}, {0x1d32, 0x0002},
-};
-
 static int rtl8367b_write_initvals(struct rtl8366_smi *smi,
 				  const struct rtl8367b_initval *initvals,
 				  int count)
@@ -734,46 +716,33 @@ static int rtl8367b_write_phy_reg(struct rtl8366_smi *smi,
 static int rtl8367b_init_regs(struct rtl8366_smi *smi)
 {
 	const struct rtl8367b_initval *initvals;
-	u32 chip_num;
 	u32 chip_ver;
 	u32 rlvid;
 	int count;
 	int err;
 
 	REG_WR(smi, RTL8367B_RTL_MAGIC_ID_REG, RTL8367B_RTL_MAGIC_ID_VAL);
-	REG_RD(smi, RTL8367B_CHIP_NUMBER_REG, &chip_num);
 	REG_RD(smi, RTL8367B_CHIP_VER_REG, &chip_ver);
 
 	rlvid = (chip_ver >> RTL8367B_CHIP_VER_RLVID_SHIFT) &
 		RTL8367B_CHIP_VER_RLVID_MASK;
 
-	if (smi->flags & RTL8367B_FLAG_MATCH_CHIP_NUM) {
-		switch (chip_num) {
-		case 0x0276:
-		case 0x0597:
-		case 0x6367:
-			initvals = rtl8367c_initvals;
-			count = ARRAY_SIZE(rtl8367c_initvals);
-			break;
-		default:
-			return -ENODEV;
-		}
-	} else {
-		switch (rlvid) {
-		case 0:
-			initvals = rtl8367r_vb_initvals_0;
-			count = ARRAY_SIZE(rtl8367r_vb_initvals_0);
-			break;
+	switch (rlvid) {
+	case 0:
+		initvals = rtl8367r_vb_initvals_0;
+		count = ARRAY_SIZE(rtl8367r_vb_initvals_0);
+		break;
 
-		case 1:
-			initvals = rtl8367r_vb_initvals_1;
-			count = ARRAY_SIZE(rtl8367r_vb_initvals_1);
-			break;
+	case 1:
+		initvals = rtl8367r_vb_initvals_1;
+		count = ARRAY_SIZE(rtl8367r_vb_initvals_1);
+		break;
 
-		default:
-			return -ENODEV;
-		}
+	default:
+		dev_err(smi->parent, "unknow rlvid %u\n", rlvid);
+		return -ENODEV;
 	}
+
 	/* TODO: disable RLTP */
 
 	return rtl8367b_write_initvals(smi, initvals, count);
@@ -1051,16 +1020,6 @@ static int rtl8367b_setup(struct rtl8366_smi *smi)
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT,
 			RTL8367B_PORT_MISC_CFG_EGRESS_MODE_ORIGINAL <<
 				RTL8367B_PORT_MISC_CFG_EGRESS_MODE_SHIFT);
-
-	for (i = 0; i < RTL8367B_NUM_PHYS; i++) {
-		int data;
-		rtl8367b_read_phy_reg(smi, i, MII_BMCR, &data);
-		/* release phy power down */
-		data &= ~BMCR_PDOWN;
-		/* restart auto negotiation */
-		data |= BMCR_ANRESTART;
-		rtl8367b_write_phy_reg(smi, i, MII_BMCR, data);
-	}
 
 	return 0;
 }
@@ -1550,7 +1509,7 @@ static int rtl8367b_mii_write(struct mii_bus *bus, int addr, int reg, u16 val)
 
 static int rtl8367b_detect(struct rtl8366_smi *smi)
 {
-	const char *chip_name = NULL;
+	const char *chip_name;
 	u32 chip_num;
 	u32 chip_ver;
 	u32 chip_mode;
@@ -1581,26 +1540,14 @@ static int rtl8367b_detect(struct rtl8366_smi *smi)
 		return ret;
 	}
 
-	if (smi->flags & RTL8367B_FLAG_MATCH_CHIP_NUM) {
-		switch (chip_num) {
-		case 0x0276:
-		case 0x0597:
-		case 0x6367:
-			chip_name = "8367C";
-			break;
-		}
-	} else {
-		switch (chip_ver) {
-		case 0x1000:
-			chip_name = "8367RB";
-			break;
-		case 0x1010:
-			chip_name = "8367R-VB";
-			break;
-		}
-	}
-
-	if (!chip_name) {
+	switch (chip_ver) {
+	case 0x1000:
+		chip_name = "8367RB";
+		break;
+	case 0x1010:
+		chip_name = "8367R-VB";
+		break;
+	default:
 		dev_err(smi->parent,
 			"unknown chip num:%04x ver:%04x, mode:%04x\n",
 			chip_num, chip_ver, chip_mode);
@@ -1633,38 +1580,8 @@ static struct rtl8366_smi_ops rtl8367b_smi_ops = {
 	.enable_port	= rtl8367b_enable_port,
 };
 
-#ifdef CONFIG_OF
-struct rtl8367xx_chip {
-	unsigned long flags;
-};
-
-const struct rtl8367xx_chip rtl8367b_chip = {
-	.flags = 0,
-};
-
-const struct rtl8367xx_chip rtl8367c_chip = {
-	.flags = RTL8367B_FLAG_MATCH_CHIP_NUM,
-};
-
-static const struct of_device_id rtl8367bc_match[] = {
-	{
-		.compatible = "realtek,rtl8367b",
-		.data = &rtl8367b_chip,
-	}, {
-		.compatible = "realtek,rtl8367c",
-		.data = &rtl8367c_chip,
-	},
-	{},
-};
-MODULE_DEVICE_TABLE(of, rtl8367bc_match);
-#endif
-
 static int  rtl8367b_probe(struct platform_device *pdev)
 {
-#ifdef CONFIG_OF
-	const struct of_device_id *match;
-	const struct rtl8367xx_chip *chip;
-#endif
 	struct rtl8366_smi *smi;
 	int err;
 
@@ -1672,16 +1589,6 @@ static int  rtl8367b_probe(struct platform_device *pdev)
 	if (IS_ERR(smi))
 		return PTR_ERR(smi);
 
-#ifdef CONFIG_OF
-	match = of_match_device(rtl8367bc_match, &pdev->dev);
-        if (match) {
-		chip = (const struct rtl8367xx_chip *) match->data;
-		smi->flags = chip->flags;
-	} else
-		smi->flags = 0;
-#else
-	smi->flags = 0;
-#endif
 	smi->clk_delay = 1500;
 	smi->cmd_read = 0xb9;
 	smi->cmd_write = 0xb8;
@@ -1736,12 +1643,20 @@ static void rtl8367b_shutdown(struct platform_device *pdev)
 		rtl8367b_reset_chip(smi);
 }
 
+#ifdef CONFIG_OF
+static const struct of_device_id rtl8367b_match[] = {
+	{ .compatible = "realtek,rtl8367b" },
+	{},
+};
+MODULE_DEVICE_TABLE(of, rtl8367b_match);
+#endif
+
 static struct platform_driver rtl8367b_driver = {
 	.driver = {
 		.name		= RTL8367B_DRIVER_NAME,
 		.owner		= THIS_MODULE,
 #ifdef CONFIG_OF
-		.of_match_table = of_match_ptr(rtl8367bc_match),
+		.of_match_table = of_match_ptr(rtl8367b_match),
 #endif
 	},
 	.probe		= rtl8367b_probe,
