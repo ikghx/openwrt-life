@@ -1071,7 +1071,6 @@ dnsmasq_start()
 	append_parm "$cfg" "domain" "--domain"
 	append_parm "$cfg" "local" "--local"
 	append_parm "$cfg" "add_subnet" "--add-subnet"
-	append_parm "$cfg" "add_mac" "--add-mac"
 	config_list_foreach "$cfg" "listen_address" append_listenaddress
 	config_list_foreach "$cfg" "server" append_server
 	config_list_foreach "$cfg" "rev_server" append_rev_server
@@ -1196,10 +1195,10 @@ dnsmasq_start()
 		[ "$dnsseccheckunsigned" -eq 0 ] && xappend "--dnssec-check-unsigned=no"
 	}
 
-	config_get addmac "$cfg" addmac 0
-	[ "$addmac" != "0" ] && {
-		[ "$addmac" = "1" ] && addmac=
-		xappend "--add-mac${addmac:+="$addmac"}"
+	config_get add_mac "$cfg" add_mac 0
+	[ "$add_mac" != "0" ] && {
+		[ "$add_mac" = "1" ] && add_mac=
+		xappend "--add-mac${add_mac:+="$add_mac"}"
 	}
 
 	dhcp_option_add "$cfg" "" 0
