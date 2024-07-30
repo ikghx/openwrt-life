@@ -10,13 +10,13 @@ include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=mac80211
 
-PKG_VERSION:=6.1.97-1
+PKG_VERSION:=6.1.102-1
 PKG_RELEASE:=1
 PKG_LICENSE:=GPL-2.0-only
 PKG_LICENSE_FILES:=COPYING
 
-PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v6.1.97/
-PKG_HASH:=8e9ae2d02f373252dd61f5c6a81c88eec67ca773464d9ef3d844752dc6775540
+PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v6.1.102/
+PKG_HASH:=c03fd1ed946e5e4b756145ffad7a73fa821630f22c5d442456db16c96be2c9b2
 
 PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_VERSION)
@@ -303,9 +303,6 @@ define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)
 	$(PKG_UNPACK)
 	$(Build/Patch)
-	rm -rf \
-		$(PKG_BUILD_DIR)/include/linux/ssb \
-		$(PKG_BUILD_DIR)/include/linux/bcma
 
 	rm -f \
 		$(PKG_BUILD_DIR)/include/linux/mhi.h \
