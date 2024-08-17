@@ -1240,11 +1240,6 @@ menu "Filesystem ACL and attr support options"
 		select KERNEL_FS_POSIX_ACL
 		default y if USE_FS_ACL_ATTR
 
-	config KERNEL_EXT4_FS_POSIX_ACL
-		bool "Enable POSIX ACL for Ext4 Filesystems"
-		select KERNEL_FS_POSIX_ACL
-		default y if USE_FS_ACL_ATTR
-
 	config KERNEL_F2FS_FS_POSIX_ACL
 		bool "Enable POSIX ACL for F2FS Filesystems"
 		select KERNEL_FS_POSIX_ACL
@@ -1389,9 +1384,6 @@ config KERNEL_LSM
 	string
 	default "lockdown,yama,loadpin,safesetid,integrity,selinux"
 	depends on KERNEL_SECURITY_SELINUX
-
-config KERNEL_EXT4_FS_SECURITY
-	bool "Ext4 Security Labels"
 
 config KERNEL_F2FS_FS_SECURITY
 	bool "F2FS Security Labels"
