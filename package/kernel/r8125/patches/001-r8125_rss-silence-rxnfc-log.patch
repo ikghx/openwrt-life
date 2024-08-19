@@ -9,7 +9,6 @@ Content-Transfer-Encoding: 8bit
 This log is noisy and useless, just ignore it.
 
 Signed-off-by: Chukun Pan <amadeus@jmu.edu.cn>
-Signed-off-by: Álvaro Fernández Rojas <noltari@gmail.com>
 ---
  src/r8125_rss.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
