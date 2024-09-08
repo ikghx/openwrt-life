@@ -10,8 +10,10 @@ hotplugobj=""
 
 oldIFS=$IFS
 IFS=$'\n'
-for var in $(env | grep '^DNSMASQ_'); do
-	json_add_string "" "${var%%=*}=${var#*=}"
+for var in $(env); do
+	if [ "${var}" != "${var#DNSMASQ_}" ]; then
+		json_add_string "" "${var%%=*}=${var#*=}"
+	fi
 done
 IFS=$oldIFS
 
