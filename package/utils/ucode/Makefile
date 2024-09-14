@@ -157,10 +157,6 @@ $(eval $(call UcodeModule, \
 	The rtnl plugin provides access to the Linux routing netlink API.))
 
 $(eval $(call UcodeModule, \
-	socket, SOCKET_SUPPORT, , \
-	The socket plugin provides access to IPv4, IPv6, Unix and packet socket APIs.))
-
-$(eval $(call UcodeModule, \
 	struct, STRUCT_SUPPORT, , \
 	The struct plugin implements Python 3 compatible struct.pack/unpack functionality.))
 
