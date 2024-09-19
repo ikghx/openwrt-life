@@ -231,6 +231,27 @@ define Build/buffalo-tag-dhp
 	mv $@.new $@
 endef
 
+define Build/buffalo-trx
+	$(eval magic=$(word 1,$(1)))
+	$(eval kern_bin=$(if $(1),$(IMAGE_KERNEL),$@))
+	$(eval rtfs_bin=$(word 2,$(1)))
+	$(eval apnd_bin=$(word 3,$(1)))
+	$(eval kern_size=$(if $(KERNEL_SIZE),$(KERNEL_SIZE),0x400000))
+
+	$(if $(rtfs_bin),touch $(rtfs_bin))
+	$(STAGING_DIR_HOST)/bin/otrx create $@.new \
+		$(if $(magic),-M $(magic),) \
+		-f $(kern_bin) \
+		$(if $(rtfs_bin),\
+			-a 0x20000 \
+			-b $$(( $(call exp_units,$(kern_size)) )) \
+			-f $(rtfs_bin),) \
+		$(if $(apnd_bin),\
+			-A $(apnd_bin) \
+			-a 0x20000)
+	mv $@.new $@
+endef
+
 define Build/check-size
 	@imagesize="$$(stat -c%s $@)"; \
 	limitsize="$$(($(call exp_units,$(if $(1),$(1),$(IMAGE_SIZE)))))"; \
@@ -352,7 +373,7 @@ define Build/initrd_compression
 endef
 
 define Build/fit
-	$(TOPDIR)/scripts/mkits.sh \
+	$(call locked,$(TOPDIR)/scripts/mkits.sh \
 		-D $(DEVICE_NAME) -o $@.its -k $@ \
 		-C $(word 1,$(1)) \
 		$(if $(word 2,$(1)),\
@@ -362,14 +383,14 @@ define Build/fit
 		$(if $(findstring with-rootfs,$(word 3,$(1))),-r $(IMAGE_ROOTFS)) \
 		$(if $(findstring with-initrd,$(word 3,$(1))), \
 			$(if $(CONFIG_TARGET_ROOTFS_INITRAMFS_SEPARATE), \
-				-i $(KERNEL_BUILD_DIR)/initrd.cpio$(strip $(call Build/initrd_compression)))) \
+				-i $(KERNEL_BUILD_DIR)/initrd$(if $(TARGET_PER_DEVICE_ROOTFS),.$(ROOTFS_ID/$(DEVICE_NAME))).cpio$(strip $(call Build/initrd_compression)))) \
 		-a $(KERNEL_LOADADDR) -e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
 		$(if $(DEVICE_FDT_NUM),-n $(DEVICE_FDT_NUM)) \
 		$(if $(DEVICE_DTS_DELIMITER),-l $(DEVICE_DTS_DELIMITER)) \
 		$(if $(DEVICE_DTS_LOADADDR),-s $(DEVICE_DTS_LOADADDR)) \
 		$(if $(DEVICE_DTS_OVERLAY),$(foreach dtso,$(DEVICE_DTS_OVERLAY), -O $(dtso):$(KERNEL_BUILD_DIR)/image-$(dtso).dtbo)) \
 		-c $(if $(DEVICE_DTS_CONFIG),$(DEVICE_DTS_CONFIG),"config-1") \
-		-A $(LINUX_KARCH) -v $(LINUX_VERSION)
+		-A $(LINUX_KARCH) -v $(LINUX_VERSION), gen-cpio$(if $(TARGET_PER_DEVICE_ROOTFS),.$(ROOTFS_ID/$(DEVICE_NAME))))
 	PATH=$(LINUX_DIR)/scripts/dtc:$(PATH) mkimage $(if $(findstring external,$(word 3,$(1))),\
 		-E -B 0x1000 $(if $(findstring static,$(word 3,$(1))),-p 0x1000)) -f $@.its $@.new
 	@mv $@.new $@
@@ -430,12 +451,18 @@ define Build/jffs2
 	@mv $@.new $@
 endef
 
-define Build/kernel2minor
-	$(eval temp_file := $(shell mktemp))
-	cp $@ $(temp_file)
-	kernel2minor -k $(temp_file) -r $(temp_file).new $(1)
-	mv $(temp_file).new $@
-	rm -f $(temp_file)
+define Build/yaffs-filesystem
+	let \
+		kernel_size="$$(stat -c%s $@)" \
+		kernel_chunks="(kernel_size / 1024) + 1" \
+		filesystem_chunks="kernel_chunks + 3" \
+		filesystem_blocks="(filesystem_chunks / 63) + 1" \
+		filesystem_size="filesystem_blocks * 64 * 1024" \
+		filesystem_size_with_reserve="(filesystem_blocks + 2) * 64 * 1024"; \
+		head -c $$filesystem_size_with_reserve /dev/zero | tr "\000" "\377" > $@.img \
+		&& yafut -d $@.img -w -i $@ -o kernel -C 1040 -B 64k -E -P -S $(1) \
+		&& truncate -s $$filesystem_size $@.img \
+		&& mv $@.img $@
 endef
 
 define Build/kernel-bin
@@ -671,6 +698,23 @@ define Build/uImage
 		$(if $(UIMAGE_MAGIC),-M $(UIMAGE_MAGIC)) \
 		$(wordlist 2,$(words $(1)),$(1)) \
 		-d $@ $@.new
+	mv $@.new $@
+endef
+
+define Build/multiImage
+	$(if $(UIMAGE_TIME),SOURCE_DATE_EPOCH="$(UIMAGE_TIME)") \
+	mkimage \
+		-A $(LINUX_KARCH) \
+		-O linux \
+		-T multi \
+		-C $(word 1,$(1)) \
+		-a $(KERNEL_LOADADDR) \
+		-e $(if $(KERNEL_ENTRY),$(KERNEL_ENTRY),$(KERNEL_LOADADDR)) \
+		-n '$(if $(UIMAGE_NAME),$(UIMAGE_NAME),$(call toupper,$(LINUX_KARCH)) $(VERSION_DIST) Linux-$(LINUX_VERSION))' \
+		$(if $(UIMAGE_MAGIC),-M $(UIMAGE_MAGIC)) \
+		-d $@:$(word 2,$(1)):$(word 3,$(1)) \
+		$(wordlist 4,$(words $(1)),$(1)) \
+		$@.new
 	mv $@.new $@
 endef
 
