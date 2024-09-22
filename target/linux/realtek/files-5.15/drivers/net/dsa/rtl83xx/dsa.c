@@ -822,7 +822,7 @@ static void rtl93xx_phylink_mac_config(struct dsa_switch *ds, int port,
 					const struct phylink_link_state *state)
 {
 	struct rtl838x_switch_priv *priv = ds->priv;
-	int sds_num;
+	int sds_num, sds_mode;
 	u32 reg;
 
 	pr_info("%s port %d, mode %x, phy-mode: %s, speed %d, link %d\n", __func__,
@@ -837,10 +837,32 @@ static void rtl93xx_phylink_mac_config(struct dsa_switch *ds, int port,
 
 	sds_num = priv->ports[port].sds_num;
 	pr_info("%s SDS is %d\n", __func__, sds_num);
-	if (sds_num >= 0 &&
-	    (state->interface == PHY_INTERFACE_MODE_1000BASEX ||
-	     state->interface == PHY_INTERFACE_MODE_10GBASER))
-		rtl9300_serdes_setup(port, sds_num, state->interface);
+	if (sds_num >= 0) {
+		switch (state->interface) {
+		case PHY_INTERFACE_MODE_HSGMII:
+			sds_mode = 0x12;
+			break;
+		case PHY_INTERFACE_MODE_1000BASEX:
+			sds_mode = 0x04;
+			break;
+		case PHY_INTERFACE_MODE_XGMII:
+			sds_mode = 0x10;
+			break;
+		case PHY_INTERFACE_MODE_10GBASER:
+		case PHY_INTERFACE_MODE_10GKR:
+			sds_mode = 0x1b; /* 10G 1000X Auto */
+			break;
+		case PHY_INTERFACE_MODE_USXGMII:
+			sds_mode = 0x0d;
+			break;
+		default:
+			pr_err("%s: unknown serdes mode: %s\n",
+			       __func__, phy_modes(state->interface));
+			return;
+		}
+		if (state->interface == PHY_INTERFACE_MODE_10GBASER)
+			rtl9300_serdes_setup(sds_num, state->interface);
+	}
 
 	reg = sw_r32(priv->r->mac_force_mode_ctrl(port));
 	reg &= ~(0xf << 3);
@@ -858,11 +880,8 @@ static void rtl93xx_phylink_mac_config(struct dsa_switch *ds, int port,
 	case SPEED_1000:
 		reg |= 2 << 3;
 		break;
-	case SPEED_100:
-		reg |= 1 << 3;
-		break;
 	default:
-		/* Also covers 10M */
+		reg |= 2 << 3;
 		break;
 	}
 
@@ -874,8 +893,6 @@ static void rtl93xx_phylink_mac_config(struct dsa_switch *ds, int port,
 
 	if (state->duplex == DUPLEX_FULL)
 		reg |= RTL930X_DUPLEX_MODE;
-	else
-		reg &= ~RTL930X_DUPLEX_MODE; /* Clear duplex bit otherwise */
 
 	if (priv->ports[port].phy_is_integrated)
 		reg &= ~RTL930X_FORCE_EN; /* Clear MAC_FORCE_EN to allow SDS-MAC link */
@@ -950,7 +967,8 @@ static void rtl83xx_get_strings(struct dsa_switch *ds,
 		return;
 
 	for (int i = 0; i < ARRAY_SIZE(rtl83xx_mib); i++)
-		ethtool_puts(&data, rtl83xx_mib[i].name);
+		strncpy(data + i * ETH_GSTRING_LEN, rtl83xx_mib[i].name,
+			ETH_GSTRING_LEN);
 }
 
 static void rtl83xx_get_ethtool_stats(struct dsa_switch *ds, int port,
@@ -1363,15 +1381,10 @@ static int rtl83xx_vlan_filtering(struct dsa_switch *ds, int port,
 		 * 2: Trap packet to CPU port
 		 * The Egress filter used 1 bit per state (0: DISABLED, 1: ENABLED)
 		 */
-		if (port != priv->cpu_port) {
+		if (port != priv->cpu_port)
 			priv->r->set_vlan_igr_filter(port, IGR_DROP);
-			priv->r->set_vlan_egr_filter(port, EGR_ENABLE);
-		}
-		else {
-			priv->r->set_vlan_igr_filter(port, IGR_TRAP);
-			priv->r->set_vlan_egr_filter(port, EGR_DISABLE);
-		}
 
+		priv->r->set_vlan_egr_filter(port, EGR_ENABLE);
 	} else {
 		/* Disable ingress and egress filtering */
 		if (port != priv->cpu_port)
