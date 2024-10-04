@@ -25,9 +25,9 @@ proto_map_setup() {
 	local iface="$2"
 	local link="map-$cfg"
 
-	local maptype type legacymap isp_fix dont_snat_to mtu ttl tunlink zone encaplimit
+	local maptype type legacymap snat_fix dont_snat_to mtu ttl tunlink zone encaplimit
 	local rule ipaddr ip4prefixlen ip6prefix ip6prefixlen peeraddr ealen psidlen psid offset
-	json_get_vars maptype type legacymap isp_fix dont_snat_to mtu ttl tunlink zone encaplimit
+	json_get_vars maptype type legacymap snat_fix dont_snat_to mtu ttl tunlink zone encaplimit
 	json_get_vars rule ipaddr ip4prefixlen ip6prefix ip6prefixlen peeraddr ealen psidlen psid offset
 
 	[ "$zone" = "-" ] && zone=""
@@ -139,8 +139,8 @@ proto_map_setup() {
 	      json_add_string snat_ip $(eval "echo \$RULE_${k}_IPV4ADDR")
 	    json_close_object
 	  else
-	    if [ "$isp_fix" = "1" ]; then
-			# ISP FIX: Get all ports and full port count, excluding DONT_SNAT_TO ports
+	    if [ "$snat_fix" = "1" ]; then
+			# SNAT Fix: Get all ports and full port count, excluding DONT_SNAT_TO ports
 			DONT_SNAT_TO="${dont_snat_to:-0}"
 			local portcount=0
 			local allports=""
@@ -156,14 +156,14 @@ proto_map_setup() {
 			done
 			allports=${allports%??}
 
-			# ISP FIX: Create mape table
+			# SNAT Fix: Create mape table
 			if nft list tables | grep -q "table inet mape"; then
 				nft delete table inet mape
 			fi
 			nft add table inet mape
 			nft add chain inet mape srcnat { type nat hook postrouting priority 0\; policy accept\; }
 
-			# ISP FIX: Create the rules to SNAT to all the ports
+			# SNAT Fix: Create the rules to SNAT to all the ports
 			for proto in icmp tcp udp; do
 				nft add rule inet mape srcnat ip protocol $proto oifname "map-$cfg" snat ip to $(eval "echo \$RULE_${k}_IPV4ADDR") : numgen inc mod $portcount map { $allports }
 			done
@@ -235,7 +235,7 @@ proto_map_teardown() {
 	local link="map-$cfg"
 
 	json_get_var type type
-	json_get_var isp_fix isp_fix
+	json_get_var snat_fix snat_fix
 
 	[ -z "$maptype" ] && maptype="$type"
 	[ -z "$maptype" ] && maptype="map-e"
@@ -245,7 +245,7 @@ proto_map_teardown() {
 		"map-t") [ -f "/proc/net/nat46/control" ] && echo del $link > /proc/net/nat46/control ;;
 	esac
 
-	if [ "$isp_fix" = "1" ]; then
+	if [ "$snat_fix" = "1" ]; then
 		nft delete table inet mape 2>/dev/null
 	fi
 
@@ -268,7 +268,7 @@ proto_map_init_config() {
 	proto_config_add_int "psid"
 	proto_config_add_int "offset"
 	proto_config_add_boolean "legacymap"
-	proto_config_add_boolean "isp_fix"
+	proto_config_add_boolean "snat_fix"
 	proto_config_add_string "dont_snat_to"
 
 	proto_config_add_string "tunlink"
