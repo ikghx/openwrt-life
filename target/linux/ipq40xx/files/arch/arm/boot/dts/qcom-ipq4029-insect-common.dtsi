@@ -290,9 +290,8 @@
 			compatible = "qcom,ath10k";
 			status = "okay";
 			reg = <0x00010000 0 0 0 0>;
-			nvmem-cells = <&mac_address>;
+			nvmem-cells = <&mac_address 1>;
 			nvmem-cell-names = "mac-address";
-			mac-address-increment = <1>;
 		};
 	};
 };
@@ -396,22 +395,20 @@
 &wifi0 {
 	status = "okay";
 	qcom,ath10k-calibration-variant = "Meraki-MR33";
-	nvmem-cells = <&mac_address>;
+	nvmem-cells = <&mac_address 2>;
 	nvmem-cell-names = "mac-address";
-	mac-address-increment = <2>;
 };
 
 &wifi1 {
 	status = "okay";
 	qcom,ath10k-calibration-variant = "Meraki-MR33";
-	nvmem-cells = <&mac_address>;
+	nvmem-cells = <&mac_address 3>;
 	nvmem-cell-names = "mac-address";
-	mac-address-increment = <3>;
 };
 
 &gmac {
 	status = "okay";
-	nvmem-cells = <&mac_address>;
+	nvmem-cells = <&mac_address 0>;
 	nvmem-cell-names = "mac-address";
 };
 
