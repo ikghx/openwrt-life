@@ -18,7 +18,7 @@ include $(INCLUDE_DIR)/package.mk
 define KernelPackage/r8126
   SUBMENU:=Network Devices
   TITLE:=Realtek RTL8126 PCI 5 Gigabit Ethernet driver
-  DEPENDS:=@PCI_SUPPORT @(x86_64||x86)
+  DEPENDS:=@PCI_SUPPORT +kmod-libphy @(x86_64||x86)
   FILES:=$(PKG_BUILD_DIR)/src/r8126.ko
   AUTOLOAD:=$(call AutoProbe,r8126)
   PROVIDES:=kmod-r8169
