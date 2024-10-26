@@ -1157,7 +1157,9 @@ $(eval $(call KernelPackage,usb-net-aqc111))
 
 define KernelPackage/usb-net-asix
   TITLE:=Kernel module for USB-to-Ethernet Asix convertors
-  DEPENDS:=+kmod-libphy +kmod-net-selftests +kmod-mdio-devres +kmod-phy-ax88796b
+  DEPENDS:= \
+	+kmod-libphy +kmod-net-selftests +kmod-mdio-devres +kmod-phy-ax88796b \
+	+kmod-phylink
   KCONFIG:=CONFIG_USB_NET_AX8817X
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/asix.ko
   AUTOLOAD:=$(call AutoProbe,asix)
@@ -1285,7 +1287,7 @@ $(eval $(call KernelPackage,usb-net-smsc75xx))
 
 define KernelPackage/usb-net-smsc95xx
   TITLE:=SMSC LAN95XX based USB 2.0 10/100 ethernet devices
-  DEPENDS:=+kmod-libphy +kmod-phy-smsc
+  DEPENDS:=+kmod-libphy +kmod-phy-smsc +kmod-net-selftests
   KCONFIG:=CONFIG_USB_NET_SMSC95XX
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/smsc95xx.ko
   AUTOLOAD:=$(call AutoProbe,smsc95xx)
@@ -1578,7 +1580,7 @@ define KernelPackage/usb-hid-mcp2221
   SUBMENU:=$(USB_MENU)
   TITLE:=Microchip USB 2.0 to I2C/UART Protocol Converter with GPIO
   KCONFIG:=CONFIG_HID_MCP2221
-  DEPENDS:=@GPIO_SUPPORT +kmod-usb-hid +kmod-i2c-core
+  DEPENDS:=@GPIO_SUPPORT +kmod-usb-hid +kmod-i2c-core +kmod-iio-core
   FILES:=$(LINUX_DIR)/drivers/hid/hid-mcp2221.ko
   AUTOLOAD:=$(call AutoProbe,hid-mcp2221)
 endef

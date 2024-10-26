@@ -1204,7 +1204,7 @@ $(eval $(call KernelPackage,fixed-phy))
 define KernelPackage/of-mdio
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=OpenFirmware MDIO support
-  DEPENDS:=+kmod-libphy +kmod-fixed-phy
+  DEPENDS:=+kmod-libphy +kmod-fixed-phy @!TARGET_x86
   KCONFIG:=CONFIG_OF_MDIO
   FILES:= \
 	$(LINUX_DIR)/drivers/net/mdio/of_mdio.ko \
@@ -1540,6 +1540,18 @@ endef
 $(eval $(call KernelPackage,sfp))
 
 
+define KernelPackage/pcs-xpcs
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=Synopsis DesignWare PCS driver
+  DEPENDS:=@(x86_64||TARGET_armsr_armv8) +kmod-phylink
+  KCONFIG:=CONFIG_PCS_XPCS
+  FILES:=$(LINUX_DIR)/drivers/net/pcs/pcs_xpcs.ko
+  AUTOLOAD:=$(call AutoLoad,20,pcs_xpcs)
+endef
+
+$(eval $(call KernelPackage,pcs-xpcs))
+
+
 define KernelPackage/stmmac-core
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Synopsis Ethernet Controller core (NXP,STMMicro,others)
@@ -1557,18 +1569,6 @@ define KernelPackage/stmmac-core
 endef
 
 $(eval $(call KernelPackage,stmmac-core))
-
-
-define KernelPackage/pcs-xpcs
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=Synopsis DesignWare PCS driver
-  DEPENDS:=@x86_64||TARGET_armsr_armv8 +kmod-phylink
-  KCONFIG:=CONFIG_PCS_XPCS
-  FILES:=$(LINUX_DIR)/drivers/net/pcs/pcs_xpcs.ko
-  AUTOLOAD:=$(call AutoLoad,20,pcs_xpcs)
-endef
-
-$(eval $(call KernelPackage,pcs-xpcs))
 
 
 define KernelPackage/igc
@@ -1687,9 +1687,10 @@ endef
 
 $(eval $(call KernelPackage,mhi-wwan-mbim))
 
+
 define KernelPackage/mtk-t7xx
   SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=MediaTek PCIe 5G WWAN modem T7xx device
+  TITLE:=MediaTek T7xx 5G modem
   DEPENDS:=@PCI_SUPPORT +kmod-wwan
   KCONFIG:=CONFIG_MTK_T7XX
   FILES:=$(LINUX_DIR)/drivers/net/wwan/t7xx/mtk_t7xx.ko
@@ -1697,13 +1698,11 @@ define KernelPackage/mtk-t7xx
 endef
 
 define KernelPackage/mtk-t7xx/description
-  Enables MediaTek PCIe based 5G WWAN modem (T7xx series) device.
-  Adapts WWAN framework and provides network interface like wwan0
-  and tty interfaces like wwan0at0 (AT protocol), wwan0mbim0
-  (MBIM protocol), etc.
+ Driver for MediaTek PCIe 5G WWAN modem T7xx device
 endef
 
 $(eval $(call KernelPackage,mtk-t7xx))
+
 
 define KernelPackage/atlantic
   SUBMENU:=$(NETWORK_DEVICES_MENU)
@@ -1724,7 +1723,7 @@ $(eval $(call KernelPackage,atlantic))
 define KernelPackage/lan743x
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Microchip LAN743x PCI Express Gigabit Ethernet NIC
-  DEPENDS:=@PCI_SUPPORT +kmod-ptp +kmod-mdio-devres
+  DEPENDS:=@PCI_SUPPORT +kmod-ptp +kmod-mdio-devres +kmod-fixed-phy
   KCONFIG:=CONFIG_LAN743X
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/microchip/lan743x.ko
   AUTOLOAD:=$(call AutoProbe,lan743x)

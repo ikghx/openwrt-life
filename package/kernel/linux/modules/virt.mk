@@ -121,7 +121,7 @@ define KernelPackage/vhost
   SUBMENU:=Virtualization
   TITLE:=Host kernel accelerator for virtio (base)
   KCONFIG:=CONFIG_VHOST
-  FILES:= $(LINUX_DIR)/drivers/vhost/vhost.ko \
+  FILES:=$(LINUX_DIR)/drivers/vhost/vhost.ko \
     $(LINUX_DIR)/drivers/vhost/vhost_iotlb.ko
   AUTOLOAD:=$(call AutoProbe,vhost vhost_iotlb)
 endef
@@ -134,7 +134,7 @@ define KernelPackage/vhost-net
   TITLE:=Host kernel accelerator for virtio-net
   DEPENDS:=+kmod-tun +kmod-vhost
   KCONFIG:=CONFIG_VHOST_NET
-  FILES:= $(LINUX_DIR)/drivers/vhost/vhost_net.ko
+  FILES:=$(LINUX_DIR)/drivers/vhost/vhost_net.ko
   AUTOLOAD:=$(call AutoProbe,vhost_net)
 endef
 
