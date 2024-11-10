@@ -12,7 +12,6 @@ ADD_WAN_FQDN=0
 ADD_LOCAL_FQDN=""
 
 BASECONFIGFILE="/var/etc/dnsmasq.conf"
-EXTRACONFFILE="extraconfig.conf"
 BASEHOSTFILE="/tmp/hosts/dhcp"
 TRUSTANCHORSFILE="/usr/share/dnsmasq/trust-anchors.conf"
 TIMEVALIDFILE="/var/state/dnsmasqsec"
@@ -1112,7 +1111,9 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "addnhosts" append_addnhosts
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
 	config_list_foreach "$cfg" "ptr_record" append_ptr_record
-	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.leases"
+	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.$cfg.leases"
+	config_get leasefile $cfg leasefile "/tmp/dhcp.$cfg.leases"
+	[ -n "$leasefile" ] && [ ! -e "$leasefile" ] && touch "$leasefile"
 
 	local serversfile
 	config_get serversfile "$cfg" "serversfile"
@@ -1150,8 +1151,6 @@ dnsmasq_start()
 		xappend "--script-arp"
 	fi
 
-	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"
-	[ -n "$leasefile" ] && [ ! -e "$leasefile" ] && touch "$leasefile"
 	config_get_bool cachelocal "$cfg" cachelocal 1
 
 	config_get_bool noresolv "$cfg" noresolv 0
@@ -1220,27 +1219,49 @@ dnsmasq_start()
 
 	xappend "--dhcp-broadcast=tag:needs-broadcast"
 
+	# Set up daemon config paths
+	_commonconfdir="/tmp/dnsmasq.d"
+	[ ! -d "$_commonconfdir" ] && mkdir -p "$_commonconfdir"
 
-	# Create a dnsmasq.d dir for each instance
-	config_get dnsmasqconfdir "$cfg" confdir "/tmp/dnsmasq${cfg:+.$cfg}.d"
-	# Ensure dnsmasqconfdir is an absolute path
-	[ "${dnsmasqconfdir:0:1}" = '/' ] && {
-		xappend "--conf-dir=$dnsmasqconfdir"
-		dnsmasqconfdir="${dnsmasqconfdir%%,*}"
-		[ ! -d "$dnsmasqconfdir" ] && mkdir -p "$dnsmasqconfdir"
+	# Add common/shared --conf-dir (it can be used only once)
+	# ,* signals dnsmasq to glob every file in the path
+	xappend "--conf-dir=$_commonconfdir,*"
+
+	# Per-instance configuration directory
+	config_get _instanceconfdir "$cfg" confdir "/tmp/dnsmasq${cfg:+.$cfg}.d,*"
+
+	# in case mask suffix was also provided
+	[ "$_instanceconfdir" != "${_instanceconfdir%%,*}" ] && {
+		_mask="${_instanceconfdir##*,}"
+		_instanceconfdir="${_instanceconfdir%%,*}"
+	}
+	# Set default file mask to *
+	_mask="${_mask:-*}"
+
+	# Ensure _instanceconfdir is an absolute path
+	[ "${_instanceconfdir:0:1}" = '/' ] && {
+		[ ! -d "$_instanceconfdir" ] && mkdir -p "$_instanceconfdir"
+
 		xappend "--user=dnsmasq"
 		xappend "--group=dnsmasq"
 		echo >> "$CONFIGFILE_TMP"
 
-		# EXTRACONFFILE allows new dnsmasq parameters before they are natively handled in this init file
+		# Instance-specific conf file
+		instance_conf_file="$_instanceconfdir/${cfg}.conf"
 		config_get extraconftext "$cfg" extraconftext
-		[ -n "$extraconftext" ] && echo -e "$extraconftext" > "$dnsmasqconfdir"/"$EXTRACONFFILE"
+		[ -n "$extraconftext" ] && echo -e "$extraconftext" > "$instance_conf_file"
+
+		# Add each instance path file individually (later, jail only the folder)
+		for conf in "$_instanceconfdir"/$_mask ; do
+			[ -f "$conf" ] || continue
+			xappend "--conf-file=$conf"
+		done
 	}
 
 	config_get_bool enable_tftp "$cfg" enable_tftp 0
 	[ "$enable_tftp" -gt 0 ] && {
 		config_get tftp_root "$cfg" tftp_root
-		append EXTRA_MOUNT $tftp_root
+		append EXTRA_MOUNT "$tftp_root"
 	}
 
 	config_foreach filter_dnsmasq host dhcp_host_add "$cfg"
@@ -1318,8 +1339,8 @@ dnsmasq_start()
 	config_list_foreach "$cfg" addnmount append_extramount
 
 	procd_open_instance $cfg
-	procd_set_param command $PROG -C $CONFIGFILE -k -x /var/run/dnsmasq/dnsmasq."${cfg}".pid
-	procd_set_param file $CONFIGFILE
+	procd_set_param command $PROG -C "$CONFIGFILE" -k -x /var/run/dnsmasq/dnsmasq."${cfg}".pid
+	procd_set_param file "$CONFIGFILE"
 	[ -n "$user_dhcpscript" ] && procd_set_param env USER_DHCPSCRIPT="$user_dhcpscript"
 	procd_set_param respawn
 
@@ -1329,16 +1350,17 @@ dnsmasq_start()
 		[ -n "$instance_netdev" ] && procd_set_param netdev $instance_netdev
 
 	procd_add_jail dnsmasq ubus log
-	procd_add_jail_mount $CONFIGFILE $DHCPBOGUSHOSTNAMEFILE $DHCPSCRIPT $DHCPSCRIPT_DEPENDS
-	procd_add_jail_mount $EXTRA_MOUNT $RFC6761FILE $TRUSTANCHORSFILE
-	procd_add_jail_mount $dnsmasqconffile $dnsmasqconfdir $resolvdir $user_dhcpscript
+	procd_add_jail_mount "$CONFIGFILE" "$DHCPBOGUSHOSTNAMEFILE" "$DHCPSCRIPT" "$DHCPSCRIPT_DEPENDS"
+	procd_add_jail_mount "$EXTRA_MOUNT" "$RFC6761FILE" "$TRUSTANCHORSFILE"
+	procd_add_jail_mount "$_commonconfdir"
+	procd_add_jail_mount "$dnsmasqconffile" "$_instanceconfdir" "$resolvdir" "$user_dhcpscript"
 	procd_add_jail_mount /etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers /dev/urandom
-	procd_add_jail_mount_rw /var/run/dnsmasq/ $leasefile
+	procd_add_jail_mount_rw /var/run/dnsmasq/ "$leasefile"
 	case "$logfacility" in */*)
 		[ ! -e "$logfacility" ] && touch "$logfacility"
 		procd_add_jail_mount_rw "$logfacility"
 	esac
-	[ -e "$hostsfile" ] && procd_add_jail_mount $hostsfile
+	[ -e "$hostsfile" ] && procd_add_jail_mount "$hostsfile"
 
 	procd_close_instance
 
