@@ -4,24 +4,14 @@
 START=10
 STOP=90
 
-is_restoring_settings() {
-	[ -f /sysupgrade.tgz -o -f /tmp/sysupgrade.tar ]
-}
-
 uci_apply_defaults() {
 	. /lib/functions/system.sh
 
-	cd /etc/uci-defaults || return 0
-	is_restoring_settings && {
-		RESTORING_SETTINGS=true
-		rm -f *_RESET
-	}
-	files="$(ls)"
-	[ -z "$files" ] && return 0
-	for file in $files; do
-		( . "./$(basename $file)" ) && rm -f "$file"
+	ls /etc/uci-defaults/* | while read f; do
+		( . "$f" ) && rm -f "$f"
 	done
-	uci commit
+
+	[ $(uci changes|wc -l) -eq 0 ] || uci commit
 }
 
 boot() {
