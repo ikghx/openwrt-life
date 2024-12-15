@@ -1,0 +1,4 @@
+src-git packages https://github.com/ikghx/packages.git;openwrt-24.10
+src-git luci https://github.com/ikghx/luci.git;openwrt-24.10
+src-git routing https://github.com/ikghx/routing.git;openwrt-24.10
+#src-git telephony https://git.openwrt.org/feed/telephony.git;openwrt-24.10

@@ -1,0 +1,18 @@
+#!/bin/sh
+EXE=/usr/bin/md5sum
+FILE=/var/run/config.md5
+
+cd /etc/config && DIR=$(mktemp -d) && [ -d "$DIR" ] || return 1
+for conf in *; do
+	uci show "$conf" > "$DIR/$conf"
+done
+cd "$DIR"
+[ -f $FILE ] && {
+	$EXE -c $FILE | awk -F: '/FAILED$/{print $1}' | while read conf; do
+		ubus call service event \
+			"{'type':'config.change','data':{'package':'$conf'}}"
+	done
+}
+$EXE * > $FILE
+cd "$OLDPWD"
+rm -rf "$DIR"
