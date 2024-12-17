@@ -11,6 +11,9 @@ mediatek_setup_interfaces()
 	abt,asr3000|\
 	cmcc,rax3000m|\
 	h3c,magic-nx30-pro|\
+	h3c,magic-nx30-pro-nmbm|\
+	imou,lc-hx3001|\
+	konka,komi-a31|\
 	nokia,ea0326gmp|\
 	zbtlink,zbt-z8103ax)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" eth1
@@ -30,9 +33,13 @@ mediatek_setup_interfaces()
 		;;
 	asus,rt-ax59u|\
 	cetron,ct3003|\
+	cetron,ct3003-ubootmod|\
+	cmcc,a10|\
 	confiabits,mt7981|\
 	cudy,wr3000-v1|\
 	jcg,q30-pro|\
+	livinet,zr-3020|\
+	livinet,zr-3020-ubootmod|\
 	qihoo,360t7|\
 	routerich,ax3000|\
 	routerich,ax3000-ubootmod)
@@ -149,7 +156,8 @@ mediatek_setup_macs()
 	bananapi,bpi-r4)
 		wan_mac=$(macaddr_add $(cat /sys/class/net/eth0/address) 1)
 		;;
-	h3c,magic-nx30-pro)
+	h3c,magic-nx30-pro|\
+	h3c,magic-nx30-pro-nmbm)
 		wan_mac=$(mtd_get_mac_ascii pdt_data_1 ethaddr)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		label_mac=$wan_mac

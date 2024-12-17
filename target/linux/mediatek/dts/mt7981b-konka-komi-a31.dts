@@ -7,19 +7,19 @@
 #include "mt7981.dtsi"
 
 / {
-	model = "Nokia EA0326GMP";
-	compatible = "nokia,ea0326gmp", "mediatek,mt7981";
+	model = "Konka KOMI A31";
+	compatible = "konka,komi-a31", "mediatek,mt7981";
 
 	aliases {
-		led-boot = &power_led;
-		led-running = &power_led;
-		led-failsafe = &power_led;
-		led-upgrade = &power_led;
+		led-boot = &red_led;
+		led-failsafe = &red_led;
+		led-running = &green_led;
+		led-upgrade = &green_led;
 		label-mac-device = &gmac1;
 		serial0 = &uart0;
 	};
 
-	chosen {
+	chosen: chosen {
 		bootargs = "root=/dev/fit0 rootwait";
 		rootdisk = <&ubi_rootdisk>;
 		stdout-path = "serial0:115200n8";
@@ -32,56 +32,39 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 
+		button-mesh {
+			label = "mesh";
+			linux,code = <BTN_9>;
+			linux,input-type = <EV_SW>;
+			gpios = <&pio 0 GPIO_ACTIVE_LOW>;
+		};
+
 		button-reset {
 			label = "reset";
 			linux,code = <KEY_RESTART>;
 			gpios = <&pio 1 GPIO_ACTIVE_LOW>;
-		};
-
-		button-wps {
-			label = "wps";
-			linux,code = <KEY_WPS_BUTTON>;
-			gpios = <&pio 0 GPIO_ACTIVE_LOW>;
 		};
 	};
 
 	gpio-leds {
 		compatible = "gpio-leds";
 
-		power_led: led-0 {
-			color = <LED_COLOR_ID_RED>;
-			function = LED_FUNCTION_POWER;
-			gpios = <&pio 4 GPIO_ACTIVE_LOW>;
-		};
-
-		led-1 {
+		green_led: led-0 {
 			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_WAN;
-			gpios = <&pio 5 GPIO_ACTIVE_LOW>;
-		};
-
-		led-2 {
-			color = <LED_COLOR_ID_RED>;
-			function = LED_FUNCTION_WAN;
-			gpios = <&pio 6 GPIO_ACTIVE_LOW>;
-		};
-
-		led-3 {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_LAN;
-			gpios = <&pio 7 GPIO_ACTIVE_LOW>;
-		};
-
-		led-4 {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_WLAN;
+			function = LED_FUNCTION_STATUS;
 			gpios = <&pio 8 GPIO_ACTIVE_LOW>;
 		};
 
-		led-5 {
-			color = <LED_COLOR_ID_GREEN>;
-			function = LED_FUNCTION_WPS;
-			gpios = <&pio 9 GPIO_ACTIVE_LOW>;
+		led-1 {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pio 13 GPIO_ACTIVE_LOW>;
+		};
+
+		red_led: led-2 {
+			color = <LED_COLOR_ID_RED>;
+			function = LED_FUNCTION_STATUS;
+			gpios = <&pio 34 GPIO_ACTIVE_LOW>;
 		};
 	};
 };
@@ -96,7 +79,7 @@
 		reg = <0>;
 		phy-mode = "2500base-x";
 
-		nvmem-cells = <&macaddr_factory_28 0>;
+		nvmem-cells = <&macaddr_factory_2a 0>;
 		nvmem-cell-names = "mac-address";
 
 		fixed-link {
@@ -112,7 +95,7 @@
 		phy-mode = "gmii";
 		phy-handle = <&int_gbe_phy>;
 
-		nvmem-cells = <&macaddr_factory_28 3>;
+		nvmem-cells = <&macaddr_factory_24 0>;
 		nvmem-cell-names = "mac-address";
 	};
 };
@@ -172,18 +155,18 @@
 
 			partition@0 {
 				label = "bl2";
-				reg = <0x00000 0x0100000>;
+				reg = <0x0 0x100000>;
 				read-only;
 			};
 
 			partition@100000 {
 				label = "u-boot-env";
-				reg = <0x0100000 0x0080000>;
+				reg = <0x100000 0x80000>;
 			};
 
 			partition@180000 {
 				label = "factory";
-				reg = <0x180000 0x0200000>;
+				reg = <0x180000 0x200000>;
 				read-only;
 
 				nvmem-layout {
@@ -195,9 +178,15 @@
 						reg = <0x0 0x1000>;
 					};
 
-					macaddr_factory_28: macaddr@28 {
+					macaddr_factory_24: macaddr@24 {
 						compatible = "mac-base";
-						reg = <0x28 0x6>;
+						reg = <0x24 0x6>;
+						#nvmem-cell-cells = <1>;
+					};
+
+					macaddr_factory_2a: macaddr@2a {
+						compatible = "mac-base";
+						reg = <0x2a 0x6>;
 						#nvmem-cell-cells = <1>;
 					};
 				};
@@ -205,26 +194,14 @@
 
 			partition@380000 {
 				label = "fip";
-				reg = <0x380000 0x0200000>;
+				reg = <0x380000 0x200000>;
 				read-only;
 			};
 
 			partition@580000 {
-				label = "config";
-				reg = <0x580000 0x200000>;
-				read-only;
-			};
-
-			partition@780000 {
-				label = "config2";
-				reg = <0x780000 0x200000>;
-				read-only;
-			};
-
-			partition@980000 {
 				compatible = "linux,ubi";
 				label = "ubi";
-				reg = <0x980000 0x7680000>;
+				reg = <0x580000 0x7a80000>;
 
 				volumes {
 					ubi_rootdisk: ubi-volume-fit {
@@ -241,18 +218,18 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 
+		port@0 {
+			reg = <0>;
+			label = "lan1";
+		};
+
 		port@1 {
 			reg = <1>;
-			label = "lan1";
+			label = "lan2";
 		};
 
 		port@2 {
 			reg = <2>;
-			label = "lan2";
-		};
-
-		port@3 {
-			reg = <3>;
 			label = "lan3";
 		};
 
@@ -282,4 +259,16 @@
 	nvmem-cells = <&eeprom_factory_0>;
 	nvmem-cell-names = "eeprom";
 	status = "okay";
+
+	band0: band@0 {
+		reg = <0>;
+		nvmem-cells = <&macaddr_factory_2a 1>;
+		nvmem-cell-names = "mac-address";
+	};
+
+	band1: band@1 {
+		reg = <1>;
+		nvmem-cells = <&macaddr_factory_2a 2>;
+		nvmem-cell-names = "mac-address";
+	};
 };

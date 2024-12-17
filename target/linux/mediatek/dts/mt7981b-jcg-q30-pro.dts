@@ -33,14 +33,20 @@
 	gpio-keys {
 		compatible = "gpio-keys";
 
-		reset {
+		button-reset {
 			label = "reset";
 			linux,code = <KEY_RESTART>;
 			gpios = <&pio 1 GPIO_ACTIVE_LOW>;
 		};
+
+		button-wps {
+			label = "wps";
+			linux,code = <KEY_WPS_BUTTON>;
+			gpios = <&pio 0 GPIO_ACTIVE_HIGH>;
+		};
 	};
 
-	leds {
+	gpio-leds {
 		compatible = "gpio-leds";
 
 		led_status_red: red {
@@ -65,7 +71,7 @@
 		reg = <0>;
 		phy-mode = "2500base-x";
 
-		nvmem-cells = <&macaddr_lan>;
+		nvmem-cells = <&macaddr_factory_a002a 0>;
 		nvmem-cell-names = "mac-address";
 
 		fixed-link {
@@ -93,13 +99,13 @@
 	pinctrl-0 = <&spi0_flash_pins>;
 	status = "okay";
 
-	spi_nand@0 {
-		compatible = "spi-nand";
+	spi_nand: flash@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
+		compatible = "spi-nand";
 		reg = <0>;
-
 		spi-max-frequency = <52000000>;
+
 		spi-tx-bus-width = <4>;
 		spi-rx-bus-width = <4>;
 
@@ -110,42 +116,47 @@
 
 			partition@0 {
 				label = "bl2";
-				reg = <0x0000000 0x0100000>;
+				reg = <0x00000 0x100000>;
 				read-only;
 			};
 
 			partition@100000 {
 				label = "u-boot-env";
-				reg = <0x0100000 0x0080000>;
+				reg = <0x100000 0x80000>;
 			};
 
 			factory: partition@180000 {
 				label = "Factory";
-				reg = <0x0180000 0x0200000>;
+				reg = <0x180000 0x200000>;
 				read-only;
 
+				compatible = "nvmem-cells";
 				nvmem-layout {
 					compatible = "fixed-layout";
 					#address-cells = <1>;
 					#size-cells = <1>;
 
-					macaddr_wan: macaddr@a0024 {
-						reg = <0xa0024 0x6>;
+					macaddr_factory_a002a: macaddr@a002a {
+						compatible = "mac-base";
+						reg = <0xa002a 0x6>;
+						#nvmem-cell-cells = <1>;
 					};
 
-					macaddr_lan: macaddr@a002a {
-						reg = <0xa002a 0x6>;
+					macaddr_factory_a0024: macaddr@a0024 {
+						compatible = "mac-base";
+						reg = <0xa0024 0x6>;
+						#nvmem-cell-cells = <1>;
 					};
 				};
 			};
 
 			partition@380000 {
 				label = "fip";
-				reg = <0x0380000 0x0200000>;
+				reg = <0x380000 0x200000>;
 				read-only;
 			};
 
-			partition@580000 {
+			ubi: partition@580000 {
 				label = "ubi";
 				reg = <0x0580000 0x7000000>;
 				compatible = "linux,ubi";
@@ -168,7 +179,8 @@
 		port@0 {
 			reg = <0>;
 			label = "wan";
-			nvmem-cells = <&macaddr_wan>;
+
+			nvmem-cells = <&macaddr_factory_a0024 0>;
 			nvmem-cell-names = "mac-address";
 		};
 
