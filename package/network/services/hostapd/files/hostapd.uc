@@ -187,7 +187,7 @@ function __iface_pending_next(pending, state, ret, data)
 
 		pending.call("wpa_supplicant", "phy_status", {
 			phy: phydev.phy,
-			radio: phydev.radio,
+			radio: phydev.radio ?? -1,
 		});
 		return "check_phy";
 	case "check_phy":
@@ -200,7 +200,7 @@ function __iface_pending_next(pending, state, ret, data)
 		}
 		pending.call("wpa_supplicant", "phy_set_state", {
 			phy: phydev.phy,
-			radio: phydev.radio,
+			radio: phydev.radio ?? -1,
 			stop: true
 		});
 		return "wpas_stopped";
@@ -209,7 +209,7 @@ function __iface_pending_next(pending, state, ret, data)
 			hostapd.printf(`hostapd.add_iface failed for phy ${phy} ifname=${bss.ifname}`);
 		pending.call("wpa_supplicant", "phy_set_state", {
 			phy: phydev.phy,
-			radio: phydev.radio,
+			radio: phydev.radio ?? -1,
 			stop: false
 		});
 		return null;
