@@ -11,7 +11,7 @@ boot() {
 	hwclock_load
 	local maxtime="$(find_maxtime)"
 	local curtime="$(date -u +%s)"
-	[ $maxtime -gt $curtime ] && date -u -s @$maxtime && hwclock_save
+	[ $maxtime -gt $curtime ] && date -s @$maxtime && hwclock_save
 }
 
 start() {
