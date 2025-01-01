@@ -17,6 +17,7 @@ do_sysinfo_x86() {
 		System\ manufacturer | \
 		To\ [bB]e\ [fF]illed\ [bB]y\ O\.E\.M\. | \
 		Default\ [sS]tring)
+			vendor=" "
 			continue
 			;;
 		esac
