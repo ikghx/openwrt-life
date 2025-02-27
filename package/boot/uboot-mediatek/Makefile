@@ -231,6 +231,30 @@ define U-Boot/mt7981_abt_asr3000
   DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
 endef
 
+define U-Boot/mt7981_cetron_ct3003
+  NAME:=Cetron CT3003
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=cetron_ct3003-ubootmod
+  UBOOT_CONFIG:=mt7981_cetron_ct3003
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
+define U-Boot/mt7981_cmcc_a10
+  NAME:=CMCC A10
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=cmcc_a10-ubootmod
+  UBOOT_CONFIG:=mt7981_cmcc_a10
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
 define U-Boot/mt7981_cmcc_rax3000m-emmc
   NAME:=CMCC RAX3000M
   BUILD_SUBTARGET:=filogic
@@ -253,6 +277,17 @@ define U-Boot/mt7981_cmcc_rax3000m-nand
   BL2_SOC:=mt7981
   BL2_DDRTYPE:=ddr4
   DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr4
+endef
+
+define U-Boot/mt7981_cudy_tr3000-v1
+  NAME:=Cudy TR3000 v1
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=cudy_tr3000-v1-ubootmod
+  UBOOT_CONFIG:=mt7981_cudy_tr3000-v1
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=cudy-tr3000-v1
+  BL2_SOC:=mt7981
+  DEPENDS:=+trusted-firmware-a-mt7981-cudy-tr3000-v1
 endef
 
 define U-Boot/mt7981_glinet_gl-x3000
@@ -291,11 +326,72 @@ define U-Boot/mt7981_h3c_magic-nx30-pro
   DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
 endef
 
+define U-Boot/mt7981_imou_lc-hx3001
+  NAME:=Imou LC-HX3001
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=imou_lc-hx3001
+  UBOOT_CONFIG:=mt7981_imou_lc-hx3001
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
 define U-Boot/mt7981_jcg_q30-pro
   NAME:=JCG Q30 PRO
   BUILD_SUBTARGET:=filogic
   BUILD_DEVICES:=jcg_q30-pro
   UBOOT_CONFIG:=mt7981_jcg_q30-pro
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
+define U-Boot/mt7981_konka_komi-a31
+  NAME:=Konka KOMI A31
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=konka_komi-a31
+  UBOOT_CONFIG:=mt7981_konka_komi-a31
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=spim-nand
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
+endef
+
+define U-Boot/mt7981_konka_komi-a31-emmc
+  NAME:=Konka KOMI A31 eMMC
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=konka_komi-a31
+  UBOOT_CONFIG:=mt7981_konka_komi-a31-emmc
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=emmc
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  DEPENDS:=+trusted-firmware-a-mt7981-emmc-ddr3
+endef
+
+define U-Boot/mt7981_konka_komi-a31-nor
+  NAME:=Konka KOMI A31 NOR
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=konka_komi-a31
+  UBOOT_CONFIG:=mt7981_konka_komi-a31-nor
+  UBOOT_IMAGE:=u-boot.fip
+  BL2_BOOTDEV:=nor
+  BL2_SOC:=mt7981
+  BL2_DDRTYPE:=ddr3
+  FIP_COMPRESS:=1
+  DEPENDS:=+trusted-firmware-a-mt7981-nor-ddr3
+endef
+
+define U-Boot/mt7981_livinet_zr-3020
+  NAME:=Livinet ZR-3020
+  BUILD_SUBTARGET:=filogic
+  BUILD_DEVICES:=livinet_zr-3020-ubootmod
+  UBOOT_CONFIG:=mt7981_livinet_zr-3020
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -832,13 +928,21 @@ UBOOT_TARGETS := \
 	mt7628_ravpower_rp-wd009 \
 	mt7629_rfb \
 	mt7981_abt_asr3000 \
+	mt7981_cetron_ct3003 \
+	mt7981_cmcc_a10 \
 	mt7981_cmcc_rax3000m-emmc \
 	mt7981_cmcc_rax3000m-nand \
+	mt7981_cudy_tr3000-v1 \
 	mt7981_gatonetworks_gdsp \
 	mt7981_glinet_gl-x3000 \
 	mt7981_glinet_gl-xe3000 \
 	mt7981_h3c_magic-nx30-pro \
+	mt7981_imou_lc-hx3001 \
 	mt7981_jcg_q30-pro \
+	mt7981_konka_komi-a31 \
+	mt7981_konka_komi-a31-emmc \
+	mt7981_konka_komi-a31-nor \
+	mt7981_livinet_zr-3020 \
 	mt7981_nokia_ea0326gmp \
 	mt7981_openwrt_one-snand \
 	mt7981_openwrt_one-nor \
