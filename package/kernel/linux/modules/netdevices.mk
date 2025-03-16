@@ -976,7 +976,7 @@ define KernelPackage/r8169
     CONFIG_R8169 \
     CONFIG_R8169_LEDS=y
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/realtek/r8169.ko
-  AUTOLOAD:=$(call AutoProbe,r8169)
+  AUTOLOAD:=$(call AutoProbe,r8169,1)
 endef
 
 define KernelPackage/r8169/description
@@ -1751,7 +1751,6 @@ define KernelPackage/mlxsw-spectrum
   KCONFIG:= \
   CONFIG_MLXSW_SPECTRUM \
   CONFIG_MLXSW_SPECTRUM_DCB=y \
-  CONFIG_NET_SWITCHDEV=y \
   CONFIG_DCB=y
   AUTOLOAD:=$(call AutoProbe,mlxsw_spectrum)
 endef

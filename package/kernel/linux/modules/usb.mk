@@ -1178,8 +1178,7 @@ $(eval $(call KernelPackage,usb-atm-cxacru))
 define KernelPackage/usb-net
   TITLE:=Kernel modules for USB-to-Ethernet convertors
   DEPENDS:=+kmod-mii
-  KCONFIG:=CONFIG_USB_USBNET \
-	CONFIG_USB_NET_DRIVERS
+  KCONFIG:=CONFIG_USB_USBNET
   AUTOLOAD:=$(call AutoProbe,usbnet)
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/usbnet.ko
   $(call AddDepends/usb)
@@ -1457,7 +1456,7 @@ define KernelPackage/usb-net-rtl8152
   KCONFIG:=CONFIG_USB_RTL8152
   FILES:=$(LINUX_DIR)/drivers/$(USBNET_DIR)/r8152.ko
   AUTOLOAD:=$(call AutoProbe,r8152)
-  $(call AddDepends/usb-net)
+  $(call AddDepends/usb)
 endef
 
 define KernelPackage/usb-net-rtl8152/description

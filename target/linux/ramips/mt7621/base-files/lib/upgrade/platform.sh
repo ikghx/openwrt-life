@@ -148,6 +148,7 @@ platform_do_upgrade() {
 	xiaomi,mi-router-cr6609|\
 	xiaomi,redmi-router-ac2100|\
 	z-router,zr-2660|\
+	zte,e8820s|\
 	zyxel,nwa50ax|\
 	zyxel,nwa55axe)
 		nand_do_upgrade "$1"
@@ -156,8 +157,9 @@ platform_do_upgrade() {
 	buffalo,wsr-2533dhpls)
 		buffalo_do_upgrade "$1"
 		;;
-	dna,valokuitu-plus-ex400)
-		dna_do_upgrade "$1"
+	dna,valokuitu-plus-ex400|\
+	genexis,pulse-ex400)
+		inteno_do_upgrade "$1"
 		;;
 	elecom,wrc-x1800gs)
 		[ "$(fw_printenv -n bootmenu_delay)" != "0" ] || \
