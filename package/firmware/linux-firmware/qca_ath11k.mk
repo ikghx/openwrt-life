@@ -14,7 +14,7 @@ define Package/ath11k-firmware-wcn6750/install
 	$(INSTALL_DATA) \
 		$(PKG_BUILD_DIR)/ath11k/WCN6750/hw1.0/Notice.txt $(1)/lib/firmware/ath11k/WCN6750/hw1.0/
 	$(INSTALL_DATA) \
-	        $(PKG_BUILD_DIR)/ath11k/WCN6750/hw1.0/sc7280/wpss.mbn $(1)/lib/firmware/ath11k/WCN6750/hw1.0/
+		$(PKG_BUILD_DIR)/ath11k/WCN6750/hw1.0/sc7280/wpss.mbn $(1)/lib/firmware/ath11k/WCN6750/hw1.0/
 endef
 $(eval $(call BuildPackage,ath11k-firmware-wcn6750))
 
