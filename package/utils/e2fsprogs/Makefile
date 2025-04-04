@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=e2fsprogs
-PKG_VERSION:=1.47.0
-PKG_RELEASE:=2
+PKG_VERSION:=1.47.2
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/kernel/people/tytso/e2fsprogs/v$(PKG_VERSION)/
-PKG_HASH:=144af53f2bbd921cef6f8bea88bb9faddca865da3fbc657cc9b4d2001097d5db
+PKG_HASH:=08242e64ca0e8194d9c1caad49762b19209a06318199b63ce74ae4ef2d74e63c
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=NOTICE
@@ -60,7 +60,7 @@ define Package/libe2p
   CATEGORY:=Libraries
   TITLE:=ext2fs userspace programs utility library
   URL:=http://e2fsprogs.sourceforge.net/
-  DEPENDS:=+libuuid +libcomerr
+  DEPENDS:=+libuuid
   ABI_VERSION:=2
 endef
 
@@ -190,7 +190,7 @@ define Build/Compile
 	+$(MAKE) $(PKG_JOBS) -C $(PKG_BUILD_DIR) \
 		BUILDCC="$(HOSTCC)" \
 		DESTDIR="$(PKG_INSTALL_DIR)" \
-		ELF_OTHER_LIBS="$(TARGET_LDFLAGS) -luuid -lcom_err" \
+		ELF_OTHER_LIBS="$(TARGET_LDFLAGS) -luuid" \
 		SYSLIBS="$(TARGET_LDFLAGS) -ldl -L$(PKG_BUILD_DIR)/lib/ -l:libcom_err.so.0.0" \
 		V=$(if $(findstring c,$(OPENWRT_VERBOSE)),1,) \
 		all

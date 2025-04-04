@@ -52,37 +52,6 @@ define Build/mt798x-gpt
 	rm $@.tmp
 endef
 
-metadata_gl_json = \
-	'{ $(if $(IMAGE_METADATA),$(IMAGE_METADATA)$(comma)) \
-		"metadata_version": "1.1", \
-		"compat_version": "$(call json_quote,$(compat_version))", \
-		$(if $(DEVICE_COMPAT_MESSAGE),"compat_message": "$(call json_quote,$(DEVICE_COMPAT_MESSAGE))"$(comma)) \
-		$(if $(filter-out 1.0,$(compat_version)),"new_supported_devices": \
-			[$(call metadata_devices,$(SUPPORTED_DEVICES))]$(comma) \
-			"supported_devices": ["$(call json_quote,$(legacy_supported_message))"]$(comma)) \
-		$(if $(filter 1.0,$(compat_version)),"supported_devices":[$(call metadata_devices,$(SUPPORTED_DEVICES))]$(comma)) \
-		"version": { \
-			"release": "$(call json_quote,$(VERSION_NUMBER))", \
-			"date": "$(shell TZ='Asia/Chongqing' date '+%Y%m%d%H%M%S')", \
-			"dist": "$(call json_quote,$(VERSION_DIST))", \
-			"version": "$(call json_quote,$(VERSION_NUMBER))", \
-			"revision": "$(call json_quote,$(REVISION))", \
-			"target": "$(call json_quote,$(TARGETID))", \
-			"board": "$(call json_quote,$(if $(BOARD_NAME),$(BOARD_NAME),$(DEVICE_NAME)))" \
-		} \
-	}'
-
-define Build/append-gl-metadata
-	$(if $(SUPPORTED_DEVICES),-echo $(call metadata_gl_json,$(SUPPORTED_DEVICES)) | fwtool -I - $@)
-	sha256sum "$@" | cut -d" " -f1 > "$@.sha256sum"
-	[ ! -s "$(BUILD_KEY)" -o ! -s "$(BUILD_KEY).ucert" -o ! -s "$@" ] || { \
-		cp "$(BUILD_KEY).ucert" "$@.ucert" ;\
-		usign -S -m "$@" -s "$(BUILD_KEY)" -x "$@.sig" ;\
-		ucert -A -c "$@.ucert" -x "$@.sig" ;\
-		fwtool -S "$@.ucert" "$@" ;\
-	}
-endef
-
 define Build/append-openwrt-one-eeprom
 	dd if=$(STAGING_DIR_IMAGE)/mt7981_eeprom_mt7976_dbdc.bin >> $@
 endef
@@ -1477,6 +1446,30 @@ define Device/netcore_n60
   ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot netcore_n60
 endef
 TARGET_DEVICES += netcore_n60
+
+define Device/netcore_n60-pro
+  DEVICE_VENDOR := Netcore
+  DEVICE_MODEL := N60 Pro
+  DEVICE_DTS := mt7986a-netcore-n60-pro
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+        fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+        fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware kmod-usb3
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+  ARTIFACT/preloader.bin := mt7986-bl2 spim-nand-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7986-bl31-uboot netcore_n60-pro
+endef
+TARGET_DEVICES += netcore_n60-pro
 
 define Device/netgear_wax220
   DEVICE_VENDOR := NETGEAR
