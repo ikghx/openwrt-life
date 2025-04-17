@@ -21,11 +21,7 @@ define KernelPackage/r8125
   DEPENDS:=@PCI_SUPPORT +kmod-libphy @(x86_64||x86)
   FILES:=$(PKG_BUILD_DIR)/src/r8125.ko
   AUTOLOAD:=$(call AutoProbe,r8125)
-  PROVIDES:=kmod-r8169
-endef
-
-define KernelPackage/r8125/description
-  This package contains a driver for Realtek r8125 chipsets.
+  PROVIDES:=kmod-r8169 kmod-r8125-rss
 endef
 
 define Build/Compile
@@ -33,6 +29,9 @@ define Build/Compile
 		M="$(PKG_BUILD_DIR)/src" \
 		CONFIG_ASPM=n \
 		ENABLE_RSS_SUPPORT=y \
+		ENABLE_MULTIPLE_TX_QUEUE=y \
+		ENABLE_PAGE_REUSE=y \
+		ENABLE_RX_PACKET_FRAGMENT=y \
 		modules
 endef
 

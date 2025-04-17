@@ -24,14 +24,12 @@ define KernelPackage/r8168
   PROVIDES:=kmod-r8169
 endef
 
-define KernelPackage/r8168/description
-  This package contains a driver for Realtek r8168 chipsets.
-endef
-
 define Build/Compile
 	+$(KERNEL_MAKE) $(PKG_JOBS) \
 		M="$(PKG_BUILD_DIR)/src" \
+		CONFIG_ASPM=n \
 		ENABLE_RSS_SUPPORT=y \
+		ENABLE_MULTIPLE_TX_QUEUE=y \
 		modules
 endef
 
