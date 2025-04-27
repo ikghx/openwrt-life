@@ -2,7 +2,7 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=r8125
 PKG_VERSION:=9.015.00
-PKG_RELEASE:=1
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
 PKG_SOURCE_URL:=https://github.com/openwrt/rtl8125/releases/download/$(PKG_VERSION)
@@ -20,7 +20,7 @@ define KernelPackage/r8125
   TITLE:=Realtek RTL8125 PCI 2.5 Gigabit Ethernet driver
   DEPENDS:=@PCI_SUPPORT +kmod-libphy @(x86_64||x86)
   FILES:=$(PKG_BUILD_DIR)/src/r8125.ko
-  AUTOLOAD:=$(call AutoProbe,r8125)
+  AUTOLOAD:=$(call AutoProbe,r8125,1)
   PROVIDES:=kmod-r8169 kmod-r8125-rss
 endef
 
@@ -30,8 +30,6 @@ define Build/Compile
 		CONFIG_ASPM=n \
 		ENABLE_RSS_SUPPORT=y \
 		ENABLE_MULTIPLE_TX_QUEUE=y \
-		ENABLE_PAGE_REUSE=y \
-		ENABLE_RX_PACKET_FRAGMENT=y \
 		modules
 endef
 
