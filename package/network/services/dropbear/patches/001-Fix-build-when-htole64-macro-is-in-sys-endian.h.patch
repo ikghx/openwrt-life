@@ -1,0 +1,36 @@
+From ff77ddc39a52d99daf340b113e520e25c4fd3c7e Mon Sep 17 00:00:00 2001
+From: Matt Robinson <git@nerdoftheherd.com>
+Date: Fri, 7 Mar 2025 17:02:00 +0000
+Subject: Fix build when htole64 macro is in (sys/)endian.h
+
+Currently, if htole64 is available on a platform as a macro in endian.h
+or sys/endian.h the AC_CHECK_DECL check does not detect them as these
+files are not included in the test.  As those two headers are however
+included in the build this causes the declarations of the compat
+functions to be mangled by the undetected macros and fail to compile.
+
+Resolve this by passing conditional includes of endian.h and
+sys/endian.h to the includes parameter of the AC_CHECK_DECL macro so
+that the htole64 macro is detected correctly.
+---
+ configure.ac | 9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -553,7 +553,14 @@ AC_CHECK_FUNCS(htole64)
+ AC_CHECK_DECL(htole64,
+ 	[
+ 	AC_DEFINE(HAVE_DECL_HTOLE64,1,htole64 is a macro)
+-	],,)
++	],,[
++	#ifdef HAVE_ENDIAN_H
++		#include <endian.h>
++	#endif
++	#ifdef HAVE_SYS_ENDIAN_H
++		#include <sys/endian.h>
++	#endif
++	])
+ 
+ # POSIX monotonic time
+ AC_CHECK_FUNCS(clock_gettime)
