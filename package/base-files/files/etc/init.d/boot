@@ -17,6 +17,7 @@ boot() {
 	[ -f /proc/mounts ] || /sbin/mount_root
 	[ -f /proc/jffs2_bbc ] && echo S > /proc/jffs2_bbc
 
+	chmod 755 /etc
 	mkdir -p -m 1777 /var/lock
 	mkdir -p /var/log
 	touch /var/log/lastlog
