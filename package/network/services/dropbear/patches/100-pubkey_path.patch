@@ -1,6 +1,6 @@
 --- a/src/svr-authpubkey.c
 +++ b/src/svr-authpubkey.c
-@@ -435,20 +435,46 @@ out:
+@@ -435,20 +435,45 @@ out:
  /* Returns the full path to the user's authorized_keys file in an
   * allocated string which caller must free. */
  static char *authorized_keys_filepath() {
@@ -22,8 +22,7 @@
 +	 */
 +	while (1) {
 +		if (ses.authstate.pw_uid != 0) break;
-+		// if (strncmp(svr_opts.authorized_keys_dir, "~/", 2) != 0) break;
-+		if (strncmp(svr_opts.authorized_keys_dir, "/", 1) == 0) break;
++		if (svr_opts.authorized_keys_dir[0] == '/') break;
 +
 +		len = n_global_authkeys_dir + n_authkeys_file + 2;
 +		pathname = m_malloc(len);
