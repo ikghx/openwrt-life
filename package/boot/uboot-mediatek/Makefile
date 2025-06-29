@@ -291,11 +291,11 @@ define U-Boot/mt7981_cmcc_rax3000me-emmc
   DEPENDS:=+trusted-firmware-a-mt7981-emmc-ddr3
 endef
 
-define U-Boot/mt7981_cmcc_rax3000me-nand-ddr3
+define U-Boot/mt7981_cmcc_rax3000me-nand-usb
   NAME:=CMCC RAX3000Me
   BUILD_SUBTARGET:=filogic
   BUILD_DEVICES:=cmcc_rax3000me
-  UBOOT_CONFIG:=mt7981_cmcc_rax3000me-nand-ddr3
+  UBOOT_CONFIG:=mt7981_cmcc_rax3000me-nand-usb
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -303,11 +303,11 @@ define U-Boot/mt7981_cmcc_rax3000me-nand-ddr3
   DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
 endef
 
-define U-Boot/mt7981_cmcc_rax3000me-nand-ddr4
+define U-Boot/mt7981_cmcc_rax3000me-nand-nousb
   NAME:=CMCC RAX3000Me
   BUILD_SUBTARGET:=filogic
   BUILD_DEVICES:=cmcc_rax3000me
-  UBOOT_CONFIG:=mt7981_cmcc_rax3000me-nand-ddr4
+  UBOOT_CONFIG:=mt7981_cmcc_rax3000me-nand-nousb
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -423,11 +423,11 @@ define U-Boot/mt7981_konka_komi-a31-nor
   DEPENDS:=+trusted-firmware-a-mt7981-nor-ddr3
 endef
 
-define U-Boot/mt7981_netis_nx31
-  NAME:=netis NX31
+define U-Boot/mt7981_livinet_zr-3020
+  NAME:=Livinet ZR-3020
   BUILD_SUBTARGET:=filogic
-  BUILD_DEVICES:=netis_nx31
-  UBOOT_CONFIG:=mt7981_netis_nx31
+  BUILD_DEVICES:=livinet_zr-3020-ubootmod
+  UBOOT_CONFIG:=mt7981_livinet_zr-3020
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -435,11 +435,11 @@ define U-Boot/mt7981_netis_nx31
   DEPENDS:=+trusted-firmware-a-mt7981-spim-nand-ddr3
 endef
 
-define U-Boot/mt7981_livinet_zr-3020
-  NAME:=Livinet ZR-3020
+define U-Boot/mt7981_netis_nx31
+  NAME:=netis NX31
   BUILD_SUBTARGET:=filogic
-  BUILD_DEVICES:=livinet_zr-3020-ubootmod
-  UBOOT_CONFIG:=mt7981_livinet_zr-3020
+  BUILD_DEVICES:=netis_nx31
+  UBOOT_CONFIG:=mt7981_netis_nx31
   UBOOT_IMAGE:=u-boot.fip
   BL2_BOOTDEV:=spim-nand
   BL2_SOC:=mt7981
@@ -993,8 +993,8 @@ UBOOT_TARGETS := \
 	mt7981_cmcc_rax3000m-emmc \
 	mt7981_cmcc_rax3000m-nand \
 	mt7981_cmcc_rax3000me-emmc \
-	mt7981_cmcc_rax3000me-nand-ddr3 \
-	mt7981_cmcc_rax3000me-nand-ddr4 \
+	mt7981_cmcc_rax3000me-nand-usb \
+	mt7981_cmcc_rax3000me-nand-nousb \
 	mt7981_cudy_tr3000-v1 \
 	mt7981_gatonetworks_gdsp \
 	mt7981_glinet_gl-x3000 \
@@ -1005,8 +1005,8 @@ UBOOT_TARGETS := \
 	mt7981_konka_komi-a31 \
 	mt7981_konka_komi-a31-emmc \
 	mt7981_konka_komi-a31-nor \
-	mt7981_netis_nx31 \
 	mt7981_livinet_zr-3020 \
+	mt7981_netis_nx31 \
 	mt7981_nokia_ea0326gmp \
 	mt7981_openwrt_one-snand \
 	mt7981_openwrt_one-nor \

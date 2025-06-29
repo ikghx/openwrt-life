@@ -131,6 +131,10 @@ platform_do_upgrade() {
 		CI_KERNPART="linux"
 		nand_do_upgrade "$1"
 		;;
+	cudy,wr3000h-v1)
+		CI_UBIPART="ubi"
+		nand_do_upgrade "$1"
+		;;
 	cudy,re3000-v1|\
 	cudy,wr3000-v1|\
 	yuncore,ax835|\
@@ -144,6 +148,7 @@ platform_do_upgrade() {
 		;;
 	mercusys,mr80x-v3|\
 	mercusys,mr90x-v1|\
+	tplink,archer-ax80-v1|\
 	tplink,re6000xd)
 		CI_UBIPART="ubi0"
 		nand_do_upgrade "$1"

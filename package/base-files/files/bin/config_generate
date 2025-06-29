@@ -335,6 +335,8 @@ generate_static_system() {
 		add_list system.ntp.server='time.windows.com'
 		add_list system.ntp.server='time.nist.gov'
 		add_list system.ntp.server='time.apple.com'
+		add_list system.ntp.server='time.google.com'
+		add_list system.ntp.server='time.cloudflare.com'
 	EOF
 
 	if json_is_a system object; then

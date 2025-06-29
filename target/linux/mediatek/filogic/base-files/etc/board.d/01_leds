@@ -48,6 +48,14 @@ wavlink,wl-wn573hx3)
 cudy,wr3000-v1)
 	ucidef_set_led_netdev "wan" "wan" "blue:wan" "wan"
 	;;
+cudy,wr3000h-v1)
+	ucidef_set_led_netdev "lan1" "lan1" "white:lan-1" "lan1" "link tx rx"
+	ucidef_set_led_netdev "lan2" "lan2" "white:lan-2" "lan2" "link tx rx"
+	ucidef_set_led_netdev "lan3" "lan3" "white:lan-3" "lan3" "link tx rx"
+	ucidef_set_led_netdev "lan4" "lan4" "white:lan-4" "lan4" "link tx rx"
+	ucidef_set_led_netdev "wan" "wan" "white:wan" "wan" "link tx rx"
+	ucidef_set_led_netdev "internet" "internet" "white:wan-online" "wan" "link"
+	;;
 glinet,gl-x3000|\
 glinet,gl-xe3000)
 	ucidef_set_led_default "power" "POWER" "green:power" "1"
@@ -62,12 +70,6 @@ glinet,gl-xe3000)
 huasifei,wh3000-emmc)
 	ucidef_set_led_netdev "wan" "WAN" "red:wan" "eth1"
 	;;
-mercusys,mr80x-v3)
-	ucidef_set_led_netdev "lan1" "lan-1" "green:lan-1" "lan1" "link tx rx"
-	ucidef_set_led_netdev "lan2" "lan-2" "green:lan-2" "lan2" "link tx rx"
-	ucidef_set_led_netdev "lan3" "lan-3" "green:lan-3" "lan3" "link tx rx"
-	ucidef_set_led_netdev "wan" "wan" "green:wan" "wan" "link tx rx"
-	;;
 imou,lc-hx3001|\
 nokia,ea0326gmp)
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth1" "link"
@@ -79,6 +81,12 @@ livinet,zr-3020-ubootmod)
 	ucidef_set_led_netdev "internet" "INTERNET" "blue:internet" "wan"
 	ucidef_set_led_netdev "wlan2g" "WLAN2G" "blue:wlan2g" "phy0-ap0"
 	ucidef_set_led_netdev "wlan5g" "WLAN5G" "blue:wlan5g" "phy1-ap0"
+	;;
+mercusys,mr80x-v3)
+	ucidef_set_led_netdev "lan1" "lan-1" "green:lan-1" "lan1" "link tx rx"
+	ucidef_set_led_netdev "lan2" "lan-2" "green:lan-2" "lan2" "link tx rx"
+	ucidef_set_led_netdev "lan3" "lan-3" "green:lan-3" "lan3" "link tx rx"
+	ucidef_set_led_netdev "wan" "wan" "green:wan" "wan" "link tx rx"
 	;;
 mercusys,mr90x-v1|\
 mercusys,mr90x-v1-ubi)
