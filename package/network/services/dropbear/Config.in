@@ -120,8 +120,8 @@ config DROPBEAR_LASTLOG
 
 config DROPBEAR_LASTLOG_PATH
 	string "lastlog path:"
-	depends on DROPBEAR_LASTLOG
 	default "/var/log/lastlog"
+	depends on DROPBEAR_LASTLOG
 	help
 		Default: /var/log/lastlog
 
@@ -141,8 +141,8 @@ config DROPBEAR_WTMP
 
 config DROPBEAR_WTMP_PATH
 	string "wtmp path:"
-	depends on DROPBEAR_WTMP
 	default "/var/log/wtmp"
+	depends on DROPBEAR_WTMP
 	help
 		Default: /var/log/wtmp
 
@@ -155,8 +155,8 @@ comment "* note: utmp is unavailable with musl libc"
 	depends on USE_MUSL
 
 config DROPBEAR_UTMP
-	depends on !USE_MUSL
 	bool "Write utmp"
+	depends on !USE_MUSL
 	help
 		/var/run/utmp is a record of currently logged-in users.
 		To view logged-in users, use "w", "who" or "users" commands.
@@ -170,16 +170,16 @@ config DROPBEAR_UTMP
 
 config DROPBEAR_UTMP_PATH
 	string "utmp path:"
-	depends on DROPBEAR_UTMP
 	default "/var/run/utmp"
+	depends on DROPBEAR_UTMP
 	help
 		Default: /var/run/utmp
 
 # musl pututline() and related functions are all stubs.
 config DROPBEAR_PUTUTLINE
-	depends on !USE_MUSL && !DROPBEAR_LOGINFUNC && DROPBEAR_UTMP
 	bool "Use pututline() to write to utmp"
 	default y if !DROPBEAR_LOGINFUNC
+	depends on !USE_MUSL && !DROPBEAR_LOGINFUNC && DROPBEAR_UTMP
 	help
 		If enabled, Dropbear will use pututline() to write into the utmp file.
 		If disabled, Dropbear will write to utmp file directly.
@@ -190,10 +190,10 @@ config DROPBEAR_PUTUTLINE
 
 # musl doesn't have login() and logout()
 config DROPBEAR_LOGINFUNC
+	bool "Use login() and logout() functions"
 	depends on !USE_MUSL
 	select DROPBEAR_UTMP
 	select DROPBEAR_WTMP
-	bool "Use login() and logout() functions"
 	help
 		If enabled, Dropbear will use login() and logout() functions to record logins in utmp and wtmp files.
 		If disabled, see DROPBEAR_UTMP and DROPBEAR_WTMP options.
@@ -464,8 +464,8 @@ menuconfig DROPBEAR_DBCLIENT
 
 	config DROPBEAR_CLI_MULTIHOP
 		bool "Multi-hop support"
-		depends on DROPBEAR_CLI_NETCAT && DROPBEAR_CLI_PROXYCMD
 		default y
+		depends on DROPBEAR_CLI_NETCAT && DROPBEAR_CLI_PROXYCMD
 		help
 			Support "[user@]host[/port][,[user@]host/port],...]" connections.
 
@@ -845,9 +845,9 @@ menu "Encryption options"
 
 	config DROPBEAR_DEFAULT_RSA_SIZE
 		int "Default RSA key size"
-		depends on DROPBEAR_RSA_SHA1 || DROPBEAR_RSA
 		range 1024 8192
 		default 2048
+		depends on DROPBEAR_RSA_SHA1 || DROPBEAR_RSA
 		help
 			Sets the default RSA key size, for example, when auto-generating server keys.
 
@@ -903,8 +903,8 @@ menu "Encryption options"
 
 	config DROPBEAR_DH_GROUP1_CLIENTONLY
 		bool "DH group1 only for Dropbear client"
-		depends on DROPBEAR_DBCLIENT && DROPBEAR_DH_GROUP1
 		default y
+		depends on DROPBEAR_DBCLIENT && DROPBEAR_DH_GROUP1
 		help
 			When enabled, Diffie-Hellman group1 will only be allowed by Dropbear client,
 			not by the server, due to concerns over its strength.
@@ -971,7 +971,6 @@ menu "Encryption options"
 
 	config DROPBEAR_MLKEM768
 		bool "mlkem768 [POST-QUANTUM]"
-		default y if !SMALL_FLASH
 		help
 			This enables the following key exchange algorithm:
 			 * mlkem768x25519-sha256
@@ -1049,8 +1048,8 @@ menu "Encryption options"
 
 	config DROPBEAR_SK_KEYS
 		bool "FIDO/U2F security keys"
-		depends on DROPBEAR_ECDSA || DROPBEAR_ED25519
 		default y if !SMALL_FLASH
+		depends on DROPBEAR_ECDSA || DROPBEAR_ED25519
 		help
 			Allows Dropbear server to validate U2F security keys.
 			The corresponding DROPBEAR_SK_ECDSA and/or DROPBEAR_SK_ED25519 also needs to be set.
@@ -1065,9 +1064,9 @@ menu "Encryption options"
 		depends on DROPBEAR_ECDSA && !DROPBEAR_ECC_256
 
 	config DROPBEAR_SK_ECDSA
-		depends on DROPBEAR_ECDSA && DROPBEAR_ECC_256
 		bool "FIDO/U2F with ECDSA"
 		default y
+		depends on DROPBEAR_ECDSA && DROPBEAR_ECC_256
 		help
 			This enables the following public key algorithm:
 			 * sk-ecdsa-sha2-nistp256@openssh.com
@@ -1075,9 +1074,9 @@ menu "Encryption options"
 			Default: enabled.
 
 	config DROPBEAR_SK_ED25519
-		depends on DROPBEAR_ED25519
 		bool "FIDO/U2F with Ed25519"
 		default y
+		depends on DROPBEAR_ED25519
 		help
 			This enables the following public key algorithm:
 			 * sk-ssh-ed25519@openssh.com
