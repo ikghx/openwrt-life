@@ -957,6 +957,21 @@ define Device/glinet_gl-mt2500
 endef
 TARGET_DEVICES += glinet_gl-mt2500
 
+define Device/glinet_gl-mt2500-airoha
+  DEVICE_VENDOR := GL.iNet
+  DEVICE_MODEL := GL-MT2500
+  DEVICE_VARIANT := Airoha PHY
+  DEVICE_DTS := mt7981b-glinet-gl-mt2500-v2
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x47000000
+  DEVICE_PACKAGES := -wpad-openssl e2fsprogs f2fsck mkf2fs kmod-usb3 \
+	kmod-phy-airoha-en8811h airoha-en8811h-firmware
+  SUPPORTED_DEVICES += glinet,mt2500-emmc glinet,gl-mt2500
+  IMAGES := sysupgrade.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-gl-metadata
+endef
+TARGET_DEVICES += glinet_gl-mt2500-airoha
+
 define Device/glinet_gl-mt3000
   DEVICE_VENDOR := GL.iNet
   DEVICE_MODEL := GL-MT3000
@@ -1798,6 +1813,59 @@ define Device/tplink_re6000xd
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += tplink_re6000xd
+
+define Device/tplink_tl-7dr-common
+  DEVICE_VENDOR := TP-Link
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_DTS_LOADADDR := 0x45f00000
+  DEVICE_PACKAGES := mt7988-2p5g-phy-firmware kmod-mt7992-firmware mt7988-wo-firmware
+  KERNEL_LOADADDR := 0x46000000
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_IN_UBI := 1
+  UBOOTENV_IN_UBI := 1
+  #IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGES := sysupgrade.itb
+  KERNEL_INITRAMFS_SUFFIX := -recovery.itb
+  KERNEL := kernel-bin | gzip
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.itb := append-kernel | \
+	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-with-rootfs | append-metadata
+  ARTIFACTS := preloader.bin bl31-uboot.fip
+endef
+
+define Device/tplink_tl-7dr7230-v1
+  DEVICE_MODEL := TL-7DR7230
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7988d-tplink-tl-7dr7230-v1
+  ARTIFACT/preloader.bin := mt7988-bl2 spim-nand-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7988-bl31-uboot tplink_tl-7dr7230-v1
+  $(call Device/tplink_tl-7dr-common)
+endef
+TARGET_DEVICES += tplink_tl-7dr7230-v1
+
+define Device/tplink_tl-7dr7230-v2
+  DEVICE_MODEL := TL-7DR7230
+  DEVICE_VARIANT := v2
+  DEVICE_DTS := mt7988d-tplink-tl-7dr7230-v2
+  ARTIFACT/preloader.bin := mt7988-bl2 spim-nand-ddr3
+  ARTIFACT/bl31-uboot.fip := mt7988-bl31-uboot tplink_tl-7dr7230-v2
+  $(call Device/tplink_tl-7dr-common)
+endef
+TARGET_DEVICES += tplink_tl-7dr7230-v2
+
+define Device/tplink_tl-7dr7250-v1
+  DEVICE_MODEL := TL-7DR7250
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7988d-tplink-tl-7dr7250-v1
+  ARTIFACT/preloader.bin := mt7988-bl2 spim-nand-ddr4
+  ARTIFACT/bl31-uboot.fip := mt7988-bl31-uboot tplink_tl-7dr7250-v1
+  $(call Device/tplink_tl-7dr-common)
+  DEVICE_PACKAGES += kmod-phy-airoha-en8811h airoha-en8811h-firmware
+endef
+TARGET_DEVICES += tplink_tl-7dr7250-v1
 
 define Device/tplink_tl-xdr-common
   DEVICE_VENDOR := TP-Link
