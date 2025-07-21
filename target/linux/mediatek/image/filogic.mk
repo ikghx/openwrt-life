@@ -1123,6 +1123,17 @@ define Device/imou_lc-hx3001
 endef
 TARGET_DEVICES += imou_lc-hx3001
 
+define Device/iptime_ax3000sm
+  DEVICE_VENDOR := ipTIME
+  DEVICE_MODEL := AX3000SM
+  DEVICE_DTS := mt7981b-iptime-ax3000sm
+  DEVICE_DTS_DIR := ../dts
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  SUPPORTED_DEVICES += mediatek,mt7981-spim-snand-rfb
+endef
+TARGET_DEVICES += iptime_ax3000sm
+
 define Device/jcg_q30-pro
   DEVICE_VENDOR := JCG
   DEVICE_MODEL := Q30 PRO
@@ -1313,7 +1324,7 @@ define Device/mediatek_mt7981-rfb
 	mt7981-rfb-mxl-2p5g-phy-eth1 \
 	mt7981-rfb-mxl-2p5g-phy-swp5
   DEVICE_DTS_DIR := $(DTS_DIR)/
-  DEVICE_DTC_FLAGS := --pad 4096
+  
   DEVICE_DTS_LOADADDR := 0x43f00000
   DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware kmod-usb3 e2fsprogs f2fsck mkf2fs mt7981-wo-firmware
   KERNEL_LOADADDR := 0x44000000
@@ -1825,7 +1836,6 @@ define Device/tplink_tl-7dr-common
   PAGESIZE := 2048
   KERNEL_IN_UBI := 1
   UBOOTENV_IN_UBI := 1
-  #IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   IMAGES := sysupgrade.itb
   KERNEL_INITRAMFS_SUFFIX := -recovery.itb
   KERNEL := kernel-bin | gzip
