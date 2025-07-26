@@ -81,7 +81,7 @@ MBEDTLS_BUILD_OPTS= \
   CONFIG_MBEDTLS_SSL_PROTO_TLS1_3 \
   CONFIG_MBEDTLS_SSL_TLS1_3_COMPATIBILITY_MODE
 
-PKG_PREPARED_DEPENDS := $(MBEDTLS_BUILD_OPTS)
+PKG_CONFIG_DEPENDS := $(MBEDTLS_BUILD_OPTS)
 
 include $(INCLUDE_DIR)/package.mk
 include $(INCLUDE_DIR)/cmake.mk
@@ -137,14 +137,14 @@ CMAKE_OPTIONS += \
 	-DENABLE_TESTING:Bool=OFF \
 	-DENABLE_PROGRAMS:Bool=ON
 
-define Build/Prepare
-       $(call Build/Prepare/Default)
+define Build/Configure
+	$(call Build/Configure/Default)
 
-       $(if $(strip $(foreach opt,$(MBEDTLS_BUILD_OPTS),$($(opt)))),
-	 $(foreach opt,$(MBEDTLS_BUILD_OPTS),
-	 $(PKG_BUILD_DIR)/scripts/config.py \
-	 -f $(PKG_BUILD_DIR)/include/mbedtls/mbedtls_config.h \
-	 $(if $($(opt)),set,unset) $(patsubst CONFIG_%,%,$(opt))),)
+	$(if $(strip $(foreach opt,$(MBEDTLS_BUILD_OPTS),$($(opt)))),
+		$(foreach opt,$(MBEDTLS_BUILD_OPTS),
+			$(PKG_BUILD_DIR)/scripts/config.py \
+			-f $(PKG_BUILD_DIR)/include/mbedtls/mbedtls_config.h \
+			$(if $($(opt)),set,unset) $(patsubst CONFIG_%,%,$(opt))),)
 endef
 
 define Build/InstallDev

@@ -42,17 +42,11 @@ boot() {
 
 	[ "$FAILSAFE" = "true" ] && touch /tmp/.failsafe
 
-	touch /tmp/.config_pending
+	# update wifi config before additional ieee80211 hotplug events
+	# get executed because of '/sbin/kmodloader' kmod loading.
+	[ -f /etc/board.json ] && /sbin/wifi config
 	/sbin/kmodloader
-	# compat for bcm47xx and mvebu
-	[ -f /etc/config/wireless ] || sleep 1
-	# allows /etc/board.d/* scripts to use values from uboot environment
-	[ -f /etc/uci-defaults/30_uboot-envtools ] \
-		&& (. /etc/uci-defaults/30_uboot-envtools) 
-	/bin/config_generate
-	rm -f /tmp/.config_pending
 
-	[ -x /sbin/wifi ] && /sbin/wifi config
 	uci_apply_defaults
 	sync
 
