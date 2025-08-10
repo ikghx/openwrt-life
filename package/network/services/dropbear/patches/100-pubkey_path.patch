@@ -1,9 +1,9 @@
- src/svr-authpubkey.c | 49 +++++++++++++++++++++++++++++++++++++++++++++----
- 1 file changed, 45 insertions(+), 4 deletions(-)
+ src/svr-authpubkey.c | 59 ++++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 55 insertions(+), 4 deletions(-)
 
 --- a/src/svr-authpubkey.c
 +++ b/src/svr-authpubkey.c
-@@ -79,6 +79,19 @@ static void send_msg_userauth_pk_ok(cons
+@@ -79,6 +79,39 @@ static void send_msg_userauth_pk_ok(cons
  		const unsigned char* keyblob, unsigned int keybloblen);
  static int checkfileperm(char * filename);
  
@@ -14,26 +14,41 @@
 +/* strlen(authkeys_file) */
 +#define  n_authkeys_file  15
 +
++/* OpenWrt-specific:
++   use OpenWrt' global authorized keys directory if:
++   1. logging as uid 0 (typically root).
++   2. "svr_opts.authorized_keys_dir" is set to default i.e. no "-D" option was specified
++      OR
++      "-D" option is specified as homedir-relative path ("~" or "~/...")
++      OR
++      "-D" option is specified as "/etc/dropbear".
++ */
 +static int is_openwrt_defaults(void) {
 +	if (ses.authstate.pw_uid != 0) return 0;
-+	if (svr_opts.authorized_keys_dir[0] == '/') return 0;
-+	return 1;
++	switch (svr_opts.authorized_keys_dir[0]) {
++		case '~':
++			switch (svr_opts.authorized_keys_dir[1]) {
++				case 0:
++					return 1;
++				case '/':
++					return 1;
++			}
++			break;
++		case '/':
++			return (strcmp(svr_opts.authorized_keys_dir, global_authkeys_dir) == 0);
++	}
++	return 0;
 +}
 +
  /* process a pubkey auth request, sending success or failure message as
   * appropriate */
  void svr_auth_pubkey(int valid_user) {
-@@ -439,16 +452,27 @@ out:
+@@ -439,16 +472,22 @@ out:
  static char *authorized_keys_filepath() {
  	size_t len = 0;
  	char *pathname = NULL, *dir = NULL;
 -	const char *filename = "authorized_keys";
 +
-+	/* OpenWrt-specific:
-+	   use OpenWrt' global authorized keys directory if:
-+	   1. logging as uid 0 (typically root)
-+	   2. "svr_opts.authorized_keys_dir" is set to default i.e. no "-D" option was specified
-+	 */
 +	if (is_openwrt_defaults()) {
 +		len = n_global_authkeys_dir + n_authkeys_file + 2;
 +		pathname = m_malloc(len);
@@ -54,7 +69,7 @@
  	m_free(dir);
  	return pathname;
  }
-@@ -549,11 +573,28 @@ out:
+@@ -549,11 +588,23 @@ out:
   * When this path is inside the user's home dir it checks up to and including
   * the home dir, otherwise it checks every path component. */
  static int checkpubkeyperms() {
@@ -62,11 +77,6 @@
 +	char *path = NULL, *sep = NULL;
  	int ret = DROPBEAR_SUCCESS;
  
-+	/* OpenWrt-specific:
-+	   only check permissions for /etc/dropbear/ if:
-+	   1. logging as uid 0 (typically root)
-+	   2. "svr_opts.authorized_keys_dir" is set to default i.e. no "-D" option was specified
-+	*/
 +	if (is_openwrt_defaults()) {
 +		TRACE(("enter checkpubkeyperms/openwrt"))
 +		if (checkfileperm(global_authkeys_dir) != DROPBEAR_SUCCESS) {

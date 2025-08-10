@@ -102,7 +102,7 @@ $(eval $(call KernelPackage,backlight-pwm))
 define KernelPackage/fb
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Framebuffer and framebuffer console support
-  DEPENDS:=@DISPLAY_SUPPORT
+  DEPENDS:=@DISPLAY_SUPPORT +kmod-fb-io-fops
   KCONFIG:= \
 	CONFIG_FB \
 	CONFIG_FB_DEVICE=y \
@@ -128,8 +128,7 @@ define KernelPackage/fb
 	CONFIG_VT_CONSOLE=y \
 	CONFIG_VT_HW_CONSOLE_BINDING=y
   FILES:=$(LINUX_DIR)/drivers/video/fbdev/core/fb.ko \
-	$(LINUX_DIR)/lib/fonts/font.ko \
-	$(LINUX_DIR)/drivers/video/fbdev/core/fb_io_fops.ko
+	$(LINUX_DIR)/lib/fonts/font.ko
   AUTOLOAD:=$(call AutoLoad,06,fb font)
 endef
 
@@ -190,6 +189,18 @@ define KernelPackage/fb-cfb-imgblt/description
 endef
 
 $(eval $(call KernelPackage,fb-cfb-imgblt))
+
+
+define KernelPackage/fb-io-fops
+  SUBMENU:=$(VIDEO_MENU)
+  TITLE:=Fbdev helpers for framebuffers in I/O memory
+  HIDDEN:=1
+  KCONFIG:=CONFIG_FB_IOMEM_FOPS
+  FILES:=$(LINUX_DIR)/drivers/video/fbdev/core/fb_io_fops.ko
+  AUTOLOAD:=$(call AutoLoad,07,fb_io_fops)
+endef
+
+$(eval $(call KernelPackage,fb-io-fops))
 
 
 define KernelPackage/fb-sys-fops

@@ -540,13 +540,29 @@ endef
 $(eval $(call KernelPackage,dsa))
 
 
+define KernelPackage/dsa-notag
+  SUBMENU:=$(NETWORK_DEVICES_MENU)
+  TITLE:=DSA No-op tag driver
+  DEPENDS:=+kmod-dsa
+  KCONFIG:=CONFIG_NET_DSA_TAG_NONE
+  FILES:=$(LINUX_DIR)/net/dsa/tag_none.ko
+endef
+
+define KernelPackage/dsa-notag/description
+  Kernel module support for switches which don't tag frames over the CPU port.
+endef
+
+$(eval $(call KernelPackage,dsa-notag))
+
+
 define KernelPackage/dsa-b53
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Broadcom BCM53xx managed switch DSA support
-  DEPENDS:=+kmod-dsa
+  DEPENDS:=+kmod-dsa +kmod-dsa-notag
   KCONFIG:=CONFIG_B53 \
   CONFIG_NET_DSA_TAG_BRCM \
   CONFIG_NET_DSA_TAG_BRCM_LEGACY \
+  CONFIG_NET_DSA_TAG_BRCM_LEGACY_FCS \
   CONFIG_NET_DSA_TAG_BRCM_PREPEND
   FILES:= \
   $(LINUX_DIR)/drivers/net/dsa/b53/b53_common.ko \
@@ -594,31 +610,20 @@ endef
 
 $(eval $(call KernelPackage,dsa-mv88e6060))
 
-define KernelPackage/dsa-tag-dsa
-  SUBMENU:=$(NETWORK_DEVICES_MENU)
-  TITLE:=Marvell DSA type DSA and EDSA taggers
-  DEPENDS:=+kmod-dsa
-  KCONFIG:= CONFIG_NET_DSA_TAG_DSA_COMMON \
-	CONFIG_NET_DSA_TAG_DSA \
-	CONFIG_NET_DSA_TAG_EDSA
-  FILES:=$(LINUX_DIR)/net/dsa/tag_dsa.ko
-  AUTOLOAD:=$(call AutoLoad,40,tag_dsa,1)
-endef
-
-define KernelPackage/dsa-tag-dsa/description
-  Kernel modules for Marvell DSA and EDSA tagging
-endef
-
-$(eval $(call KernelPackage,dsa-tag-dsa))
-
 define KernelPackage/dsa-mv88e6xxx
   SUBMENU:=$(NETWORK_DEVICES_MENU)
   TITLE:=Marvell MV88E6XXX DSA Switch
-  DEPENDS:=+kmod-dsa +kmod-ptp +kmod-phy-marvell +kmod-dsa-tag-dsa
-  KCONFIG:=CONFIG_NET_DSA_MV88E6XXX \
+  DEPENDS:=+kmod-dsa +kmod-ptp +kmod-phy-marvell
+  KCONFIG:= \
+	CONFIG_NET_DSA_TAG_DSA_COMMON \
+	CONFIG_NET_DSA_TAG_DSA \
+	CONFIG_NET_DSA_TAG_EDSA \
+	CONFIG_NET_DSA_MV88E6XXX \
 	CONFIG_NET_DSA_MV88E6XXX_LEDS=y \
 	CONFIG_NET_DSA_MV88E6XXX_PTP=y
-  FILES:=$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx/mv88e6xxx.ko
+  FILES:= \
+	$(LINUX_DIR)/net/dsa/tag_dsa.ko \
+	$(LINUX_DIR)/drivers/net/dsa/mv88e6xxx/mv88e6xxx.ko
   AUTOLOAD:=$(call AutoLoad,41,mv88e6xxx,1)
 endef
 
@@ -1152,6 +1157,7 @@ define KernelPackage/ice
   TITLE:=Intel(R) Ethernet Controller E810 Series support
   DEPENDS:=@PCI_SUPPORT +kmod-ptp
   KCONFIG:=CONFIG_ICE \
+    CONFIG_ICE_HWMON=y \
     CONFIG_ICE_HWTS=n \
     CONFIG_ICE_SWITCHDEV=y
   FILES:=$(LINUX_DIR)/drivers/net/ethernet/intel/ice/ice.ko
@@ -1174,7 +1180,6 @@ define KernelPackage/iavf
        CONFIG_IAVF
   FILES:= \
        $(LINUX_DIR)/drivers/net/ethernet/intel/iavf/iavf.ko
-  AUTOLOAD:=$(call AutoProbe,i40evf iavf)
   AUTOLOAD:=$(call AutoProbe,iavf)
 endef
 

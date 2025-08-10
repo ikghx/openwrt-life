@@ -563,10 +563,9 @@ $(eval $(call KernelPackage,reed-solomon))
 define KernelPackage/serial-8250
   SUBMENU:=$(OTHER_MENU)
   TITLE:=8250 UARTs
+  DEPENDS:=@!TARGET_uml
   KCONFIG:= CONFIG_SERIAL_8250 \
 	CONFIG_SERIAL_8250_PCI \
-	CONFIG_SERIAL_8250_NR_UARTS=16 \
-	CONFIG_SERIAL_8250_RUNTIME_UARTS=16 \
 	CONFIG_SERIAL_8250_EXTENDED=y \
 	CONFIG_SERIAL_8250_MANY_PORTS=y \
 	CONFIG_SERIAL_8250_SHARE_IRQ=y \
@@ -582,6 +581,31 @@ endef
 
 define KernelPackage/serial-8250/description
  Kernel module for 8250 UART based serial ports
+endef
+
+define KernelPackage/serial-8250/config
+menu "Configuration"
+	depends on PACKAGE_kmod-serial-8250
+
+config KERNEL_SERIAL_8250_NR_UARTS
+	int "Maximum number of 8250/16550 serial ports"
+	default "16"
+	help
+	  Set this to the number of serial ports you want the driver
+	  to support.  This includes any ports discovered via ACPI or
+	  PCI enumeration and any ports that may be added at run-time
+	  via hot-plug, or any ISA multi-port serial cards.
+
+config KERNEL_SERIAL_8250_RUNTIME_UARTS
+	int "Number of 8250/16550 serial ports to register at runtime"
+	range 0 KERNEL_SERIAL_8250_NR_UARTS
+	default "16"
+	help
+	  Set this to the maximum number of serial ports you want
+	  the kernel to register at boot time.  This can be overridden
+	  with the module parameter "nr_uarts", or boot-time parameter
+	  8250.nr_uarts
+endmenu
 endef
 
 $(eval $(call KernelPackage,serial-8250))
@@ -623,7 +647,7 @@ $(eval $(call KernelPackage,regmap-core))
 define KernelPackage/regmap-spi
   SUBMENU:=$(OTHER_MENU)
   TITLE:=SPI register map support
-  DEPENDS:=+kmod-regmap-core
+  DEPENDS:=+kmod-regmap-core @!TARGET_uml
   HIDDEN:=1
   KCONFIG:=CONFIG_REGMAP_SPI \
 	   CONFIG_SPI=y
@@ -943,7 +967,7 @@ $(eval $(call KernelPackage,tpm))
 define KernelPackage/tpm-tis
   SUBMENU:=$(OTHER_MENU)
   TITLE:=TPM TIS 1.2 Interface / TPM 2.0 FIFO Interface
-	DEPENDS:= @TARGET_x86 +kmod-tpm
+	DEPENDS:= @(TARGET_x86||TARGET_armsr) +kmod-tpm
   KCONFIG:= CONFIG_TCG_TIS
   FILES:= \
 	$(LINUX_DIR)/drivers/char/tpm/tpm_tis.ko \
