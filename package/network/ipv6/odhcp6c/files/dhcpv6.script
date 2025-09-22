@@ -3,62 +3,43 @@
 . /lib/functions.sh
 . /lib/netifd/netifd-proto.sh
 
-setup_interface_neigh () {
-	local device="$1"
-
-	# Apply IPv6 / ND configuration
-	HOPLIMIT=$(cat /proc/sys/net/ipv6/conf/$device/hop_limit)
-	[ -n "$RA_HOPLIMIT" -a -n "$HOPLIMIT" ] && [ "$RA_HOPLIMIT" -gt "$HOPLIMIT" ] && echo "$RA_HOPLIMIT" > /proc/sys/net/ipv6/conf/$device/hop_limit
-	[ -n "$RA_MTU" ] && [ "$RA_MTU" -ge 1280 ] && echo "$RA_MTU" > /proc/sys/net/ipv6/conf/$device/mtu 2>/dev/null
-	[ -n "$RA_RETRANSMIT" ] && [ "$RA_RETRANSMIT" -gt 0 ] && echo "$RA_RETRANSMIT" > /proc/sys/net/ipv6/neigh/$device/retrans_time_ms
-	REACHABLE=$(cat /proc/sys/net/ipv6/neigh/$device/base_reachable_time_ms)
-	if [ -n "$RA_REACHABLE" ] && [ "$RA_REACHABLE" -gt 0 ] && [ "$RA_REACHABLE" -ne "$REACHABLE" ]; then
-		echo "$RA_REACHABLE" > /proc/sys/net/ipv6/neigh/$device/base_reachable_time_ms
-		GC_STALE_TIME=$((RA_REACHABLE / 1000 * 3))
-		echo "$GC_STALE_TIME" > /proc/sys/net/ipv6/neigh/$device/gc_stale_time
-	fi
-}
-
 setup_interface () {
 	local device="$1"
 	local prefsig=""
 	local addrsig=""
 
+	# Apply IPv6 / ND configuration
+	HOPLIMIT=$(cat /proc/sys/net/ipv6/conf/$device/hop_limit)
+	[ -n "$RA_HOPLIMIT" -a -n "$HOPLIMIT" ] && [ "$RA_HOPLIMIT" -gt "$HOPLIMIT" ] && echo "$RA_HOPLIMIT" > /proc/sys/net/ipv6/conf/$device/hop_limit
+	[ -n "$RA_MTU" ] && [ "$RA_MTU" -ge 1280 ] && echo "$RA_MTU" > /proc/sys/net/ipv6/conf/$device/mtu 2>/dev/null
+	[ -n "$RA_REACHABLE" ] && [ "$RA_REACHABLE" -gt 0 ] && echo "$RA_REACHABLE" > /proc/sys/net/ipv6/neigh/$device/base_reachable_time_ms
+	[ -n "$RA_RETRANSMIT" ] && [ "$RA_RETRANSMIT" -gt 0 ] && echo "$RA_RETRANSMIT" > /proc/sys/net/ipv6/neigh/$device/retrans_time_ms
+
 	proto_init_update "*" 1
 
 	# Merge RA-DNS
-	for entry in $RA_DNS; do
+	for radns in $RA_DNS; do
 		local duplicate=0
-		local radns="${entry%%,*}"
-		for dentry in $RDNSS; do
-			local dns="${dentry%%,*}"
+		for dns in $RDNSS; do
 			[ "$radns" = "$dns" ] && duplicate=1
 		done
-		[ "$duplicate" = 0 ] && RDNSS="$RDNSS $entry"
+		[ "$duplicate" = 0 ] && RDNSS="$RDNSS $radns"
 	done
 
-	for entry in $RDNSS; do
-		local dns="${entry%%,*}"
-		entry="${entry#*,}"
-		local lifetime="${entry%%,*}"
-		proto_add_dns_server "$dns" "$lifetime"
+	for dns in $RDNSS; do
+		proto_add_dns_server "$dns"
 	done
 
-	for entry in $RA_DOMAINS; do
+	for radomain in $RA_DOMAINS; do
 		local duplicate=0
-		local radomain="${entry%%,*}"
-		for dentry in $DOMAINS; do
-			local domain="${dentry%%,*}"
+		for domain in $DOMAINS; do
 			[ "$radomain" = "$domain" ] && duplicate=1
 		done
-		[ "$duplicate" = 0 ] && DOMAINS="$DOMAINS $entry"
+		[ "$duplicate" = 0 ] && DOMAINS="$DOMAINS $radomain"
 	done
 
-	for entry in $DOMAINS; do
-		local domain="${entry%%,*}"
-		entry="${entry#*,}"
-		local lifetime="${entry%%,*}"
-		proto_add_dns_search "$domain" "$lifetime"
+	for domain in $DOMAINS; do
+		proto_add_dns_search "$domain"
 	done
 
 	for prefix in $PREFIXES; do
@@ -152,7 +133,6 @@ setup_interface () {
 
 		if [ -z "$gw" -o "$duplicate" = 1 ]; then
 			proto_add_ipv6_route "$addr" "$mask" "$gw" "$metric" "$valid"
-			env -i ACTION="ifup" INTERFACE="$INTERFACE" DEVICE="$DEVICE" ADDR="$addr" MASK="$mask" "GW"="$gw" METRIC="$metric" VALID="$valid" /sbin/hotplug-call dhcpv6
 		else
 			for prefix in $PREFIXES $ADDRESSES; do
 				local paddr="${prefix%%,*}"
@@ -185,8 +165,8 @@ setup_interface () {
 
 	[ -n "$ZONE" ] || ZONE=$(fw3 -q network $INTERFACE 2>/dev/null)
 
-	if [ "$IFACE_MAP" != 0 -a -n "$MAPTYPE" -a -n "$MAPRULE" ]; then
-		[ -z "$IFACE_MAP" -o "$IFACE_MAP" = 1 ] && IFACE_MAP=${INTERFACE}_4
+	if [ -n "$IFACE_MAP" ]  && [ "$IFACE_MAP" != 0 ] && [ -n "$MAPTYPE" ] && [ -n "$MAPRULE" ]; then
+		[ "$IFACE_MAP" = 1 ] && IFACE_MAP=${INTERFACE}_4
 		json_init
 		json_add_string name "$IFACE_MAP"
 		json_add_string ifname "@$INTERFACE"
@@ -202,8 +182,8 @@ setup_interface () {
 		[ -n "$IFACE_MAP_DELEGATE" ] && json_add_boolean delegate "$IFACE_MAP_DELEGATE"
 		json_close_object
 		ubus call network add_dynamic "$(json_dump)"
-	elif [ -n "$AFTR" -a "$IFACE_DSLITE" != 0 -a -f /lib/netifd/proto/dslite.sh ]; then
-		[ -z "$IFACE_DSLITE" -o "$IFACE_DSLITE" = 1 ] && IFACE_DSLITE=${INTERFACE}_4
+	elif [ -n "$IFACE_DSLITE" ] && [ "$IFACE_DSLITE" != 0 ] && [ -n "$AFTR" ] && [ -f /lib/netifd/proto/dslite.sh ]; then
+		[ "$IFACE_DSLITE" = 1 ] && IFACE_DSLITE=${INTERFACE}_4
 		json_init
 		json_add_string name "$IFACE_DSLITE"
 		json_add_string ifname "@$INTERFACE"
@@ -216,8 +196,8 @@ setup_interface () {
 		[ -n "$IFACE_DSLITE_DELEGATE" ] && json_add_boolean delegate "$IFACE_DSLITE_DELEGATE"
 		json_close_object
 		ubus call network add_dynamic "$(json_dump)"
-	elif [ "$IFACE_464XLAT" != 0 -a -f /lib/netifd/proto/464xlat.sh ]; then
-		[ -z "$IFACE_464XLAT" -o "$IFACE_464XLAT" = 1 ] && IFACE_464XLAT=${INTERFACE}_4
+	elif [ -n "$IFACE_464XLAT" ] && [ "$IFACE_464XLAT" != 0 ] && [ -f /lib/netifd/proto/464xlat.sh ]; then
+		[ "$IFACE_464XLAT" = 1 ] && IFACE_464XLAT=${INTERFACE}_4
 		json_init
 		json_add_string name "$IFACE_464XLAT"
 		json_add_string ifname "@$INTERFACE"
@@ -242,15 +222,12 @@ teardown_interface() {
 case "$2" in
 	bound)
 		teardown_interface "$1"
-		setup_interface_neigh "$1"
 		setup_interface "$1"
 	;;
 	informed|updated|rebound)
-		setup_interface_neigh "$1"
 		setup_interface "$1"
 	;;
 	ra-updated)
-		setup_interface_neigh "$1"
 		[ -n "$ADDRESSES$RA_ADDRESSES$PREFIXES$USERPREFIX" ] && setup_interface "$1"
 	;;
 	started|stopped|unbound)
