@@ -92,6 +92,7 @@ define Build/inteno-y3-header
 endef
 
 define Build/inteno-bootfs
+	rm -rf $@.ubifs-dir
 	mkdir -p $@.ubifs-dir/boot
 
 	# populate the boot fs with the dtb and the kernel image
@@ -100,7 +101,6 @@ define Build/inteno-bootfs
 
 	# create ubifs
 	$(STAGING_DIR_HOST)/bin/mkfs.ubifs ${MKUBIFS_OPTS} -r $@.ubifs-dir/ -o $@.new
-	rm -rf $@.ubifs-dir
 	mv $@.new $@
 endef
 
@@ -944,7 +944,7 @@ define Device/dlink_dir-2150-r1
   KERNEL := $$(KERNEL)
   IMAGES += factory.bin
   IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
-	check-size | sign-dlink-ru e6587b35a6b34e07bedeca23e140322f 
+	check-size | sign-dlink-ru e6587b35a6b34e07bedeca23e140322f
 endef
 TARGET_DEVICES += dlink_dir-2150-r1
 
@@ -3401,6 +3401,16 @@ define Device/zbtlink_zbt-we3526
 	kmod-usb-ledtrig-usbport -uboot-envtools
 endef
 TARGET_DEVICES += zbtlink_zbt-we3526
+
+define Device/zbtlink_zbt-wg108
+  IMAGE_SIZE := 16064k
+  DEVICE_VENDOR := Zbtlink
+  DEVICE_MODEL := ZBT-WG108
+  DEVICE_PACKAGES := kmod-mt7603 kmod-mt76x2 kmod-usb2 kmod-usb3 \
+	kmod-mmc-mtk -uboot-envtools
+  SUPPORTED_DEVICES += zbt-wg108
+endef
+TARGET_DEVICES += zbtlink_zbt-wg108
 
 define Device/zbtlink_zbt-wg1602-16m
   $(Device/dsa-migration)
