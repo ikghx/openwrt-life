@@ -44,14 +44,15 @@ generate_static_network() {
 		set network.loopback.device='lo'
 		set network.loopback.proto='static'
 		add_list network.loopback.ipaddr='127.0.0.1/8'
+		delete network.globals
+		set network.globals='globals'
+		set network.globals.dhcp_default_duid='auto'
 	EOF
-		[ -e /proc/sys/net/ipv6 ] && {
-			uci -q batch <<-EOF
-				delete network.globals
-				set network.globals='globals'
-				set network.globals.ula_prefix='auto'
-			EOF
-		}
+	[ -e /proc/sys/net/ipv6 ] && {
+		uci -q batch <<-EOF
+			set network.globals.ula_prefix='auto'
+		EOF
+	}
 
 	if json_is_a dsl object; then
 		json_select dsl
@@ -91,12 +92,12 @@ generate_static_network() {
 
 addr_offset=2
 generate_network() {
-	local ports device macaddr protocol type ipaddr netmask vlan force_link auto
+	local ports device macaddr protocol type ipaddr netmask vlan
 	local bridge=$2
 
 	json_select network
 		json_select "$1"
-			json_get_vars device macaddr metric protocol ipaddr netmask vlan force_link auto
+			json_get_vars device macaddr metric protocol ipaddr netmask vlan
 			json_get_values ports ports
 		json_select ..
 	json_select ..
@@ -175,7 +176,6 @@ generate_network() {
 				add_list network.$1.ipaddr='$ipad/$prefix'
 			EOF
 			[ -e /proc/sys/net/ipv6 ] && uci set network.$1.ip6assign='60'
-			[ -n "$force_link" ] && uci set network.$1.force_link="${force_link}"
 		;;
 
 		dhcp)
@@ -190,7 +190,6 @@ generate_network() {
 					set network.${1}6.device='$device'
 					set network.${1}6.proto='dhcpv6'
 				EOF
-				[ -n "$auto" ] && uci -q set network.${1}6.auto="${auto}"
 			}
 		;;
 
@@ -208,7 +207,6 @@ generate_network() {
 					set network.${1}6.device='@${1}'
 					set network.${1}6.proto='dhcpv6'
 				EOF
-				[ -n "$auto" ] && uci -q set network.${1}6.auto="${auto}"
 			}
 		;;
 
@@ -221,8 +219,6 @@ generate_network() {
 			EOF
 		;;
 	esac
-
-	[ -n "$auto" ] && uci -q set network.${1}.auto="${auto}"
 }
 
 generate_switch_vlans_ports() {
@@ -346,46 +342,16 @@ generate_static_system() {
 				uci -q set "system.@system[-1].hostname=$hostname"
 			fi
 
-			local conloglevel
-			if json_get_var conloglevel conloglevel; then
-				uci -q set "system.@system[-1].conloglevel=$conloglevel"
-			fi
-
-			local ttylogin
-			if json_get_var ttylogin ttylogin; then
-				uci -q set "system.@system[-1].ttylogin=$ttylogin"
-			fi
-
-			local zonename
-			if json_get_var zonename zonename; then
-				uci -q set "system.@system[-1].zonename=$zonename"
-			fi
-
-			local timezone
-			if json_get_var timezone timezone; then
-				uci -q set "system.@system[-1].timezone=$timezone"
-			fi
-
-			local cronloglevel
-			if json_get_var cronloglevel cronloglevel; then
-				uci -q set "system.@system[-1].cronloglevel=$cronloglevel"
-			fi
-
-			local log_size
-			if json_get_var log_size log_size; then
-				uci -q set "system.@system[-1].log_size=$log_size"
-			fi
-
-			local log_file
-			if json_get_var log_file log_file; then
-				uci -q set "system.@system[-1].log_file=$log_file"
-			fi
-
 			local compat_version
 			if json_get_var compat_version compat_version; then
 				uci -q set "system.@system[-1].compat_version=$compat_version"
 			else
 				uci -q set "system.@system[-1].compat_version=1.0"
+			fi
+
+			local timezone
+			if json_get_var timezone timezone; then
+				uci -q set "system.@system[-1].timezone=$timezone"
 			fi
 
 			if json_is_a ntpserver array; then

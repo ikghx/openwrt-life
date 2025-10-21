@@ -108,6 +108,44 @@ tplink_do_upgrade() {
 	nand_do_upgrade "$1"
 }
 
+linksys_mx_pre_upgrade() {
+	local setenv_script="/tmp/fw_env_upgrade"
+
+	CI_UBIPART="rootfs"
+	boot_part="$(fw_printenv -n boot_part)"
+	if [ -n "$UPGRADE_OPT_USE_CURR_PART" ]; then
+		if [ "$boot_part" -eq "2" ]; then
+			CI_KERNPART="alt_kernel"
+			CI_UBIPART="alt_rootfs"
+		fi
+	else
+		if [ "$boot_part" -eq "1" ]; then
+			echo "boot_part 2" >> $setenv_script
+			CI_KERNPART="alt_kernel"
+			CI_UBIPART="alt_rootfs"
+		else
+			echo "boot_part 1" >> $setenv_script
+		fi
+	fi
+
+	boot_part_ready="$(fw_printenv -n boot_part_ready)"
+	if [ "$boot_part_ready" -ne "3" ]; then
+		echo "boot_part_ready 3" >> $setenv_script
+	fi
+
+	auto_recovery="$(fw_printenv -n auto_recovery)"
+	if [ "$auto_recovery" != "yes" ]; then
+		echo "auto_recovery yes" >> $setenv_script
+	fi
+
+	if [ -f "$setenv_script" ]; then
+		fw_setenv -s $setenv_script || {
+			echo "failed to update U-Boot environment"
+			return 1
+		}
+	fi
+}
+
 platform_check_image() {
 	return 0;
 }
@@ -173,20 +211,15 @@ platform_do_upgrade() {
 		;;
 	linksys,mx4200v1|\
 	linksys,mx4200v2|\
-	linksys,mx4300|\
+	linksys,mx4300)
+		linksys_mx_pre_upgrade "$1"
+		remove_oem_ubi_volume squashfs
+		nand_do_upgrade "$1"
+		;;
 	linksys,mx5300|\
 	linksys,mx8500)
-		boot_part="$(fw_printenv -n boot_part)"
-		if [ "$boot_part" -eq "1" ]; then
-			fw_setenv boot_part 2
-			CI_KERNPART="alt_kernel"
-			CI_UBIPART="alt_rootfs"
-		else
-			fw_setenv boot_part 1
-			CI_UBIPART="rootfs"
-		fi
-		fw_setenv boot_part_ready 3
-		fw_setenv auto_recovery yes
+		linksys_mx_pre_upgrade "$1"
+		remove_oem_ubi_volume ubifs
 		nand_do_upgrade "$1"
 		;;
 	prpl,haze|\
@@ -212,34 +245,6 @@ platform_do_upgrade() {
 		# Kernel and rootfs are placed in 2 different UBI
 		CI_KERN_UBIPART="ubi_kernel"
 		CI_ROOT_UBIPART="rootfs"
-		nand_do_upgrade "$1"
-		;;
-	redmi,ax6-stock|\
-	xiaomi,ax3600-stock|\
-	xiaomi,ax9000-stock)
-		part_num="$(fw_printenv -n flag_boot_rootfs)"
-		if [ "$part_num" -eq "1" ]; then
-			CI_UBIPART="rootfs_1"
-			target_num=1
-			# Reset fail flag for the current partition
-			# With both partition set to fail, the partition 2 (bit 1)
-			# is loaded
-			fw_setenv flag_try_sys2_failed 0
-		else
-			CI_UBIPART="rootfs"
-			target_num=0
-			# Reset fail flag for the current partition
-			# or uboot will skip the loading of this partition
-			fw_setenv flag_try_sys1_failed 0
-		fi
-
-		# Tell uboot to switch partition
-		fw_setenv flag_boot_rootfs "$target_num"
-		fw_setenv flag_last_success "$target_num"
-
-		# Reset success flag
-		fw_setenv flag_boot_success 0
-
 		nand_do_upgrade "$1"
 		;;
 	spectrum,sax1v1k)
@@ -278,10 +283,6 @@ platform_do_upgrade() {
 	zte,mf269)
 		CI_KERN_UBIPART="ubi_kernel"
 		CI_ROOT_UBIPART="rootfs"
-		nand_do_upgrade "$1"
-		;;
-	zte,mf269-stock)
-		CI_UBIPART="rootfs"
 		nand_do_upgrade "$1"
 		;;
 	zyxel,nbg7815)
