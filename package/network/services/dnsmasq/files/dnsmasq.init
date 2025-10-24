@@ -1243,14 +1243,14 @@ dnsmasq_start()
 		[ "$dnsseccheckunsigned" -eq 0 ] && xappend "--dnssec-check-unsigned=no"
 	}
 
-	config_get add_mac "$cfg" add_mac 0
-	[ "$add_mac" != "0" ] && {
-		[ "$add_mac" = "1" ] && add_mac=
-		xappend "--add-mac${add_mac:+="$add_mac"}"
+	config_get addmac "$cfg" addmac 0
+	[ "$addmac" != "0" ] && {
+		[ "$addmac" = "1" ] && addmac=
+		xappend "--add-mac${addmac:+="$addmac"}"
 	}
-	append_bool "$cfg" strip_mac "--strip-mac"
-	append_parm "$cfg" add_subnet "--add-subnet"
-	append_bool "$cfg" strip_subnet "--strip-subnet"
+	append_bool "$cfg" stripmac "--strip-mac"
+	append_parm "$cfg" addsubnet "--add-subnet"
+	append_bool "$cfg" stripsubnet "--strip-subnet"
 
 	dhcp_option_add "$cfg" "" 0
 	dhcp_option_add "$cfg" "" 2
