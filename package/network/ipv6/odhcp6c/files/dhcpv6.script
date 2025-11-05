@@ -149,6 +149,11 @@ setup_interface () {
 
 	proto_send_update "$INTERFACE"
 
+	# If the flag '$DYNAMIC' is set to '0' (default=1), then the dynamic
+	# interfaces for the proto 'map', 'dslite' or '464xlat' are not
+	# created, even if the requirements are met.
+	[ "$DYNAMIC" = 0 ] && return
+
 	MAPTYPE=""
 	MAPRULE=""
 
@@ -192,6 +197,7 @@ setup_interface () {
 		json_add_string tunlink "$INTERFACE"
 		[ -n "$ZONE_DSLITE" ] || ZONE_DSLITE=$ZONE
 		[ -n "$ZONE_DSLITE" ] && json_add_string zone "$ZONE_DSLITE"
+		[ -n "$MTU_DSLITE" ] && json_add_string mtu "$MTU_DSLITE"
 		[ -n "$ENCAPLIMIT_DSLITE" ] && json_add_string encaplimit "$ENCAPLIMIT_DSLITE"
 		[ -n "$IFACE_DSLITE_DELEGATE" ] && json_add_boolean delegate "$IFACE_DSLITE_DELEGATE"
 		json_close_object
