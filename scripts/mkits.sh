@@ -149,6 +149,7 @@ if [ -n "${INITRD}" ]; then
 			type = \"ramdisk\";
 			arch = \"${ARCH}\";
 			os = \"linux\";
+			compression = \"none\";
 			hash${REFERENCE_CHAR}1 {
 				algo = \"crc32\";
 			};

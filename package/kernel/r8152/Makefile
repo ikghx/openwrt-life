@@ -8,18 +8,20 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=r8152
-PKG_VERSION:=2.20.1
+PKG_VERSION:=2.21.4
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://codeload.github.com/wget/realtek-r8152-linux/tar.gz/v$(PKG_VERSION)?
-PKG_HASH:=045a1e1d20336d26b61b01d8561216029ff3405894707958b5670a7cd7fa75c1
+PKG_HASH:=0e94a553d1dda29fd5a2aa22c8d4bb51fd0a2c087b7f2d81e3d7fce0ce0f1687
 PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/realtek-$(PKG_NAME)-linux-$(PKG_VERSION)
 
 PKG_LICENSE:=GPL-2.0-only
 PKG_MAINTAINER:=Tianling Shen <cnsztl@immortalwrt.org>
 
 include $(INCLUDE_DIR)/package.mk
+
+TAR_CMD=$(HOST_TAR) -C $(1)/ $(TAR_OPTIONS)
 
 define KernelPackage/usb-net-rtl8152-vendor
   TITLE:=Kernel module for USB-to-Ethernet Realtek convertors
