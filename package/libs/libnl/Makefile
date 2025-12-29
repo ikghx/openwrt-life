@@ -93,6 +93,7 @@ define Package/libnl/description
 endef
 
 TARGET_CFLAGS += $(FPIC)
+TARGET_LDFLAGS += $(FPIC)
 
 CONFIGURE_ARGS += \
 	--disable-debug
