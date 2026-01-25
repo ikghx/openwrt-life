@@ -275,7 +275,7 @@ dhcp_subscrid_add() {
 	config_get subscriberid "$cfg" subscriberid
 	[ -n "$subscriberid" ] || return 0
 
-	xappend "--dhcp-subscrid=set:$networkid,$subscriberid"
+	xappend "--dhcp-subscrid=tag:$networkid,$subscriberid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -291,7 +291,7 @@ dhcp_remoteid_add() {
 	config_get remoteid "$cfg" remoteid
 	[ -n "$remoteid" ] || return 0
 
-	xappend "--dhcp-remoteid=set:$networkid,$remoteid"
+	xappend "--dhcp-remoteid=tag:$networkid,$remoteid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -308,7 +308,7 @@ dhcp_circuitid_add() {
 	config_get circuitid "$cfg" circuitid
 	[ -n "$circuitid" ] || return 0
 
-	xappend "--dhcp-circuitid=set:$networkid,$circuitid"
+	xappend "--dhcp-circuitid=tag:$networkid,$circuitid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -324,7 +324,7 @@ dhcp_userclass_add() {
 	config_get userclass "$cfg" userclass
 	[ -n "$userclass" ] || return 0
 
-	xappend "--dhcp-userclass=set:$networkid,$userclass"
+	xappend "--dhcp-userclass=tag:$networkid,$userclass"
 
 	config_get_bool force "$cfg" force 0
 
@@ -341,7 +341,7 @@ dhcp_vendorclass_add() {
 	config_get vendorclass "$cfg" vendorclass
 	[ -n "$vendorclass" ] || return 0
 
-	xappend "--dhcp-vendorclass=set:$networkid,$vendorclass"
+	xappend "--dhcp-vendorclass=tag:$networkid,$vendorclass"
 
 	config_get_bool force "$cfg" force 0
 
@@ -357,7 +357,7 @@ dhcp_match_add() {
 	config_get match "$cfg" match
 	[ -n "$match" ] || return 0
 
-	xappend "--dhcp-match=set:$networkid,$match"
+	xappend "--dhcp-match=tag:$networkid,$match"
 
 	config_get_bool force "$cfg" force 0
 
@@ -389,7 +389,7 @@ dhcp_host_add() {
 
 	config_get mac "$cfg" mac
 	config_get duid "$cfg" duid
-	config_get clientid "$cfg" client_id
+	config_get clientid "$cfg" clientid
 	config_get tag "$cfg" tag
 
 	add_tag() {
@@ -410,7 +410,7 @@ dhcp_host_add() {
 	fi
 
 	if [ -n "$clientid" ]; then
-		clientid="id:${clientid},"
+		clientid="id:${clientid}"
 	fi
 
 	if [ -z "$macs" ] && [ -z "$duids" ] && [ -z "$clientid" ]; then
@@ -433,7 +433,7 @@ dhcp_host_add() {
 
 	[ "$broadcast" = "0" ] && broadcast= || broadcast=",set:needs-broadcast"
 
-	hosttag="${networkid:+,set:${networkid}}${tags:+,set:${tags}}$broadcast"
+	hosttag="${networkid:+,tag:${networkid}}${tags:+,set:${tags}}$broadcast"
 	nametime="${name:+,$name}${leasetime:+,$leasetime}"
 
 	if [ $DNSMASQ_DHCP_VER -eq 6 ]; then
@@ -621,7 +621,7 @@ dhcp_add() {
 	}
 	config_list_foreach "$cfg" tag add_tag
 
-	nettag="${networkid:+set:${networkid},}"
+	nettag="${networkid:+tag:${networkid},}"
 
 	# make sure the DHCP range is not empty
 	if [ "$dhcpv4" != "disabled" ]; then
@@ -1103,25 +1103,29 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "conf_file" append_conf_file
 	config_list_foreach "$cfg" "ipset" append_ipset
 
-        config_get_bool fast_dns_retry "$cfg" "fast_dns_retry" 0
-        config_get fast_dns_retry_params "$cfg" "fast_dns_retry_params"
-        if [ $fast_dns_retry -eq 1 ]; then
-	    if [ -n "$fast_dns_retry_params" ]; then
-		    append_parm "$cfg" fast_dns_retry_params "--fast-dns-retry"
-	    else
-		    append_bool "$cfg" fast_dns_retry "--fast-dns-retry"
-	    fi
-        fi
+        # --fast-dns-retry=[<initial retry delay in ms>[,<time to continue retries in ms>]]
+	local fast_dns_retry fast_dns_retry_param
+	config_get_bool fast_dns_retry "$cfg" fast_dns_retry 0
+	[ "$fast_dns_retry" = "1" ] && {
+		config_get fast_dns_retry_param "$cfg" fast_dns_retry_param
+		if [ -n "$fast_dns_retry_param" ]; then
+			append_parm "$cfg" fast_dns_retry_param "--fast-dns-retry"
+		else
+			append_bool "$cfg" fast_dns_retry "--fast-dns-retry"
+		fi
+	}
 
-        config_get_bool use_stale_cache "$cfg" "use_stale_cache" 0
-        config_get stale_cache_params "$cfg" "stale_cache_params"
-        if [ $use_stale_cache -eq 1 ]; then
-	    if [ -n "$stale_cache_params" ]; then
-	            append_parm "$cfg" stale_cache_params "--use-stale-cache"
-	    else
-		    append_bool "$cfg" use_stale_cache "--use-stale-cache"
-	    fi
-        fi
+	# --use-stale-cache[=<max TTL excess in s>]
+	local use_stale_cache stale_cache_param
+	config_get_bool use_stale_cache "$cfg" use_stale_cache 0
+	[ "$use_stale_cache" = "1" ] && {
+		config_get stale_cache_param "$cfg" stale_cache_param
+		if [ -n "$stale_cache_param" ]; then
+			append_parm "$cfg" stale_cache_param "--use-stale-cache"
+		else
+			append_bool "$cfg" use_stale_cache "--use-stale-cache"
+		fi
+	}
 
 	local address_as_local
 	config_get address_as_local "$cfg" address_as_local 0
@@ -1149,9 +1153,7 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "addnhosts" append_addnhosts
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
 	config_list_foreach "$cfg" "ptr_record" append_ptr_record
-	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.$cfg.leases"
-	config_get leasefile $cfg leasefile "/tmp/dhcp.$cfg.leases"
-	[ -n "$leasefile" ] && [ ! -e "$leasefile" ] && touch "$leasefile"
+	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.leases"
 
 	local serversfile
 	config_get serversfile "$cfg" "serversfile"
@@ -1189,6 +1191,10 @@ dnsmasq_start()
 		xappend "--script-arp"
 	fi
 
+	config_get leasefile $cfg leasefile "/tmp/dhcp.leases"
+	local leasefiledir="$(dirname $leasefile)"
+	[ ! -e "$leasefiledir" ] && mkdir -p "$leasefiledir" && chown dnsmasq:dnsmasq "$leasefiledir"
+	[ -n "$leasefile" ] && [ ! -e "$leasefile" ] && touch "$leasefile"
 	config_get_bool cachelocal "$cfg" cachelocal 1
 
 	config_get_bool noresolv "$cfg" noresolv 0
@@ -1231,14 +1237,11 @@ dnsmasq_start()
 	[ "$dnssec" -gt 0 ] && {
 		xappend "--conf-file=$TRUSTANCHORSFILE"
 		xappend "--dnssec"
-
-		[ ! -f "$TIMEVALIDFILE" ] && {
-			{ [ -x /etc/init.d/sysntpd ] && /etc/init.d/sysntpd enabled &&
-				[ "$(uci_get system.ntp.enabled)" = "1" ]; } ||
-			{ [ -x /etc/init.d/chronyd ] && /etc/init.d/chronyd enabled; } ||
-			{ [ -x /etc/init.d/ntpd ] && /etc/init.d/ntpd enabled; }
-		} && xappend "--dnssec-no-timecheck"
-
+		[ -x /etc/init.d/sysntpd ] && {
+			if /etc/init.d/sysntpd enabled || [ "$(uci_get system.ntp.enabled)" = "1" ] ; then
+				[ -f "$TIMEVALIDFILE" ] || xappend "--dnssec-no-timecheck"
+			fi
+		}
 		config_get_bool dnsseccheckunsigned "$cfg" dnsseccheckunsigned 1
 		[ "$dnsseccheckunsigned" -eq 0 ] && xappend "--dnssec-check-unsigned=no"
 	}
