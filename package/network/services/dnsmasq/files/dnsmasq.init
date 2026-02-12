@@ -11,8 +11,8 @@ ADD_LOCAL_HOSTNAME=1
 ADD_WAN_FQDN=0
 ADD_LOCAL_FQDN=""
 
-COMMONCONFDIR="/tmp/dnsmasq.d"
 BASECONFIGFILE="/var/etc/dnsmasq.conf"
+EXTRACONFFILE="extraconfig.conf"
 BASEHOSTFILE="/tmp/hosts/dhcp"
 TRUSTANCHORSFILE="/usr/share/dnsmasq/trust-anchors.conf"
 TIMEVALIDFILE="/var/state/dnsmasqsec"
@@ -275,7 +275,7 @@ dhcp_subscrid_add() {
 	config_get subscriberid "$cfg" subscriberid
 	[ -n "$subscriberid" ] || return 0
 
-	xappend "--dhcp-subscrid=tag:$networkid,$subscriberid"
+	xappend "--dhcp-subscrid=set:$networkid,$subscriberid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -291,7 +291,7 @@ dhcp_remoteid_add() {
 	config_get remoteid "$cfg" remoteid
 	[ -n "$remoteid" ] || return 0
 
-	xappend "--dhcp-remoteid=tag:$networkid,$remoteid"
+	xappend "--dhcp-remoteid=set:$networkid,$remoteid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -308,7 +308,7 @@ dhcp_circuitid_add() {
 	config_get circuitid "$cfg" circuitid
 	[ -n "$circuitid" ] || return 0
 
-	xappend "--dhcp-circuitid=tag:$networkid,$circuitid"
+	xappend "--dhcp-circuitid=set:$networkid,$circuitid"
 
 	config_get_bool force "$cfg" force 0
 
@@ -324,7 +324,7 @@ dhcp_userclass_add() {
 	config_get userclass "$cfg" userclass
 	[ -n "$userclass" ] || return 0
 
-	xappend "--dhcp-userclass=tag:$networkid,$userclass"
+	xappend "--dhcp-userclass=set:$networkid,$userclass"
 
 	config_get_bool force "$cfg" force 0
 
@@ -341,7 +341,7 @@ dhcp_vendorclass_add() {
 	config_get vendorclass "$cfg" vendorclass
 	[ -n "$vendorclass" ] || return 0
 
-	xappend "--dhcp-vendorclass=tag:$networkid,$vendorclass"
+	xappend "--dhcp-vendorclass=set:$networkid,$vendorclass"
 
 	config_get_bool force "$cfg" force 0
 
@@ -357,7 +357,7 @@ dhcp_match_add() {
 	config_get match "$cfg" match
 	[ -n "$match" ] || return 0
 
-	xappend "--dhcp-match=tag:$networkid,$match"
+	xappend "--dhcp-match=set:$networkid,$match"
 
 	config_get_bool force "$cfg" force 0
 
@@ -389,7 +389,6 @@ dhcp_host_add() {
 
 	config_get mac "$cfg" mac
 	config_get duid "$cfg" duid
-	config_get clientid "$cfg" clientid
 	config_get tag "$cfg" tag
 
 	add_tag() {
@@ -409,11 +408,7 @@ dhcp_host_add() {
 		duids="id:${duid// */}"
 	fi
 
-	if [ -n "$clientid" ]; then
-		clientid="id:${clientid}"
-	fi
-
-	if [ -z "$macs" ] && [ -z "$duids" ] && [ -z "$clientid" ]; then
+	if [ -z "$macs" ] && [ -z "$duids" ]; then
 		# --dhcp-host=lap,192.168.0.199,[::beef]
 		[ -n "$name" ] || return 0
 		macs="$name"
@@ -433,14 +428,14 @@ dhcp_host_add() {
 
 	[ "$broadcast" = "0" ] && broadcast= || broadcast=",set:needs-broadcast"
 
-	hosttag="${networkid:+,tag:${networkid}}${tags:+,set:${tags}}$broadcast"
+	hosttag="${networkid:+,set:${networkid}}${tags:+,set:${tags}}$broadcast"
 	nametime="${name:+,$name}${leasetime:+,$leasetime}"
 
 	if [ $DNSMASQ_DHCP_VER -eq 6 ]; then
 		addrs="${ip:+,$ip}${hostid:+,[::$hostid]}"
-		xappend "--dhcp-host=$mtags$clientid$macs${duids:+,$duids}$hosttag$addrs$nametime"
+		xappend "--dhcp-host=$mtags$macs${duids:+,$duids}$hosttag$addrs$nametime"
 	else
-		xappend "--dhcp-host=$mtags$clientid$macs$hosttag${ip:+,$ip}$nametime"
+		xappend "--dhcp-host=$mtags$macs$hosttag${ip:+,$ip}$nametime"
 	fi
 }
 
@@ -497,17 +492,16 @@ dhcp_tag_add() {
 	# NOTE: dnsmasq has explicit "option6:" prefix for DHCPv6 so no collisions
 	local cfg="$1"
 
-	config_get match_tag "$cfg" match_tag
-	[ -n "$match_tag" ] || match_tag="$cfg"
-	# Try older 'named' tag syntax
-	[ -n "$match_tag" ] || return 0
+	tag="$cfg"
+
+	[ -n "$tag" ] || return 0
 
 	config_get_bool force "$cfg" force 0
 	[ "$force" = "0" ] && force=
 
 	config_get option "$cfg" dhcp_option
 	for o in $option; do
-		xappend "--dhcp-option${force:+-force}=tag:$match_tag,$o"
+		xappend "--dhcp-option${force:+-force}=tag:$tag,$o"
 	done
 }
 
@@ -621,7 +615,7 @@ dhcp_add() {
 	}
 	config_list_foreach "$cfg" tag add_tag
 
-	nettag="${networkid:+tag:${networkid},}"
+	nettag="${networkid:+set:${networkid},}"
 
 	# make sure the DHCP range is not empty
 	if [ "$dhcpv4" != "disabled" ]; then
@@ -1033,6 +1027,7 @@ dnsmasq_start()
 	append_bool "$cfg" "nohosts" "--no-hosts"
 	append_bool "$cfg" "nonegcache" "--no-negcache"
 	append_bool "$cfg" "strictorder" "--strict-order"
+	append_bool "$cfg" "noroundrobin" "--no-round-robin"
 	append_bool "$cfg" "logqueries" "--log-queries=extra"
 	append_parm "$cfg" "log_async" "--log-async"
 	append_bool "$cfg" "noresolv" "--no-resolv"
@@ -1081,7 +1076,6 @@ dnsmasq_start()
 	append_bool "$cfg" "noping" "--no-ping"
 	append_bool "$cfg" "rapidcommit" "--dhcp-rapid-commit"
 	append_bool "$cfg" "scriptarp" "--script-arp"
-	append_bool "$cfg" "noroundrobin" "--no-round-robin"
 	config_list_foreach "$cfg" "filter_rr" append_filter_rr
 	config_list_foreach "$cfg" "cache_rr" append_cache_rr
 
@@ -1147,8 +1141,8 @@ dnsmasq_start()
 		xappend "--addn-hosts=$HOSTFILE"
 		append EXTRA_MOUNT "$HOSTFILE"
 	else
-		xappend "--addn-hosts=$(dirname $HOSTFILE)"
-		append EXTRA_MOUNT "$(dirname $HOSTFILE)"
+		xappend "--addn-hosts=$HOSTFILE_DIR"
+		append EXTRA_MOUNT "$HOSTFILE_DIR"
 	fi
 	config_list_foreach "$cfg" "addnhosts" append_addnhosts
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
@@ -1165,8 +1159,8 @@ dnsmasq_start()
 	append_parm "$cfg" "tftp_root" "--tftp-root"
 	append_parm "$cfg" "dhcp_boot" "--dhcp-boot"
 	append_parm "$cfg" "local_ttl" "--local-ttl"
-	append_parm "$cfg" "max_ttl" "--max-ttl"
 	append_parm "$cfg" "neg_ttl" "--neg-ttl"
+	append_parm "$cfg" "max_ttl" "--max-ttl"
 	append_parm "$cfg" "min_cache_ttl" "--min-cache-ttl"
 	append_parm "$cfg" "max_cache_ttl" "--max-cache-ttl"
 	append_parm "$cfg" "pxe_prompt" "--pxe-prompt"
@@ -1260,42 +1254,21 @@ dnsmasq_start()
 
 	xappend "--dhcp-broadcast=tag:needs-broadcast"
 
-	# Set up daemon config paths
-	[ ! -d "$COMMONCONFDIR" ] && mkdir -p "$COMMONCONFDIR"
 
-	# Add common/shared --conf-dir (it can be used only once)
-	# ,* signals dnsmasq to glob every file in the path
-	xappend "--conf-dir=$COMMONCONFDIR,*"
-
-	# Per-instance configuration directory
-	config_get _instanceconfdir "$cfg" confdir "/tmp/dnsmasq${cfg:+.$cfg}.d,*"
-
-	# in case mask suffix was also provided
-	[ "$_instanceconfdir" != "${_instanceconfdir%%,*}" ] && {
-		_mask="${_instanceconfdir##*,}"
-		_instanceconfdir="${_instanceconfdir%%,*}"
-	}
-	# Set default file mask to *
-	_mask="${_mask:-*}"
-
-	# Ensure _instanceconfdir is an absolute path
-	[ "${_instanceconfdir:0:1}" = '/' ] && {
-		[ ! -d "$_instanceconfdir" ] && mkdir -p "$_instanceconfdir"
-
+	# Create a dnsmasq.d dir for each instance
+	config_get dnsmasqconfdir "$cfg" confdir "/tmp/dnsmasq${cfg:+.$cfg}.d"
+	# Ensure dnsmasqconfdir is an absolute path
+	[ "${dnsmasqconfdir:0:1}" = '/' ] && {
+		xappend "--conf-dir=$dnsmasqconfdir"
+		dnsmasqconfdir="${dnsmasqconfdir%%,*}"
+		[ ! -d "$dnsmasqconfdir" ] && mkdir -p "$dnsmasqconfdir"
 		xappend "--user=dnsmasq"
 		xappend "--group=dnsmasq"
 		echo >> "$CONFIGFILE_TMP"
 
-		# Instance-specific conf file
-		instance_conf_file="$_instanceconfdir/${cfg}.conf"
+		# EXTRACONFFILE allows new dnsmasq parameters before they are natively handled in this init file
 		config_get extraconftext "$cfg" extraconftext
-		[ -n "$extraconftext" ] && echo -e "$extraconftext" > "$instance_conf_file"
-
-		# Add each instance path file individually (later, jail only the folder)
-		for conf in "$_instanceconfdir"/$_mask ; do
-			[ -f "$conf" ] || continue
-			xappend "--conf-file=$conf"
-		done
+		[ -n "$extraconftext" ] && echo -e "$extraconftext" > "$dnsmasqconfdir"/"$EXTRACONFFILE"
 	}
 
 	config_get_bool enable_tftp "$cfg" enable_tftp 0
@@ -1392,8 +1365,7 @@ dnsmasq_start()
 	procd_add_jail dnsmasq ubus log
 	procd_add_jail_mount "$CONFIGFILE" "$DHCPBOGUSHOSTNAMEFILE" "$DHCPSCRIPT" "$DHCPSCRIPT_DEPENDS"
 	procd_add_jail_mount "$EXTRA_MOUNT" "$RFC6761FILE" "$TRUSTANCHORSFILE"
-	procd_add_jail_mount "$COMMONCONFDIR"
-	procd_add_jail_mount "$dnsmasqconffile" "$_instanceconfdir" "$resolvdir" "$user_dhcpscript"
+	procd_add_jail_mount "$dnsmasqconffile" "$dnsmasqconfdir" "$resolvdir" "$user_dhcpscript"
 	procd_add_jail_mount /etc/passwd /etc/group /etc/TZ /etc/hosts /etc/ethers /dev/urandom
 	procd_add_jail_mount_rw /var/run/dnsmasq/ "$leasefile"
 	case "$logfacility" in */*)
