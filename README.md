@@ -23,7 +23,7 @@ This warehouse is for testing only and does not provide reliability guarantees!
  
 ## 编译准备
 
-1. 选择 “最小安装” Ubuntu 24.04.1 Desktop (64-bit)
+1. 选择 “最小安装” Ubuntu 22.04.5 Desktop (64-bit)
 
 2. 使用普通用户登录 Ubuntu 系统，禁止使用 root 用户或权限进行编译操作。
 
@@ -34,10 +34,11 @@ sudo apt update
 ```
 
 ```
-sudo apt install -y build-essential clang curl flex bison \
+sudo apt install -y build-essential \
+clang curl flex bison \
 g++-multilib gawk gettext git \
-libelf-dev libncurses5-dev libssl-dev \
-python2-dev python3-dev python3-distutils python3-setuptools \
+libelf-dev libssl-dev \
+python3-dev python3-setuptools \
 swig mkisofs qemu-utils
 ```
 
