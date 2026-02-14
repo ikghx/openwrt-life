@@ -47,6 +47,7 @@ generate_static_network() {
 		delete network.globals
 		set network.globals='globals'
 		set network.globals.dhcp_default_duid='auto'
+		set network.globals.packet_steering='1'
 	EOF
 	[ -e /proc/sys/net/ipv6 ] && {
 		uci -q batch <<-EOF
