@@ -37,7 +37,7 @@ sudo apt update
 sudo apt install -y build-essential \
 clang curl flex bison \
 g++-multilib gawk gettext git \
-libelf-dev libssl-dev \
+libelf-dev libssl-dev libplist-utils \
 python3-dev python3-setuptools \
 swig mkisofs qemu-utils
 ```
