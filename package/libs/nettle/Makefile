@@ -29,7 +29,7 @@ define Package/libnettle
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=GNU crypto library
-  URL:=http://www.lysator.liu.se/~nisse/nettle/
+  URL:=https://www.lysator.liu.se/~nisse/nettle/
   DEPENDS+= +!LIBNETTLE_MINI:libgmp
   ABI_VERSION:=8
 endef

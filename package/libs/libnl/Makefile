@@ -27,7 +27,7 @@ include $(INCLUDE_DIR)/package.mk
 define Package/libnl/default
   SECTION:=libs
   CATEGORY:=Libraries
-  URL:=http://www.infradead.org/~tgr/libnl/
+  URL:=https://www.infradead.org/~tgr/libnl/
   ABI_VERSION:=200
 endef
 
@@ -93,7 +93,6 @@ define Package/libnl/description
 endef
 
 TARGET_CFLAGS += $(FPIC)
-TARGET_LDFLAGS += $(FPIC)
 
 CONFIGURE_ARGS += \
 	--disable-debug
