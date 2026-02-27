@@ -64,7 +64,7 @@ CONFIGURE_ARGS += --prefix=/usr
 
 MAKE_FLAGS += \
 	-f Makefile-libbz2_so \
-	CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
+	CFLAGS="$(TARGET_CFLAGS)" \
 	LDFLAGS="$(TARGET_LDFLAGS)" \
 	all
 
@@ -94,7 +94,7 @@ HOST_CFLAGS += \
 	$(FPIC)
 
 HOST_MAKE_FLAGS+= \
-	CFLAGS="$(HOST_CFLAGS) $(HOST_CPPFLAGS)" \
+	CFLAGS="$(HOST_CFLAGS)" \
 	LDFLAGS="$(HOST_LDFLAGS)" \
 	all
 
