@@ -9,11 +9,11 @@ SHELL:=sh
 PKG_NAME:=Build dependency
 
 $(eval $(call TestHostCommand,true, \
-	Please install GNU 'coreutils', \
+	Please install 'coreutils', \
 	$(TRUE)))
 
 $(eval $(call TestHostCommand,false, \
-	Please install GNU 'coreutils', \
+	Please install 'coreutils', \
 	$(FALSE); [ $$$$$$$$? = 1 ] && $(TRUE)))
 
 # Required for the toolchain
@@ -97,7 +97,7 @@ $(eval $(call TestHostCommand,perl-thread-queue, \
 	perl -MThread::Queue -e 1))
 
 $(eval $(call TestHostCommand,perl-ipc-cmd, \
-	Please install the Perl IPC:Cmd module, \
+	Please install the Perl IPC::Cmd module, \
 	perl -MIPC::Cmd -e 1))
 
 $(eval $(call SetupHostCommand,tar,Please install GNU 'tar', \
@@ -174,8 +174,8 @@ $(eval $(call SetupHostCommand,bzip2,Please install 'bzip2', \
 $(eval $(call SetupHostCommand,wget,Please install GNU 'wget', \
 	wget --version | grep GNU))
 
-$(eval $(call SetupHostCommand,install,Please install GNU 'install', \
-	install --version | grep GNU, \
+$(eval $(call SetupHostCommand,install,Please install 'install', \
+	install --version | grep 'GNU\|uutils', \
 	ginstall --version | grep GNU))
 
 $(eval $(call SetupHostCommand,perl,Please install Perl 5.x, \
@@ -232,7 +232,7 @@ endif
 
 $(STAGING_DIR_HOST)/bin/mkhash: $(SCRIPT_DIR)/mkhash.c
 	mkdir -p $(dir $@)
-	$(CC) -O2 -I$(TOPDIR)/tools/include -o $@ $<
+	$(STAGING_DIR_HOST)/bin/gcc -O2 -I$(TOPDIR)/tools/include -o $@ $<
 
 $(STAGING_DIR_HOST)/bin/xxd: $(SCRIPT_DIR)/xxdi.pl
 	$(LN) $< $@
