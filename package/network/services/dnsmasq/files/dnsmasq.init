@@ -183,10 +183,6 @@ append_address() {
 	[ $address_as_local -gt 0 ] && xappend "--local=${1%/*}/"
 }
 
-append_ipset() {
-	xappend "--ipset=$1"
-}
-
 append_connmark_allowlist() {
 	xappend "--connmark-allowlist=$1"
 }
@@ -1095,7 +1091,6 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "server" append_server
 	config_list_foreach "$cfg" "rev_server" append_rev_server
 	config_list_foreach "$cfg" "conf_file" append_conf_file
-	config_list_foreach "$cfg" "ipset" append_ipset
 
         # --fast-dns-retry=[<initial retry delay in ms>[,<time to continue retries in ms>]]
 	local fast_dns_retry fast_dns_retry_param
