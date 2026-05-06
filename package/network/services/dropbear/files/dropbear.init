@@ -176,6 +176,7 @@ validate_section_dropbear()
 		'Port:port:22' \
 		'SSHKeepAlive:uinteger:300' \
 		'IdleTimeout:uinteger:0' \
+		'MaxSessionDuration:uinteger:0' \
 		'MaxAuthTries:uinteger:3' \
 		'RecvWindowSize:uinteger:0' \
 		'LocalPortForward:bool:1' \
@@ -336,6 +337,7 @@ dropbear_instance()
 	fi
 	[ -n "${BannerFile}" -a -f "${BannerFile}" ] && procd_append_param command -b "${BannerFile}"
 	[ "${IdleTimeout}" -ne 0 ] && procd_append_param command -I "${IdleTimeout}"
+	[ "${MaxSessionDuration}" -ne 0 ] && procd_append_param command -M "${MaxSessionDuration}"
 	[ "${SSHKeepAlive}" -ne 0 ] && procd_append_param command -K "${SSHKeepAlive}"
 	[ "${MaxAuthTries}" -ne 0 ] && procd_append_param command -T "${MaxAuthTries}"
 	[ "${RecvWindowSize}" -gt 0 ] && {

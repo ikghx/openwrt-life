@@ -20,28 +20,17 @@ _ensurekey()
 	}
 }
 
-ktype_all='ed25519 ecdsa rsa'
-
 failsafe_dropbear () {
 	local kargs kcount ktype tkey
 
 	kargs=
 	kcount=0
-	for ktype in ${ktype_all} ; do
+	for ktype in ed25519 ecdsa ; do
 		tkey="/tmp/dropbear_failsafe_${ktype}_host_key"
 
-		case "${ktype}" in
-		ed25519) _ensurekey "${tkey}" -t ed25519 ;;
-		ecdsa)   _ensurekey "${tkey}" -t ecdsa ;;
-		rsa)     _ensurekey "${tkey}" -t rsa ;;
-		*)
-			echo "unknown key type: ${ktype}" >&2
-			continue
-		;;
-		esac
-
+		_ensurekey "${tkey}" -t "${ktype}" || :
 		[ -s "${tkey}" ] || {
-			rm -f "${tkey}"
+			rm -f "${tkey}" "${tkey}.pub"
 			continue
 		}
 
@@ -49,6 +38,21 @@ failsafe_dropbear () {
 		kargs="${kargs}${kargs:+ }-r ${tkey}"
 		kcount=$((kcount+1))
 	done
+
+	## use RSA only if none of the modern algorithms is supported
+	if [ "${kcount}" = 0 ] ; then
+		ktype=rsa
+		tkey="/tmp/dropbear_failsafe_${ktype}_host_key"
+
+		_ensurekey "${tkey}" -t "${ktype}" || :
+		if [ -s "${tkey}" ] ; then
+			chmod 0400 "${tkey}"
+			kargs="${kargs}${kargs:+ }-r ${tkey}"
+			kcount=$((kcount+1))
+		else
+			rm -f "${tkey}" "${tkey}.pub"
+		fi
+	fi
 
 	[ "${kcount}" != 0 ] || {
 		echo 'DROPBEAR IS BROKEN' >&2
