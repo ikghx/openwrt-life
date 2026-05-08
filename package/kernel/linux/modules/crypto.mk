@@ -1162,7 +1162,7 @@ $(eval $(call KernelPackage,crypto-test))
 
 
 define KernelPackage/crypto-user
-  TITLE:=CryptoAPI userspace interface
+  TITLE:=CryptoAPI userspace configuration interface
   DEPENDS:=+kmod-crypto-hash +kmod-crypto-manager +kmod-crypto-rng
   KCONFIG:=CONFIG_CRYPTO_USER
   FILES:=$(LINUX_DIR)/crypto/crypto_user.ko
