@@ -289,9 +289,9 @@ ifeq ($(CONFIG_OPENSSL_SMALL_FOOTPRINT),y)
 endif
 
 ifdef CONFIG_OPENSSL_ENGINE
+  OPENSSL_OPTIONS += no-afalgeng
   ifdef CONFIG_OPENSSL_ENGINE_BUILTIN
     OPENSSL_OPTIONS += disable-dynamic-engine
-    OPENSSL_OPTIONS += no-afalgeng
     ifdef CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO
       OPENSSL_OPTIONS += enable-devcryptoeng
     endif
