@@ -6,8 +6,6 @@ START=50
 USE_PROCD=1
 PROG=/usr/sbin/crond
 
-. /lib/functions.sh
-
 validate_cron_section() {
 	uci_validate_section system system "${1}" \
 		'cronloglevel:uinteger'
@@ -39,5 +37,6 @@ start_service() {
 }
 
 service_triggers() {
+	procd_add_reload_trigger "system"
 	procd_add_validation validate_cron_section
 }
