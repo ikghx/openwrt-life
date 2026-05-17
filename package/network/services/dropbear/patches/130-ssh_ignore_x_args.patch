@@ -1,6 +1,6 @@
 --- a/src/cli-runopts.c
 +++ b/src/cli-runopts.c
-@@ -347,6 +347,10 @@ void cli_getopts(int argc, char ** argv)
+@@ -352,6 +352,10 @@ void cli_getopts(int argc, char ** argv)
  				case 'z':
  					opts.disable_ip_tos = 1;
  					break;
