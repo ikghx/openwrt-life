@@ -549,7 +549,7 @@ menu "Resource limits"
 			This limit has a trade-off. Having a smaller limit reduces the number
 			of legitimate public keys that can be presented by a client/ssh agent.
 
-			That is still a a risk against a single host,
+			That is still a risk against a single host,
 			but this limit may deter internet-wide scanning.
 
 			If -T argument or DROPBEAR_MAX_AUTH_TRIES is larger that will be used instead.
