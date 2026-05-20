@@ -1,0 +1,30 @@
+From 440415703692af4548e836832ef0434e87fbc357 Mon Sep 17 00:00:00 2001
+From: Goetz Goerisch <ggoerisch@gmail.com>
+Date: Sat, 20 May 2026 18:56:59 +0200
+Subject: [PATCH] crypto: talitos - fix rename first/last to first_desc/last_desc
+
+Commit a1b80018b8cec27fc06a8b04a7f8b5f6cfe86eae
+was backported to 6.6.y with a866e2b1c65edaee2e1bb1024ee2c761ced335f8
+It renames last to last_desc but misses one occurance which leads to compile errors on mpc85xx
+
+drivers/crypto/talitos.c: In function 'ahash_digest':
+drivers/crypto/talitos.c:2204:16: error: 'struct talitos_ahash_req_ctx' has no member named 'last'
+ 2204 | req_ctx->last = 1;
+      |        ^~4
+
+Fixes: a866e2b1c65e ("crypto: talitos - rename first/last to first_desc/last_desc")
+Signed-off-by: Goetz Goerisch <ggoerisch@gmail.com>
+---
+ drivers/crypto/talitos.c 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+--- a/drivers/crypto/talitos.c
++++ b/drivers/crypto/talitos.c
+@@ -2201,7 +2201,7 @@ static int ahash_digest(struct ahash_req
+ 	struct crypto_ahash *ahash = crypto_ahash_reqtfm(areq);
+ 
+ 	ahash->init(areq);
+-	req_ctx->last = 1;
++	req_ctx->last_desc = 1;
+ 
+ 	return ahash_process_req(areq, areq->nbytes);
+ }
