@@ -45,7 +45,7 @@ Signe-off-by: Felix Fietkau <nbd@nbd.name>
  INDIRECT_CALLABLE_DECLARE(int tcp6_gro_complete(struct sk_buff *skb, int thoff));
 --- a/net/core/gro.c
 +++ b/net/core/gro.c
-@@ -227,6 +227,33 @@ done:
+@@ -227,6 +227,35 @@ done:
  	return 0;
  }
  
@@ -70,6 +70,8 @@ Signe-off-by: Felix Fietkau <nbd@nbd.name>
 +	skb->sk = NULL;
 +	p->truesize += skb->truesize;
 +	p->len += skb->len;
++
++	skb_shinfo(p)->flags |= skb_shinfo(skb)->flags & SKBFL_SHARED_FRAG;
 +
 +	NAPI_GRO_CB(skb)->same_flow = 1;
 +
