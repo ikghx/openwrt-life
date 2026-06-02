@@ -77,10 +77,7 @@ endef
 
 define Package/dropbear/conffiles
 /etc/config/dropbear
-/etc/dropbear/authorized_keys
-/etc/dropbear/dropbear_ecdsa_host_key
-/etc/dropbear/dropbear_ed25519_host_key
-/etc/dropbear/dropbear_rsa_host_key
+/etc/dropbear/
 endef
 
 define Package/dropbearconvert
