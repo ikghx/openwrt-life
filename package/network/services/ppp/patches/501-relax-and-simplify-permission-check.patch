@@ -1,31 +1,37 @@
-From 43ac4469c1d51db2e5e587264e9fa6f438cb4e5c Mon Sep 17 00:00:00 2001
+From 71d3d3a6703fce993432151d363f405b51e7b75c Mon Sep 17 00:00:00 2001
 From: Qingfang Deng <dqfext@gmail.com>
-Date: Fri, 29 May 2026 09:55:08 +0800
-Subject: [PATCH] pppd: fix TOCTOU in protected file access
+Date: Fri, 12 Jun 2026 10:52:39 +0800
+Subject: [PATCH] pppd: relax and simplify permission check
 
-The proper way to fix TOCTOU is to avoid multiple evaluations of a
-path. Eliminate the check-then-open antipattern when opening files.
-Instead, open files first and validate the resulting file descriptor,
-and run scripts through fexecve().
-
-This fixes the TOCTOU window, and avoids overly strict directory
-ownership checks that could break existing configurations.
+The additional check added in v2.5.3 is intended to mitigate symlink
+attacks, but it checks the permissions of every component of a path and
+is too strict, breaking existing configurations. Relax and simplify the
+check by only checking the opened file descriptor of a path, so the path
+is resolved only once.
 
 Signed-off-by: Qingfang Deng <dqfext@gmail.com>
-Reviewed-by: Jaco Kroon <jaco@uls.co.za>
 ---
- configure.ac        |   1 +
+ configure.ac        |   2 +
  pppd/auth.c         | 146 +++++++++++++++++++++++++-------------------
- pppd/main.c         |  40 ++++++++----
+ pppd/main.c         |  46 ++++++++++----
  pppd/options.c      |  56 +++++++++++++----
  pppd/pppd-private.h |   2 +-
+ pppd/pppd.8         |  10 ---
  pppd/pppd.h         |   2 +-
  pppd/utils.c        |  84 ++++++-------------------
- 7 files changed, 177 insertions(+), 154 deletions(-)
+ 8 files changed, 184 insertions(+), 164 deletions(-)
 
 --- a/configure.ac
 +++ b/configure.ac
-@@ -93,6 +93,7 @@ AC_CHECK_SIZEOF(unsigned short)
+@@ -2,6 +2,7 @@ AC_PREREQ([2.69])
+ AC_INIT([ppp],
+         [2.5.3],
+         [https://github.com/ppp-project/ppp])
++AC_USE_SYSTEM_EXTENSIONS
+ 
+ m4_ifdef([AM_SILENT_RULES],[AM_SILENT_RULES([yes])])
+ AC_CONFIG_MACRO_DIR([m4])
+@@ -93,6 +94,7 @@ AC_CHECK_SIZEOF(unsigned short)
  
  # Checks for library functions.
  AC_CHECK_FUNCS([    \
@@ -385,7 +391,7 @@ Reviewed-by: Jaco Kroon <jaco@uls.co.za>
  	}
 --- a/pppd/main.c
 +++ b/pppd/main.c
-@@ -1952,22 +1952,31 @@ update_script_environment(void)
+@@ -1952,22 +1952,37 @@ update_script_environment(void)
  pid_t
  run_program(char *prog, char * const *args, int must_exist, void (*done)(void *), void *arg, int wait)
  {
@@ -398,15 +404,21 @@ Reviewed-by: Jaco Kroon <jaco@uls.co.za>
       * and couldn't have been modified by a non-root process.
       */
 -    if (!ppp_check_access(prog, &rpath, must_exist, 1))
++#if defined(O_PATH)
++    fd = open(prog, O_PATH);
++#elif defined(O_EXEC)
++    fd = open(prog, O_EXEC);
++#else
 +    fd = open(prog, O_RDONLY);
++#endif
 +    if (fd < 0) {
 +	if (errno != ENOENT || must_exist)
 +	    error("Can't access %s: %m", prog);
- 	return 0;
++	return 0;
 +    }
 +    if (!ppp_check_access(fd, prog, 1)) {
 +	close(fd);
-+	return 0;
+ 	return 0;
 +    }
  
      pid = ppp_safe_fork(fd_devnull, fd_devnull, fd_devnull);
@@ -420,7 +432,7 @@ Reviewed-by: Jaco Kroon <jaco@uls.co.za>
  	if (debug)
  	    dbglog("Script %s started (pid %d)", prog, pid);
  	record_child(pid, prog, done, arg, 0);
-@@ -1979,7 +1988,6 @@ run_program(char *prog, char * const *ar
+@@ -1979,7 +1994,6 @@ run_program(char *prog, char * const *ar
  	    }
  	    forget_child(pid, status);
  	}
@@ -428,7 +440,7 @@ Reviewed-by: Jaco Kroon <jaco@uls.co.za>
  	return pid;
      }
  
-@@ -2007,14 +2015,24 @@ run_program(char *prog, char * const *ar
+@@ -2007,14 +2021,24 @@ run_program(char *prog, char * const *ar
  
      /* run the program */
      update_script_environment();
@@ -585,6 +597,25 @@ Reviewed-by: Jaco Kroon <jaco@uls.co.za>
  				/* Read a word from a file */
  int  options_from_user(void); /* Parse options from user's .ppprc */
  int  options_for_tty(void); /* Parse options from /etc/ppp/options.tty */
+--- a/pppd/pppd.8
++++ b/pppd/pppd.8
+@@ -1334,16 +1334,6 @@ file under /etc/ppp/peers, the system ad
+ establish a ppp connection via a device which they would not normally
+ have permission to access.  Otherwise pppd uses the invoking user's
+ real UID when opening the device.
+-.PP
+-To avoid the possibility of privileged options files, secrets files,
+-and other files which contain sensitive information being compromised,
+-\fIpppd\fR performs a path check on these files before opening them.
+-This involves first translating the file path into a real absolute path
+-containing no symlinks or ".." components.  Then each component from
+-the root down is checked to ensure that it is owned by root and that
+-its permissions do not permit writing by group or other.  Failure to
+-conform to these requirements will cause \fIpppd\fR to exit with a
+-suitable error message.
+ .SH AUTHENTICATION
+ Authentication is the process whereby one peer convinces the other of
+ its identity.  This involves the first peer sending its name to the
 --- a/pppd/pppd.h
 +++ b/pppd/pppd.h
 @@ -300,7 +300,7 @@ void pr_log(void *, char *, ...);
