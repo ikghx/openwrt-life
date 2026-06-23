@@ -11,75 +11,102 @@ full customization, to use the device in ways never envisioned.
 
 Sunshine!
 
-## Download
+ -------------------------------------------------------------------------------
 
-Built firmware images are available for many architectures and come with a
-package selection to be used as WiFi home router. To quickly find a factory
-image usable to migrate from a vendor stock firmware to OpenWrt, try the
-*Firmware Selector*.
+警告！
+本仓库仅供测试，不提供可靠性保证！
 
-* [OpenWrt Firmware Selector](https://firmware-selector.openwrt.org/)
+Warning!
+This warehouse is for testing only and does not provide reliability guarantees!
 
-If your device is supported, please follow the **Info** link to see install
-instructions or consult the support resources listed below.
+ -------------------------------------------------------------------------------
+ 
+## 编译准备
 
-## 
+1. 选择 “最小安装” Ubuntu 24.04.4 Desktop (64-bit)
 
-An advanced user may require additional or specific package. (Toolchain, SDK, ...) For everything else than simple firmware download, try the wiki download page:
+2. 使用普通用户登录 Ubuntu 系统，禁止使用 root 用户或权限进行编译操作。
 
-* [OpenWrt Wiki Download](https://openwrt.org/downloads)
-
-## Development
-
-To build your own firmware you need a GNU/Linux, BSD or macOS system (case
-sensitive filesystem required). Cygwin is unsupported because of the lack of a
-case sensitive file system.
-
-### Requirements
-
-You need the following tools to compile OpenWrt, the package names vary between
-distributions. A complete list with distribution specific packages is found in
-the [Build System Setup](https://openwrt.org/docs/guide-developer/build-system/install-buildsystem)
-documentation.
+3. 安装编译环境
 
 ```
-binutils bzip2 diff find flex gawk gcc-6+ getopt grep install libc-dev libz-dev
-make4.1+ perl python3.7+ rsync subversion unzip which
+sudo apt update
 ```
 
-### Quickstart
+```
+sudo apt install -y build-essential \
+clang curl flex bison \
+g++-multilib gawk gettext git \
+libelf-dev libssl-dev libplist-utils \
+python3-dev python3-setuptools \
+swig mkisofs qemu-utils
+```
 
-1. Run `./scripts/feeds update -a` to obtain all the latest package definitions
-   defined in feeds.conf / feeds.conf.default
+```
+sudo apt clean
+```
 
-2. Run `./scripts/feeds install -a` to install symlinks for all obtained
-   packages into package/feeds/
+### 开始编译
 
-3. Run `make menuconfig` to select your preferred configuration for the
-   toolchain, target system & firmware packages.
+4. 获取主源代码
 
-4. Run `make` to build your firmware. This will download all sources, build the
-   cross-compile toolchain and then cross-compile the GNU/Linux kernel & all chosen
-   applications for your target system.
+```
+git clone -b openwrt-25.12 https://github.com/ikghx/openwrt-life.git
+```
 
-### Related Repositories
+5. 进入主源代码目录，更新并安装软件库
 
-The main repository uses multiple sub-repositories to manage packages of
-different categories. All packages are installed via the OpenWrt package
-manager called `opkg`. If you're looking to develop the web interface or port
-packages to OpenWrt, please find the fitting repository below.
+```
+./scripts/feeds update -a
+```
 
-* [LuCI Web Interface](https://github.com/openwrt/luci): Modern and modular
-  interface to control the device via a web browser.
+```
+./scripts/feeds install -a
+```
 
-* [OpenWrt Packages](https://github.com/openwrt/packages): Community repository
-  of ported packages.
+6. 打开编译菜单界面，按个人需要进行定制
 
-* [OpenWrt Routing](https://github.com/openwrt/routing): Packages specifically
-  focused on (mesh) routing.
+```
+make menuconfig
+```
 
-* [OpenWrt Video](https://github.com/openwrt/video): Packages specifically
-  focused on display servers and clients (Xorg and Wayland).
+7. 开始编译
+
+```
+make
+```
+
+### 其它参考命令
+
+多线程加速编译，例如系统配备了4核心处理器
+
+```
+make -j4
+```
+
+编译时显示详细信息，用于排查编译错误
+
+```
+make V=s
+```
+
+打开内核菜单界面，按需定制内核功能
+
+```
+make kernel_menuconfig
+```
+
+清除软件编译缓存目录，以便快速测试软件更改
+
+```
+make clean
+```
+
+清空整个编译缓存目录，以便开始全新编译
+
+```
+make dirclean
+```
 
 ## Support Information
 
