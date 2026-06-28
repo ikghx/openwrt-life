@@ -38,9 +38,9 @@ config OPENSSL_WITH_ASM
 
 config OPENSSL_WITH_SSE2
 	bool
-	default y if !TARGET_x86_legacy && !TARGET_x86_geode
+	default y if x86_64 || i386 && !TARGET_x86_legacy
 	prompt "Enable use of x86 SSE2 instructions"
-	depends on OPENSSL_WITH_ASM && i386
+	depends on OPENSSL_WITH_ASM && x86_64 || i386
 	help
 		Use of SSE2 instructions greatly increase performance with a
 		minimum increase in package size, but it will bring no benefit
@@ -67,6 +67,33 @@ config OPENSSL_WITH_ERROR_MESSAGES
 		memory usage.
 
 comment "Protocol Support"
+
+config OPENSSL_WITH_SSL3
+	bool
+	default n
+	prompt "Enable support for SSLv3"
+	help
+		SSLv3 has been deprecated. This option aims to provide
+		support for earlier versions of the standard for compatibility.
+		You should enable this option only if you need it.
+
+config OPENSSL_WITH_TLS10
+	bool
+	default n
+	prompt "Enable support for TLS 1"
+	help
+		TLS v1 (1.0) has been deprecated. This option aims to provide
+		support for earlier versions of the standard for compatibility.
+		You should enable this option only if you need it.
+
+config OPENSSL_WITH_TLS11
+	bool
+	default n
+	prompt "Enable support for TLS 1.1"
+	help
+		TLS v1.1 has been deprecated. This option aims to provide
+		support for earlier versions of the standard for compatibility.
+		You should enable this option only if you need it.
 
 config OPENSSL_WITH_TLS13
 	bool
@@ -111,6 +138,28 @@ config OPENSSL_WITH_CMS
 	help
 		Cryptographic Message Syntax (CMS) is used to digitally sign,
 		digest, authenticate, or encrypt arbitrary message content.
+
+config OPENSSL_WITH_QUIC
+	bool
+	default y
+	prompt "Enable QUIC support"
+	depends on !USE_GLIBC
+	select OPENSSL_WITH_TLS13
+	help
+		Enable support for QUIC (Quick UDP Internet Connections) in OpenSSL 3.
+		This allows OpenSSL to provide cryptographic support for QUIC-based protocols,
+		such as HTTP/3. QUIC requires TLSv1.3 to be enabled.
+
+config OPENSSL_WITH_KTLS
+	bool
+	default y
+	prompt "Enable KTLS support"
+	depends on PACKAGE_kmod-tls
+	select OPENSSL_WITH_TLS13
+	help
+		Enable Kernel TLS (kTLS) offload support. This allows OpenSSL to
+		offload TLS record processing to the kernel, reducing CPU usage
+		and improving performance for high-traffic TLS connections.
 
 comment "Algorithm Selection"
 
@@ -256,8 +305,6 @@ config OPENSSL_ENGINE
 		using an engine-enabled library (i.e. from the official repo) may
 		fail to run.  Compile and install the packages with engine support
 		disabled, and you should be fine.
-		Note that you need to enable KERNEL_AIO to be able to build the
-		afalg engine package.
 
 config OPENSSL_ENGINE_BUILTIN
 	bool "Build chosen engines into libcrypto"
@@ -267,15 +314,6 @@ config OPENSSL_ENGINE_BUILTIN
 		them as dynamic engines in separate packages.
 		The benefit of building the engines into libcrypto is that they won't
 		require any configuration to be used by default.
-
-config OPENSSL_ENGINE_BUILTIN_AFALG
-	bool
-	prompt "Acceleration support through AF_ALG sockets engine"
-	depends on OPENSSL_ENGINE_BUILTIN && KERNEL_AIO
-	select PACKAGE_libopenssl-conf
-	help
-		This enables use of hardware acceleration through the
-		AF_ALG kernel interface.
 
 config OPENSSL_ENGINE_BUILTIN_DEVCRYPTO
 	bool

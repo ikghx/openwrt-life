@@ -30,7 +30,6 @@ PKG_CPE_ID:=cpe:/a:openssl:openssl
 PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_ENGINE \
 	CONFIG_OPENSSL_ENGINE_BUILTIN \
-	CONFIG_OPENSSL_ENGINE_BUILTIN_AFALG \
 	CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO \
 	CONFIG_OPENSSL_ENGINE_BUILTIN_PADLOCK \
 	CONFIG_OPENSSL_NO_DEPRECATED \
@@ -49,9 +48,11 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_OPENSSL_WITH_EC2M \
 	CONFIG_OPENSSL_WITH_ERROR_MESSAGES \
 	CONFIG_OPENSSL_WITH_IDEA \
+	CONFIG_OPENSSL_WITH_KTLS \
 	CONFIG_OPENSSL_WITH_MDC2 \
 	CONFIG_OPENSSL_WITH_NPN \
 	CONFIG_OPENSSL_WITH_PSK \
+	CONFIG_OPENSSL_WITH_QUIC \
 	CONFIG_OPENSSL_WITH_RFC3779 \
 	CONFIG_OPENSSL_WITH_SEED \
 	CONFIG_OPENSSL_WITH_SM234 \
@@ -90,7 +91,6 @@ define Package/libopenssl
 $(call Package/openssl/Default)
   SUBMENU:=SSL
   DEPENDS:=+OPENSSL_WITH_COMPRESSION:zlib \
-	   +OPENSSL_ENGINE_BUILTIN_AFALG:kmod-crypto-user \
 	   +OPENSSL_ENGINE_BUILTIN_DEVCRYPTO:kmod-cryptodev \
 	   +OPENSSL_ENGINE_BUILTIN_PADLOCK:kmod-crypto-hw-padlock \
 	   +(arm||armeb||mips||mipsel||powerpc||arc):libatomic
@@ -166,23 +166,6 @@ been deemed insecure by the cryptography community, or something similar.  See
 https://www.openssl.org/docs/man3.0/man7/OSSL_PROVIDER-legacy.html
 endef
 
-$(eval $(call Package/openssl/add-engine,afalg))
-define Package/libopenssl-afalg
-  $(call Package/openssl/Default)
-  $(call Package/openssl/engine/Default)
-  TITLE:=AFALG hardware acceleration engine
-  DEPENDS += @KERNEL_AIO +PACKAGE_libopenssl-afalg:kmod-crypto-user \
-	     @!OPENSSL_ENGINE_BUILTIN
-endef
-
-define Package/libopenssl-afalg/description
-This package adds an engine that enables hardware acceleration
-through the AF_ALG kernel interface.
-See https://www.openssl.org/docs/man3.0/man5/config.html#Engine-Configuration
-and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerators
-The engine_id is "afalg"
-endef
-
 $(eval $(call Package/openssl/add-engine,devcrypto))
 define Package/libopenssl-devcrypto
   $(call Package/openssl/Default)
@@ -215,7 +198,7 @@ and https://openwrt.org/docs/techref/hardware/cryptographic.hardware.accelerator
 The engine_id is "padlock"
 endef
 
-OPENSSL_OPTIONS:= shared no-tests
+OPENSSL_OPTIONS:= shared no-tests no-docs
 
 ifndef CONFIG_OPENSSL_WITH_BLAKE2
   OPENSSL_OPTIONS += no-blake2
@@ -239,6 +222,18 @@ endif
 
 ifndef CONFIG_OPENSSL_WITH_ERROR_MESSAGES
   OPENSSL_OPTIONS += no-err
+endif
+
+ifndef CONFIG_OPENSSL_WITH_SSL3
+  OPENSSL_OPTIONS += no-ssl3 no-ssl3-method
+endif
+
+ifndef CONFIG_OPENSSL_WITH_TLS10
+  OPENSSL_OPTIONS += no-tls1 no-tls1-method
+endif
+
+ifndef CONFIG_OPENSSL_WITH_TLS11
+  OPENSSL_OPTIONS += no-tls1_1 no-tls1_1-method
 endif
 
 ifndef CONFIG_OPENSSL_WITH_TLS13
@@ -294,11 +289,9 @@ ifeq ($(CONFIG_OPENSSL_SMALL_FOOTPRINT),y)
 endif
 
 ifdef CONFIG_OPENSSL_ENGINE
+  OPENSSL_OPTIONS += no-afalgeng
   ifdef CONFIG_OPENSSL_ENGINE_BUILTIN
     OPENSSL_OPTIONS += disable-dynamic-engine
-    ifndef CONFIG_OPENSSL_ENGINE_BUILTIN_AFALG
-      OPENSSL_OPTIONS += no-afalgeng
-    endif
     ifdef CONFIG_OPENSSL_ENGINE_BUILTIN_DEVCRYPTO
       OPENSSL_OPTIONS += enable-devcryptoeng
     endif
@@ -308,9 +301,6 @@ ifdef CONFIG_OPENSSL_ENGINE
   else
     ifdef CONFIG_PACKAGE_libopenssl-devcrypto
       OPENSSL_OPTIONS += enable-devcryptoeng
-    endif
-    ifndef CONFIG_PACKAGE_libopenssl-afalg
-      OPENSSL_OPTIONS += no-afalgeng
     endif
     ifndef CONFIG_PACKAGE_libopenssl-padlock
       OPENSSL_OPTIONS += no-padlockeng
@@ -350,6 +340,14 @@ ifdef CONFIG_i386
   ifndef CONFIG_OPENSSL_WITH_SSE2
     OPENSSL_OPTIONS += no-sse2
   endif
+endif
+
+ifndef CONFIG_OPENSSL_WITH_QUIC
+  OPENSSL_OPTIONS += enable-quic
+endif
+
+ifndef CONFIG_OPENSSL_WITH_KTLS
+  OPENSSL_OPTIONS += enable-ktls
 endif
 
 OPENSSL_TARGET:=linux-$(call qstrip,$(CONFIG_ARCH))-openwrt
@@ -427,7 +425,6 @@ endef
 
 $(eval $(call BuildPackage,libopenssl))
 $(eval $(call BuildPackage,libopenssl-conf))
-$(eval $(call BuildPackage,libopenssl-afalg))
 $(eval $(call BuildPackage,libopenssl-devcrypto))
 $(eval $(call BuildPackage,libopenssl-legacy))
 $(eval $(call BuildPackage,libopenssl-padlock))

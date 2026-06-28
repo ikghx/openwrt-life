@@ -418,8 +418,8 @@ Signed-off-by: Enrico Mioso <mrkiko.rs@gmail.com>
 +bootcmd=run validate_bootmedia; if test $bootmedia = "nor"; then run boot_nor; else if test $bootmedia = "sd"; then run boot_sd_firmware; fi; fi
 +bootconf=config-1#mt7981b-gatonetworks-gdsp-gps
 +bootdelay=0
-+bootfile=immortalwrt-mediatek-filogic-gatonetworks_gdsp-initramfs-kernel.bin
-+bootfile_upg=immortalwrt-mediatek-filogic-gatonetworks_gdsp-squashfs-sysupgrade.itb
++bootfile=openwrt-mediatek-filogic-gatonetworks_gdsp-initramfs-kernel.bin
++bootfile_upg=openwrt-mediatek-filogic-gatonetworks_gdsp-squashfs-sysupgrade.itb
 +bootmenu_confirm_return=askenv - Press ENTER to return to menu ; bootmenu 60
 +bootmenu_default=0
 +bootmenu_delay=0

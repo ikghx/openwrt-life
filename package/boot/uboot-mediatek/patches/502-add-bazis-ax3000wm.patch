@@ -280,10 +280,10 @@
 +bootcmd=if pstore check ; then run boot_recovery ; else run boot_ubi ; fi
 +bootconf=config-1
 +bootdelay=0
-+bootfile=immortalwrt-mediatek-filogic-bazis_ax3000wm-initramfs-recovery.itb
-+bootfile_bl2=immortalwrt-mediatek-filogic-bazis_ax3000wm-preloader.bin
-+bootfile_fip=immortalwrt-mediatek-filogic-bazis_ax3000wm-bl31-uboot.fip
-+bootfile_upg=immortalwrt-mediatek-filogic-bazis_ax3000wm-squashfs-sysupgrade.itb
++bootfile=openwrt-mediatek-filogic-bazis_ax3000wm-initramfs-recovery.itb
++bootfile_bl2=openwrt-mediatek-filogic-bazis_ax3000wm-preloader.bin
++bootfile_fip=openwrt-mediatek-filogic-bazis_ax3000wm-bl31-uboot.fip
++bootfile_upg=openwrt-mediatek-filogic-bazis_ax3000wm-squashfs-sysupgrade.itb
 +bootled_pwr=blue:power
 +bootled_rec=red:fault
 +bootmenu_confirm_return=askenv - Press ENTER to return to menu ; bootmenu 60

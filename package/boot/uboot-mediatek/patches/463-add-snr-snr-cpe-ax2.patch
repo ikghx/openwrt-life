@@ -298,10 +298,10 @@
 +bootcmd=run check_buttons ; if pstore check ; then run boot_recovery ; else run boot_ubi ; fi
 +bootconf=config-1
 +bootdelay=0
-+bootfile=immortalwrt-mediatek-filogic-snr_snr-cpe-ax2-initramfs-recovery.itb
-+bootfile_bl2=immortalwrt-mediatek-filogic-snr_snr-cpe-ax2-preloader.bin
-+bootfile_fip=immortalwrt-mediatek-filogic-snr_snr-cpe-ax2-bl31-uboot.fip
-+bootfile_upg=immortalwrt-mediatek-filogic-snr_snr-cpe-ax2-squashfs-sysupgrade.itb
++bootfile=openwrt-mediatek-filogic-snr_snr-cpe-ax2-initramfs-recovery.itb
++bootfile_bl2=openwrt-mediatek-filogic-snr_snr-cpe-ax2-preloader.bin
++bootfile_fip=openwrt-mediatek-filogic-snr_snr-cpe-ax2-bl31-uboot.fip
++bootfile_upg=openwrt-mediatek-filogic-snr_snr-cpe-ax2-squashfs-sysupgrade.itb
 +bootled_status=blue:status
 +bootmenu_confirm_return=askenv - Press ENTER to return to menu ; bootmenu 60
 +bootmenu_default=0
