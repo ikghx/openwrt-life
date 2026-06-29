@@ -10,7 +10,6 @@ Fixes: 5f284dc15ca86 ("mtd: spinand: add support for FudanMicro FM25S01A")
 Signed-off-by: Mikhail Kshevetskiy <mikhail.kshevetskiy@iopsys.eu>
 Tested-by: Tianling Shen <cnsztl@gmail.com>
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
-Link: Link: https://lore.kernel.org/linux-mtd/176216634975.908445.2776312239779833518.b4-ty@bootlin.com
 ---
  drivers/mtd/nand/spi/fmsh.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)

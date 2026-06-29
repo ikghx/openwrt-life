@@ -430,7 +430,7 @@ define Device/asus_rt-ax57m
   KERNEL := kernel-bin | lzma | \
 	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
   KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb  with-initrd | pad-to 64k
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 ifeq ($(IB),)
   ARTIFACTS := initramfs.trx
@@ -981,11 +981,11 @@ define Device/cmcc_rax3000me
 	emmc-ddr4-preloader.bin emmc-ddr4-bl31-uboot.fip \
 	nand-ddr3-preloader.bin nand-ddr3-bl31-uboot.fip \
 	nand-ddr4-preloader.bin nand-ddr4-bl31-uboot.fip
-  ARTIFACT/emmc-ddr3-preloader.bin := mt7981-bl2 emmc-ddr3-1866mhz
+  ARTIFACT/emmc-ddr3-preloader.bin := mt7981-bl2 emmc-ddr3-1866
   ARTIFACT/emmc-ddr3-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-emmc-ddr3
   ARTIFACT/emmc-ddr4-preloader.bin := mt7981-bl2 emmc-ddr4
   ARTIFACT/emmc-ddr4-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-emmc-ddr4
-  ARTIFACT/nand-ddr3-preloader.bin := mt7981-bl2 spim-nand-ddr3-1866mhz
+  ARTIFACT/nand-ddr3-preloader.bin := mt7981-bl2 spim-nand-ddr3-1866
   ARTIFACT/nand-ddr3-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-nand-ddr3
   ARTIFACT/nand-ddr4-preloader.bin := mt7981-bl2 spim-nand-ddr4
   ARTIFACT/nand-ddr4-bl31-uboot.fip := mt7981-bl31-uboot cmcc_rax3000me-nand-ddr4
@@ -1050,7 +1050,7 @@ define Device/comfast_cf-wr632ax-ubootmod
   IMAGE/sysupgrade.itb := append-kernel | \
 	fit gzip $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb external-static-with-rootfs | append-metadata
   ARTIFACTS := preloader.bin bl31-uboot.fip
-  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3-1866mhz
+  ARTIFACT/preloader.bin := mt7981-bl2 spim-nand-ddr3-1866
   ARTIFACT/bl31-uboot.fip := mt7981-bl31-uboot comfast_cf-wr632ax
   $(call Device/comfast_cf-wr632ax-common)
 endef
@@ -1087,7 +1087,6 @@ define Device/creatlentem_clt-r30b1-common
   BLOCKSIZE := 128k
   PAGESIZE := 2048
   KERNEL_IN_UBI := 1
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 
 define Device/creatlentem_clt-r30b1-112m
@@ -1098,6 +1097,7 @@ define Device/creatlentem_clt-r30b1-112m
   DEVICE_DTS := mt7981b-creatlentem-clt-r30b1-112m
   SUPPORTED_DEVICES += clt,r30b1 clt,r30b1-112m
   IMAGE_SIZE := 114688k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   $(call Device/creatlentem_clt-r30b1-common)
 endef
 TARGET_DEVICES += creatlentem_clt-r30b1-112m
@@ -1106,6 +1106,7 @@ define Device/creatlentem_clt-r30b1
   DEVICE_DTS := mt7981b-creatlentem-clt-r30b1
   SUPPORTED_DEVICES += mediatek,mt7981-spim-snand-rfb
   IMAGE_SIZE := 65536k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
   $(call Device/creatlentem_clt-r30b1-common)
 endef
 TARGET_DEVICES += creatlentem_clt-r30b1
@@ -3139,26 +3140,6 @@ define Device/tplink_archer-ax80-v1-eu
 endef
 TARGET_DEVICES += tplink_archer-ax80-v1-eu
 
-define Device/tplink_fr365-v1
-  DEVICE_VENDOR := TP-Link
-  DEVICE_MODEL := FR365
-  DEVICE_VARIANT := v1
-  DEVICE_DTS := mt7981b-tplink-fr365v1
-  DEVICE_DTS_DIR := ../dts
-  UBINIZE_OPTS := -E 5
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  IMAGE_SIZE := 32768k
-  KERNEL_IN_UBI := 1
-  IMAGES += factory.bin
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGE/factory.ubi := append-ubi | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := fitblk kmod-sfp kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
-endef
-TARGET_DEVICES += tplink_fr365-v1
-
 define Device/tplink_be450
   DEVICE_VENDOR := TP-Link
   DEVICE_MODEL := BE450
@@ -3192,6 +3173,39 @@ define Device/tplink_eap683-lr
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += tplink_eap683-lr
+
+define Device/tplink_f65-v1
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := F65
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7981b-tplink-f65v1
+  DEVICE_DTS_DIR := ../dts
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += tplink_f65-v1
+
+define Device/tplink_fr365-v1
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := FR365
+  DEVICE_VARIANT := v1
+  DEVICE_DTS := mt7981b-tplink-fr365v1
+  DEVICE_DTS_DIR := ../dts
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  IMAGE_SIZE := 32768k
+  KERNEL_IN_UBI := 1
+  IMAGES += factory.bin
+  KERNEL_INITRAMFS := kernel-bin | lzma | \
+	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
+  IMAGE/factory.ubi := append-ubi | check-size $$$$(IMAGE_SIZE)
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_PACKAGES := fitblk kmod-sfp kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
+endef
+TARGET_DEVICES += tplink_fr365-v1
 
 define Device/tplink_re6000xd
   DEVICE_VENDOR := TP-Link
@@ -3258,39 +3272,6 @@ define Device/tplink_tl-7dr7250-v1
   DEVICE_PACKAGES += kmod-phy-airoha-en8811h airoha-en8811h-firmware
 endef
 TARGET_DEVICES += tplink_tl-7dr7250-v1
-
-define Device/tplink_f65-v1
-  DEVICE_VENDOR := TP-Link
-  DEVICE_MODEL := F65
-  DEVICE_VARIANT := v1
-  DEVICE_DTS := mt7981b-tplink-f65v1
-  DEVICE_DTS_DIR := ../dts
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
-endef
-TARGET_DEVICES += tplink_f65-v1
-
-define Device/tplink_fr365-v1
-  DEVICE_VENDOR := TP-Link
-  DEVICE_MODEL := FR365
-  DEVICE_VARIANT := v1
-  DEVICE_DTS := mt7981b-tplink-fr365v1
-  DEVICE_DTS_DIR := ../dts
-  UBINIZE_OPTS := -E 5
-  BLOCKSIZE := 128k
-  PAGESIZE := 2048
-  IMAGE_SIZE := 32768k
-  KERNEL_IN_UBI := 1
-  IMAGES += factory.bin
-  KERNEL_INITRAMFS := kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd | pad-to 64k
-  IMAGE/factory.ubi := append-ubi | check-size $$$$(IMAGE_SIZE)
-  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
-  DEVICE_PACKAGES := fitblk kmod-sfp kmod-usb3 kmod-mt7915e kmod-mt7981-firmware mt7981-wo-firmware
-endef
-TARGET_DEVICES += tplink_fr365-v1
 
 define Device/tplink_tl-xdr-common
   DEVICE_VENDOR := TP-Link
@@ -3391,7 +3372,7 @@ define Device/wavlink_wl-wn536ax6-a
   IMAGE_SIZE := 65536k
   KERNEL_INITRAMFS_SUFFIX := .itb
   KERNEL_IN_UBI := 1
-  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware
+  DEVICE_PACKAGES := kmod-usb3 kmod-mt7915e kmod-mt7986-firmware mt7986-wo-firmware kmod-ledtrig-network
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
 TARGET_DEVICES += wavlink_wl-wn536ax6-a
