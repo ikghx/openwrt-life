@@ -1,5 +1,5 @@
 src-git packages https://github.com/ikghx/packages.git;openwrt-25.12
 src-git luci https://github.com/ikghx/luci.git;openwrt-25.12
 src-git routing https://github.com/ikghx/routing.git;openwrt-25.12
-#src-git telephony https://git.openwrt.org/feed/telephony.git;openwrt-25.12
-#src-git video https://github.com/openwrt/video.git;openwrt-25.12
+src-git telephony https://github.com/ikghx/telephony.git;openwrt-25.12
+src-git video https://github.com/ikghx/video.git;openwrt-25.12
