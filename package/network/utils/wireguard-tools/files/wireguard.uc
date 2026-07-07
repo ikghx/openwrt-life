@@ -31,7 +31,13 @@ function ensure_key_is_generated(cursor, section_name) {
 }
 
 function to_array(val) {
-	return type(val) == 'array' ? val : split(val, /\s+/);
+	let ret = [];
+
+	for (let item in type(val) == 'array' ? val : split(val, /\s+/))
+		if (item != '')
+			push(ret, item);
+
+	return ret;
 }
 
 function parse_address(addr) {
