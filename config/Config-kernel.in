@@ -1041,7 +1041,7 @@ if KERNEL_CGROUPS
 
 	endif
 
-	config KERNEL_DEBUG_BLK_CGROUP
+	config KERNEL_BFQ_CGROUP_DEBUG
 		bool "Enable Block IO controller debugging"
 		depends on KERNEL_BLK_CGROUP
 		help

@@ -1,0 +1,29 @@
+From 4fb3d2898eaa7b6e1e665878461ca502b5a6f13d Mon Sep 17 00:00:00 2001
+From: Matt Johnston <matt@ucc.asn.au>
+Date: Wed, 22 Jul 2026 21:56:16 +0800
+Subject: scp: avoid statbytes warning without SCPPROGRESS
+
+---
+ src/scp.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/src/scp.c
++++ b/src/scp.c
+@@ -943,6 +943,8 @@ next:			if (fd != -1) {
+ #ifdef PROGRESS_METER
+ 		if (showprogress)
+ 			start_progress_meter(curfile, stb.st_size, &statbytes);
++#else
++        (void)statbytes;
+ #endif
+ 		/* Keep writing after an error so that we stay sync'd up. */
+ 		for (haderr = i = 0; i < stb.st_size; i += bp->cnt) {
+@@ -1300,6 +1302,8 @@ bad:			run_err("%s: %s", np, strerror(er
+ #ifdef PROGRESS_METER
+ 		if (showprogress)
+ 			start_progress_meter(curfile, size, &statbytes);
++#else
++        (void)statbytes;
+ #endif
+ 		for (count = i = 0; i < size; i += 4096) {
+ 			amt = 4096;

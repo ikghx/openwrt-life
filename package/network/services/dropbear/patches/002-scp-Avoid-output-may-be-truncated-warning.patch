@@ -1,0 +1,31 @@
+From b6649a339d7086cbdb6497a9ba115a2703e1be28 Mon Sep 17 00:00:00 2001
+From: Matt Johnston <matt@ucc.asn.au>
+Date: Wed, 22 Jul 2026 20:08:31 +0800
+Subject: scp: Avoid "output may be truncated" warning
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The warning is spurious since the buffer size is checked prior to
+snprintf.  The warning seems to only occur with -O2, not -Os.
+No functional change.
+
+src/scp.c:1031:56: error: ‘%s’ directive output may be truncated writing up to 255 bytes into a region of size between 2 and 4095 [-Werror=format-truncation=]
+---
+ src/scp.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/src/scp.c
++++ b/src/scp.c
+@@ -1027,7 +1027,10 @@ rsource(char *name, struct stat *statp)
+ 			run_err("%s/%s: name too long", name, dp->d_name);
+ 			continue;
+ 		}
+-		(void) snprintf(path, sizeof path, "%s/%s", name, dp->d_name);
++		if (snprintf(path, sizeof path, "%s/%s", name, dp->d_name) >= (int)(sizeof path)) {
++			// Unreachable, checked above. This avoids -Wformat-truncation.
++			abort();
++		}
+ 		vect[0] = path;
+ 		source(1, vect);
+ 	}
