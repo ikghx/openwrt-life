@@ -108,11 +108,8 @@ ppp_generic_setup() {
 		norelease=""
 	fi
 
-	case "$reqprefix" in
-	*[[:space:]]*)
+	[ "$(set -- $reqprefix; echo $#)" -gt 1 ] && \
 		logger -p warn -t ppp "$config: ignoring extra reqprefix values"
-		;;
-	esac
 
 	if [ "${demand:-0}" -gt 0 ]; then
 		demand="precompiled-active-filter /etc/ppp/filter demand idle $demand"
@@ -161,7 +158,7 @@ ppp_generic_setup() {
 		${autoipv6:+set AUTOIPV6=1} \
 		${reqprefix:+set "REQPREFIX=$reqprefix"} \
 		${norelease:+set NORELEASE=1} \
-		${ip6table:+set IP6TABLE=$ip6table} \
+		${ip6table:+set "IP6TABLE=$ip6table"} \
 		${peerdns:+set PEERDNS=$peerdns} \
 		${sourcefilter:+set NOSOURCEFILTER=1} \
 		${delegate:+set DELEGATE=0} \
