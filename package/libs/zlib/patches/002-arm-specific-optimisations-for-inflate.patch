@@ -339,7 +339,7 @@ Change-Id: Id4cda552b39bfb39ab35ec499dbe122b43b6d1a1
 +#endif /* !ASMINF */
 --- /dev/null
 +++ b/contrib/arm/inflate.c
-@@ -0,0 +1,1561 @@
+@@ -0,0 +1,1562 @@
 +/* inflate.c -- zlib decompression
 + * Copyright (C) 1995-2016 Mark Adler
 + * For conditions of distribution and use, see copyright notice in zlib.h
@@ -1101,8 +1101,9 @@ Change-Id: Id4cda552b39bfb39ab35ec499dbe122b43b6d1a1
 +                if (copy > have) copy = have;
 +                if (copy) {
 +                    if (state->head != Z_NULL &&
-+                        state->head->extra != Z_NULL) {
-+                        len = state->head->extra_len - state->length;
++                        state->head->extra != Z_NULL &&
++                        (len = state->head->extra_len - state->length) <
++                            state->head->extra_max) {
 +                        zmemcpy(state->head->extra + len, next,
 +                                len + copy > state->head->extra_max ?
 +                                state->head->extra_max - len : copy);

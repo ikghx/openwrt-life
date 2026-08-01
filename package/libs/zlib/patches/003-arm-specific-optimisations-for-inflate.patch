@@ -472,7 +472,7 @@ Change-Id: I59854eb25d2b1e43561c8a2afaf9175bf10cf674
      }
  
      /* if window not in use yet, initialize */
-@@ -1175,17 +1186,16 @@ int flush;
+@@ -1176,17 +1187,16 @@ int flush;
                  else
                      from = state->window + (state->wnext - copy);
                  if (copy > state->length) copy = state->length;
