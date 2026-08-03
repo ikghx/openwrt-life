@@ -59,9 +59,6 @@ ifeq ($(CONFIG_ZLIB_OPTIMIZE_SPEED),y)
 	TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
 endif
 
-CMAKE_OPTIONS += \
-	-DARMv8=$$$$(echo -e '\#ifdef __ARM_NEON\nON\n\#else\nOFF\n\#endif' | $$(TARGET_CC) $$(TARGET_CFLAGS) -x c -E - | grep -xE 'ON|OFF')
-
 define Build/InstallDev
 	mkdir -p $(1)/usr/include
 	$(CP)	$(PKG_INSTALL_DIR)/usr/include/z{conf,lib}.h \
