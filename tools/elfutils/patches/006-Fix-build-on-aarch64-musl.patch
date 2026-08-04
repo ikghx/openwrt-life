@@ -5,8 +5,6 @@ Subject: [PATCH] Fix build on aarch64/musl
 
 Errors
 
-invalid operands to binary & (have 'long double' and 'unsigned int')
-
 error: redefinition
  of 'struct iovec'
  struct iovec { void *iov_base; size_t iov_len; };

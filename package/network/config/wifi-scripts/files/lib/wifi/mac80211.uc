@@ -100,6 +100,7 @@ for (let phy_name, phy in board.wlan) {
 set ${s}.type='mac80211'
 set ${s}.${id}
 set ${s}.band='${band_name}'
+set ${s}.cell_density='0'
 set ${s}.channel='${channel}'
 set ${s}.htmode='${htmode}'
 set ${s}.country='${country || ''}'
