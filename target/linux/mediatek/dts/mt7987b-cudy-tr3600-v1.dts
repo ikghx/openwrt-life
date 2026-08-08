@@ -142,6 +142,7 @@
 
 			nvmem-cells = <&eeprom_factory_0>;
 			nvmem-cell-names = "eeprom";
+			/* Offset 3 keeps the 2.4 GHz MAC distinct from LAN. */
 			band@0 {
 				reg = <0>;
 				nvmem-cells = <&macaddr_bdinfo_de00 3>;
@@ -154,7 +155,6 @@
 				nvmem-cell-names = "mac-address";
 			};
 
-			/* Keep the 2.4 GHz MAC distinct from the LAN MAC. */
 			/* MT7990 calibration data is provided by the Factory EEPROM. */
 		};
 	};

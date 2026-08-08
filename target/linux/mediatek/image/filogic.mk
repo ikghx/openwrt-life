@@ -1377,11 +1377,11 @@ define Device/cudy_tr3600-v1
   SUPPORTED_DEVICES += R126
   DEVICE_PACKAGES := mt7987-2p5g-phy-firmware kmod-mt7990-firmware \
 	kmod-hwmon-pwmfan kmod-usb3
-  KERNEL = kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb
-  KERNEL_INITRAMFS = kernel-bin | lzma | \
-	fit lzma $$(KDIR)/image-$$(firstword $$(DEVICE_DTS)).dtb with-initrd
   KERNEL_IN_UBI := 1
+  KERNEL_LOADADDR := 0x40000000
+  UBINIZE_OPTS := -E 5
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
   IMAGE_SIZE := 237824k
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
 endef
