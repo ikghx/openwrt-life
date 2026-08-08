@@ -71,6 +71,7 @@ mediatek_setup_interfaces()
 	routerich,ax3000-ubootmod|\
 	routerich,be7200|\
 	tenbay,wr3000k|\
+	teralink,tl3020-256mb|\
 	tplink,tl-7dr7250-v1)
 		ucidef_set_interfaces_lan_wan "lan1 lan2 lan3" wan
 		;;
@@ -156,6 +157,7 @@ mediatek_setup_interfaces()
 	cudy,tr3000-256mb-v1|\
 	cudy,tr3000-v1|\
 	cudy,tr3000-v1-ubootmod|\
+	cudy,tr3600-v1|\
 	glinet,gl-mt2500|\
 	glinet,gl-mt2500-airoha|\
 	glinet,gl-mt3000|\
