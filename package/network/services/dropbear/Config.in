@@ -900,6 +900,7 @@ menu "Encryption options"
 
 	config DROPBEAR_ECDSA
 		bool "ECDSA"
+		default y if !SMALL_FLASH
 		help
 			This enables the following public key algorithm:
 			 * ecdsa-sha2-nistp256 - 256-bit elliptic curve
