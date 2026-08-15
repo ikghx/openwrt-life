@@ -912,7 +912,7 @@ menu "Encryption options"
 
 			ECDSA significantly faster than RSA or DSS, but slower than Ed25519.
 
-			Default: disabled.
+			Default: enabled, except devices with very small flash.
 
 	config DROPBEAR_ED25519
 		bool "Ed25519"
