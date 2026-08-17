@@ -98,7 +98,7 @@ $(eval $(call KernelPackage,backlight-pwm))
 define KernelPackage/fb
   SUBMENU:=$(VIDEO_MENU)
   TITLE:=Framebuffer and framebuffer console support
-  DEPENDS:=@DISPLAY_SUPPORT
+  DEPENDS:=@DISPLAY_SUPPORT +PACKAGE_kmod-backlight:kmod-backlight
   KCONFIG:= \
 	CONFIG_FB \
 	CONFIG_FB_DEVICE=y \
