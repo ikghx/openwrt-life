@@ -141,6 +141,10 @@ hostapd_common_add_device_config() {
 	hostapd_add_log_config
 }
 
+append_hostapd_option() {
+	append base_cfg "$1" "$N"
+}
+
 hostapd_prepare_device_config() {
 	local config="$1"
 	local driver="$2"
@@ -262,10 +266,7 @@ hostapd_prepare_device_config() {
 	set_default stationary_ap 1
 	append base_cfg "stationary_ap=$stationary_ap" "$N"
 
-	json_get_values opts hostapd_options
-	for val in $opts; do
-		append base_cfg "$val" "$N"
-	done
+	json_for_each_item append_hostapd_option hostapd_options
 
 	cat > "$config" <<EOF
 driver=$driver
