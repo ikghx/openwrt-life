@@ -540,6 +540,10 @@ append_acct_server() {
 	[ -n "$acct_secret" ] && append bss_conf "acct_server_shared_secret=$acct_secret" "$N"
 }
 
+append_hostapd_bss_option() {
+	append bss_conf "$1" "$N"
+}
+
 hostapd_set_bss_options() {
 	local var="$1"
 	local phy="$2"
@@ -1194,10 +1198,7 @@ hostapd_set_bss_options() {
 		fi
 	fi
 
-	json_get_values opts hostapd_bss_options
-	for val in $opts; do
-		append bss_conf "$val" "$N"
-	done
+	json_for_each_item append_hostapd_bss_option hostapd_bss_options
 
 	append "$var" "$bss_conf" "$N"
 	return 0
