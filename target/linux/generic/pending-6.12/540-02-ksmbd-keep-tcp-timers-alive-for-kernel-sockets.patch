@@ -21,8 +21,7 @@ Preserve the existing graceful shutdown behavior.
 
 [ Pending in maintainer tree: namjaejeon/smb3-kernel.git (ksmbd-for-next) ]
 Link: https://github.com/namjaejeon/smb3-kernel/commit/aa62b7518d92fa55d1faeb2f7126908ba03792aa
-
-Fixes: https://github.com/openwrt/openwrt/issues/24744
+Link: https://github.com/openwrt/openwrt/issues/24744
 Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
 ---
  fs/smb/server/transport_tcp.c | 6 ++++++

@@ -15,8 +15,7 @@ remain controlled by the existing TCP sysctl settings.
 
 [ Pending in maintainer tree: namjaejeon/smb3-kernel.git (ksmbd-for-next) ]
 Link: https://github.com/namjaejeon/smb3-kernel/commit/98ac2058eed9ccf75ae3944b91eff67968eebf2a
-
-Fixes: https://github.com/openwrt/openwrt/issues/24744
+Link: https://github.com/openwrt/openwrt/issues/24744
 Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
 ---
  fs/smb/server/transport_tcp.c | 6 ++++++
