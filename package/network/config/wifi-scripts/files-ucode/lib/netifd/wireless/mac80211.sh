@@ -233,6 +233,7 @@ function setup() {
 		case 'sta':
 		case 'adhoc':
 		case 'mesh':
+		case 'monitor':
 			if (mode != "ap")
 				data.config.noscan = true;
 			validate('iface', v.config);
