@@ -111,7 +111,6 @@ export function find_phy(config, rename) {
 	       find_phy_by_name(phys, config.phy, rename);
 };
 
-/* Draw a random, locally administered MAC address. */
 export function macaddr_random() {
 	let f = open("/dev/urandom", "r");
 	if (!f)
