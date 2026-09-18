@@ -33,11 +33,13 @@ define KernelPackage/fs-ntfs/description
   This allows you to mount devices formatted with the ntfs file system.
 endef
 
-NOSTDINC_FLAGS += \
-	$(KERNEL_NOSTDINC_FLAGS)
-
 EXTRA_KCONFIG:= \
-	CONFIG_NTFS_FS=m
+	CONFIG_NTFS_FS=m \
+	CONFIG_NTFS_FS_WOF_COMPRESSION=y
+
+NOSTDINC_FLAGS += \
+	$(KERNEL_NOSTDINC_FLAGS) \
+	$(patsubst CONFIG_%,-DCONFIG_%=1,$(patsubst %=y,%,$(filter %=y,$(EXTRA_KCONFIG))))
 
 MAKE_OPTS:= \
 	M="$(PKG_BUILD_DIR)" \
