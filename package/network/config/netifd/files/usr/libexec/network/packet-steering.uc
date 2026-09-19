@@ -57,11 +57,15 @@ function set_task_cpu(pid, cpu) {
 
 function cpu_mask(cpu)
 {
-	let mask;
+	let mask = 0;
 	if (cpu < 0)
-		mask = (1 << length(cpus)) - 1;
+		for (let c in cpus)
+			mask |= (1 << c.id);
 	else
 		mask = (1 << int(cpu));
+	let hi = (mask >> 32) & 0xffffffff;
+	if (hi)
+		return sprintf("%x,%08x", hi, mask & 0xffffffff);
 	return sprintf("%x", mask);
 }
 
@@ -89,8 +93,6 @@ function set_netdev_cpu(dev, cpu, rx_queue) {
 function task_device_match(name, device)
 {
 	let napi_match = match(name, /napi\/([^-]*)-\d+/);
-	if (!napi_match)
-		napi_match = match(name, /mt76-tx (phy\d+)/);
 	if (napi_match &&
 	    (index(device.phy, napi_match[1]) >= 0 ||
 	     index(device.netdev, napi_match[1]) >= 0))
@@ -110,13 +112,14 @@ cpus = map(glob("/sys/bus/cpu/devices/*"), (path) => {
 	};
 });
 
-cpus = slice(cpus, 0, 64);
+sort(cpus, (a, b) => a.id - b.id);
+cpus = filter(cpus, (c) => c.id < 64);
 if (length(cpus) < 2)
 	exit(0);
 
 function cpu_add_weight(cpu_id, weight)
 {
-	let cpu = cpus[cpu_id];
+	let cpu = filter(cpus, (c) => c.id == cpu_id)[0];
 	cpu.load += weight;
 	for (let sibling in cpus) {
 		if (sibling == cpu || sibling.core != cpu.core)
@@ -209,7 +212,7 @@ function assign_dev_queues_cpu(dev) {
 
 		let task = dev.rx_tasks[i];
 		if (num >= length(cpus))
-			cpu = i % length(cpus);
+			cpu = cpus[i % length(cpus)].id;
 		else if (task)
 			cpu = get_next_cpu(napi_weight);
 		else
@@ -221,7 +224,7 @@ function assign_dev_queues_cpu(dev) {
 			continue;
 
 		if (num >= length(cpus))
-			cpu = (i + 1) % length(cpus);
+			cpu = cpus[(i + 1) % length(cpus)].id;
 		else if (all_cpus)
 			cpu = -1;
 		else
