@@ -136,6 +136,7 @@ platform_do_upgrade() {
 	cudy,wr3000h-v1-ubootmod|\
 	cudy,wr3000p-v1-ubootmod|\
 	gatonetworks,gdsp|\
+	globitel,bt-r320|\
 	h3c,magic-nx30-pro|\
 	imou,hx21|\
 	jcg,q30-pro|\

@@ -5,11 +5,11 @@ PKG_NAME:=linux-ntfs
 PKG_RELEASE:=1
 PKG_BUILD_PARALLEL:=1
 
-PKG_SOURCE_DATE:=2026-09-04
+PKG_SOURCE_DATE:=2026-09-21
 PKG_SOURCE_URL:=https://github.com/namjaejeon/linux-ntfs
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_VERSION:=d6d09e6f017f45aae062e05e64301f43a2c66ea1
-PKG_MIRROR_HASH:=4c42a346217ed7e0294897312f39d7667c27f2fb08edc724f6367fc3b7321456
+PKG_SOURCE_VERSION:=fdfea0c9a7b4e294daffa839e76bb41d69ec192c
+PKG_MIRROR_HASH:=8644abf36f439e731b4857d574e2ecd96ebfa7ea548a70d5fb26a22a783d51c7
 
 PKG_LICENSE:=GPL-2.0-or-later
 
@@ -33,13 +33,12 @@ define KernelPackage/fs-ntfs/description
   This allows you to mount devices formatted with the ntfs file system.
 endef
 
+NOSTDINC_FLAGS += \
+	$(KERNEL_NOSTDINC_FLAGS)
+
 EXTRA_KCONFIG:= \
 	CONFIG_NTFS_FS=m \
 	CONFIG_NTFS_FS_WOF_COMPRESSION=y
-
-NOSTDINC_FLAGS += \
-	$(KERNEL_NOSTDINC_FLAGS) \
-	$(patsubst CONFIG_%,-DCONFIG_%=1,$(patsubst %=y,%,$(filter %=y,$(EXTRA_KCONFIG))))
 
 MAKE_OPTS:= \
 	M="$(PKG_BUILD_DIR)" \
