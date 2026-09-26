@@ -81,11 +81,11 @@ include $(INCLUDE_DIR)/prereq.mk
 include $(INCLUDE_DIR)/unpack.mk
 include $(INCLUDE_DIR)/depends.mk
 
-ifneq ($(wildcard $(TOPDIR)/git-src/$(PKG_NAME)/.git),)
+ifneq ($(GIT_SRC_CHECKOUT_DIR),)
   USE_GIT_SRC_CHECKOUT:=1
   QUILT:=1
 endif
-ifneq ($(if $(CONFIG_SRC_TREE_OVERRIDE),$(wildcard ./git-src)),)
+ifneq ($(GIT_TREE_OVERRIDE_DIR),)
   USE_GIT_TREE:=1
   QUILT:=1
 endif
@@ -134,6 +134,7 @@ STAMP_BUILT:=$(PKG_BUILD_DIR)/.built
 STAMP_INSTALLED:=$(STAGING_DIR)/stamp/.$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(BUILD_VARIANT),)_installed
 
 STAGING_FILES_LIST:=$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(BUILD_VARIANT),).list
+STAGING_TMP_DIR:=$(TMP_DIR)/stage-$(PKG_DIR_NAME)$(if $(BUILD_VARIANT),.$(BUILD_VARIANT),)
 
 define CleanStaging
 	rm -f $(STAMP_INSTALLED)
@@ -212,28 +213,10 @@ ifeq ($(DUMP)$(filter prereq clean refresh update,$(MAKECMDGOALS)),)
 endif
 
 ifdef USE_GIT_SRC_CHECKOUT
-  define Build/Prepare/Default
-	mkdir -p $(PKG_BUILD_DIR)
-	ln -s $(TOPDIR)/git-src/$(PKG_NAME)/.git $(PKG_BUILD_DIR)/.git
-	( cd $(PKG_BUILD_DIR); \
-		git checkout .; \
-		git submodule update --recursive; \
-		git submodule foreach git config --unset core.worktree; \
-		git submodule foreach git checkout .; \
-	)
-  endef
+  Build/Prepare/Default = $(call Prepare/git-src,$(PKG_BUILD_DIR),$(GIT_SRC_CHECKOUT_DIR))
 endif
 ifdef USE_GIT_TREE
-  define Build/Prepare/Default
-	mkdir -p $(PKG_BUILD_DIR)
-	ln -s $(CURDIR)/git-src $(PKG_BUILD_DIR)/.git
-	( cd $(PKG_BUILD_DIR); \
-		git checkout .; \
-		git submodule update --recursive; \
-		git submodule foreach git config --unset core.worktree; \
-		git submodule foreach git checkout .; \
-	)
-  endef
+  Build/Prepare/Default = $(call Prepare/git-src,$(PKG_BUILD_DIR),$(CURDIR)/git-src)
 endif
 ifdef USE_SOURCE_DIR
   define Build/Prepare/Default
@@ -372,10 +355,6 @@ define BuildPackage
   # default, so wget-ssl can explicitly provide @wget-any as well.
   $(eval PROVIDES:=$(strip @$(1)-any $(PROVIDES)))
 
-ifdef DESCRIPTION
-$$(error DESCRIPTION:= is obsolete, use Package/PKG_NAME/description)
-endif
-
 ifndef Package/$(1)/description
 define Package/$(1)/description
 	$(TITLE)
@@ -430,7 +409,7 @@ prepare-package-install:
 $(PACKAGE_DIR):
 	mkdir -p $@
 
-compile:
+compile: prepare-package-install
 .install: .compile
 install: compile
 

@@ -328,6 +328,22 @@ endif
       APK_SCRIPTS_$(1)+=--script "post-deinstall:$$(ADIR_$(1))/postrm"
     endif
 
+ifneq ($(CONFIG_USE_APK),)
+    APK_TAGS_$(1):=
+
+    ifneq ($$(ABIV_$(1)),)
+      APK_TAGS_$(1)+=openwrt:abiversion=$$(ABIV_$(1))
+    endif
+
+    ifneq ($(SECTION),)
+      APK_TAGS_$(1)+=openwrt:section=$(SECTION)
+    endif
+
+    ifneq ($(PKG_CPE_ID),)
+      APK_TAGS_$(1)+=openwrt:cpe=$(PKG_CPE_ID)
+    endif
+endif
+
     TARGET_VARIANT:=$$(if $(ALL_VARIANTS),$$(if $$(VARIANT),$$(filter-out *,$$(VARIANT)),$(firstword $(ALL_VARIANTS))))
     ifeq ($(BUILD_VARIANT),$$(if $$(TARGET_VARIANT),$$(TARGET_VARIANT),$(BUILD_VARIANT)))
     do_install=
@@ -435,7 +451,7 @@ Installed-Size: 0
 $(_endef)
 
     $$(PACK_$(1)) : export CONTROL=$$(Package/$(1)/CONTROL)
-    $$(PACK_$(1)) : export DESCRIPTION=$$(Package/$(1)/description)
+    $$(PACK_$(1)) : $(call shexport,Package/$(1)/description)
     $$(PACK_$(1)) : export PATH=$$(TARGET_PATH_PKG)
     $$(PACK_$(1)) : export SOURCE_DATE_EPOCH=$$(PKG_SOURCE_DATE_EPOCH)
     $(PKG_INFO_DIR)/$(1).provides $$(PACK_$(1)): $(STAMP_BUILT) $(INCLUDE_DIR)/package-pack.mk
@@ -492,7 +508,7 @@ ifeq ($(CONFIG_USE_APK),)
 	(cd $$(IDIR_$(1))/CONTROL; \
 		( \
 			echo "$$$$CONTROL"; \
-			printf "Description: "; echo "$$$$DESCRIPTION" | sed -e 's,^[[:space:]]*, ,g'; \
+			printf "Description: "; echo "$$$$$(call shvar,Package/$(1)/description)" | sed -e 's,^[[:space:]]*, ,g'; \
 		) > control; \
 		chmod 644 control; \
 		( \
@@ -589,10 +605,10 @@ else
 		exit 1; \
 	fi
 
-	$(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk mkpkg \
+	SOURCE_DATE_EPOCH=0 $(FAKEROOT) $(STAGING_DIR_HOST)/bin/apk mkpkg \
 	  --info "name:$(1)$$(ABIV_$(1))" \
 	  --info "version:$(VERSION)" \
-	  $$(if $$(ABIV_$(1)),--info "tags:openwrt:abiversion=$$(ABIV_$(1))") \
+	  $$(if $$(APK_TAGS_$(1)),--info "tags:$$(APK_TAGS_$(1))") \
 	  --info "description:$$(call description_escape,$$(strip $$(Package/$(1)/description)))" \
 	  $(if $(findstring all,$(PKGARCH)),--info "arch:noarch",--info "arch:$(PKGARCH)") \
 	  --info "license:$(LICENSE)" \
@@ -604,6 +620,7 @@ else
 	  $$(APK_SCRIPTS_$(1)) \
 	  --info "depends:$$(foreach depends,$$(subst $$(comma),$$(space),$$(subst $$(space),,$$(subst $$(paren_right),,$$(subst $$(paren_left),,$$(Package/$(1)/DEPENDS))))),$$(depends))" \
 	  --files "$$(IDIR_$(1))" \
+	  $(if $(CONFIG_SIGN_EACH_PACKAGE),--sign $(BUILD_KEY_APK_SEC),) \
 	  --output "$$(PACK_$(1))"
 endif
 

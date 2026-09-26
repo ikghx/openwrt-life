@@ -1542,6 +1542,8 @@ ifdef CONFIG_TARGET_mediatek
 UBOOT_MAKE_FLAGS += $(UBOOT_IMAGE:.fip=.bin)
 endif
 
+FIP_BL31=$(STAGING_DIR_IMAGE)/$(if $(BL2_SOC),$(BL2_SOC),$(BUILD_SUBTARGET))-$(BL2_BOOTDEV)-$(if $(BL2_DDRTYPE),$(BL2_DDRTYPE)-)$(if $(BL2_DDRBLOB),$(BL2_DDRBLOB)ddr-)bl31.bin
+
 define Build/fip-image
 	$(if $(FIP_COMPRESS),\
 		xz -e -9 -C crc32 -c $(FIP_BL31) > $(PKG_BUILD_DIR)/bl31.bin.xz ;\
