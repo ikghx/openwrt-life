@@ -449,7 +449,7 @@ endif
 	$(call Package/$(1)/install,$$(IDIR_$(1)))
 	$(if $(Package/$(1)/install-overlay),mkdir -p $(PACKAGE_DIR) $$(IDIR_$(1))/rootfs-overlay)
 	$(call Package/$(1)/install-overlay,$$(IDIR_$(1))/rootfs-overlay)
-	-find $$(IDIR_$(1)) -name 'CVS' -o -name '.svn' -o -name '.#*' -o -name '*~'| $(XARGS) rm -rf
+	-find $$(IDIR_$(1)) -name '.svn' -o -name '.#*' -o -name '*~'| $(XARGS) rm -rf
 	@( \
 		find $$(IDIR_$(1)) -name lib\*.so\* -or -name \*.ko | awk -F/ '{ print $$$$NF }'; \
 		for file in $$(patsubst %,$(PKG_INFO_DIR)/%.provides,$$(IDEPEND_$(1))); do \
@@ -609,6 +609,13 @@ endif
 
 	@[ -f $$(PACK_$(1)) ]
 
+$(BuildTarget/ipkg/disabled)
+  endef
+
+  # Packages that are not selected only need the clean rule, which removes
+  # packages built before they were deselected. The rest of BuildTarget/ipkg
+  # takes about 0.7 ms per package to parse, for more than 1000 kmods.
+  define BuildTarget/ipkg/disabled
     $(1)-clean:
 ifeq ($(CONFIG_USE_APK),)
 	$$(call remove_ipkg_files,$(1),$$(call opkg_package_files,$(call gen_package_wildcard,$(1))))
@@ -616,8 +623,6 @@ else
 	$$(call remove_ipkg_files,$(1),$$(call apk_package_files,$(call gen_package_wildcard,$(1))))
 endif
 
-
     clean: $(1)-clean
-
   endef
 endif

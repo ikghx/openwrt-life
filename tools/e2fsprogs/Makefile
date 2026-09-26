@@ -16,6 +16,7 @@ PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=@KERNEL/linux/kernel/people/tytso/e2fsprogs/v$(PKG_VERSION)/
 
 HOST_BUILD_PARALLEL:=1
+HOST_CONFIGURE_CACHE:=1
 
 include $(INCLUDE_DIR)/host-build.mk
 
@@ -31,7 +32,8 @@ HOST_CONFIGURE_ARGS += \
 	--disable-nls \
 	--enable-threads=pth \
 	--disable-fuse2fs \
-	--with-crond-dir=no
+	--with-crond-dir=no \
+	--enable-libblkid
 
 # The following uses pkg-config the wrong way around. Just override it.
 HOST_CONFIGURE_VARS += \

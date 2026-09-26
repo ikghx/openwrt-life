@@ -4,8 +4,11 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_VERSION:=2025.10
 PKG_HASH:=b4f032848e56cc8f213ad59f9132c084dbbb632bc29176d024e58220e0efdf4a
 PKG_BUILD_DEPENDS:=!(TARGET_ramips||TARGET_mediatek_mt7623):arm-trusted-firmware-tools/host
+PKG_PARALLEL_VARIANTS:=1
 
+ifdef CONFIG_TARGET_ramips
 UBOOT_USE_INTREE_DTC:=1
+endif
 
 include $(INCLUDE_DIR)/u-boot.mk
 include $(INCLUDE_DIR)/package.mk
@@ -1541,11 +1544,11 @@ endif
 
 define Build/fip-image
 	$(if $(FIP_COMPRESS),\
-		xz -f -e -k -9 -C crc32 $(STAGING_DIR_IMAGE)/$(if $(BL2_SOC),$(BL2_SOC),$(BUILD_SUBTARGET))-$(BL2_BOOTDEV)-$(if $(BL2_DDRTYPE),$(BL2_DDRTYPE)-)$(if $(BL2_DDRBLOB),$(BL2_DDRBLOB)ddr-)bl31.bin ;\
+		xz -e -9 -C crc32 -c $(FIP_BL31) > $(PKG_BUILD_DIR)/bl31.bin.xz ;\
 		xz -f -e -k -9 -C crc32 $(PKG_BUILD_DIR)/u-boot.bin \
 	)
 	$(STAGING_DIR_HOST)/bin/fiptool create \
-		--soc-fw $(STAGING_DIR_IMAGE)/$(if $(BL2_SOC),$(BL2_SOC),$(BUILD_SUBTARGET))-$(BL2_BOOTDEV)-$(if $(BL2_DDRTYPE),$(BL2_DDRTYPE)-)$(if $(BL2_DDRBLOB),$(BL2_DDRBLOB)ddr-)bl31.bin$(if $(FIP_COMPRESS),.xz) \
+		--soc-fw $(if $(FIP_COMPRESS),$(PKG_BUILD_DIR)/bl31.bin.xz,$(FIP_BL31)) \
 		--nt-fw $(PKG_BUILD_DIR)/u-boot.bin$(if $(FIP_COMPRESS),.xz) \
 		$(PKG_BUILD_DIR)/u-boot.fip
 endef
@@ -1585,3 +1588,9 @@ define Build/InstallDev
 endef
 
 $(eval $(call BuildPackage/U-Boot))
+
+# The fip contains BL31 from trusted-firmware-a, so build it again if that
+# changed.
+ifeq ($(DUMP)$(UBOOT_IMAGE),u-boot.fip)
+$(STAMP_BUILT): $(wildcard $(FIP_BL31))
+endif
