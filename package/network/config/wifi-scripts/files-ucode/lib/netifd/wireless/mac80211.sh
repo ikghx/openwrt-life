@@ -93,7 +93,7 @@ function setup_phy(phy, config, data) {
 		rxantenna: config.rxantenna
 	});
 
-	if (config.txpower)
+	if (config.txpower != null)
 		config.txpower = 'fixed ' + config.txpower + '00';
 	else
 		config.txpower = 'auto';

@@ -21,7 +21,10 @@ PKG_LICENSE:=GPL-2.0
 
 # Extend depends from version.mk
 PKG_CONFIG_DEPENDS += \
-	CONFIG_SIGNED_PACKAGES CONFIG_TARGET_INIT_PATH CONFIG_TARGET_PREINIT_DISABLE_FAILSAFE \
+	CONFIG_SIGNED_PACKAGES \
+	CONFIG_TARGET_INIT_PATH \
+	CONFIG_TARGET_PREINIT_DISABLE_FAILSAFE \
+	CONFIG_TARGET_SERIAL \
 	CONFIG_NAND_SUPPORT \
 	CONFIG_LEGACY_SDCARD_SUPPORT \
 	CONFIG_EMMC_SUPPORT \
@@ -228,6 +231,7 @@ else
 	$(LN) /tmp/run $(1)/var/run
 endif
 	$(LN) /tmp/resolv.conf /tmp/TZ /tmp/localtime $(1)/etc/
+	$(LN) /tmp/sysinfo/board.json $(1)/etc/board.json
 
 	chmod 0600 $(1)/etc/shadow
 	chmod 1777 $(1)/tmp

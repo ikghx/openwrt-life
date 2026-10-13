@@ -84,8 +84,11 @@ function freq_range_match(ranges, freq) {
 
 function wiphy_detect() {
 	let phys = nl.request(nl.const.NL80211_CMD_GET_WIPHY, nl.const.NLM_F_DUMP, { split_wiphy_dump: true });
+	// the dump fails while cfg80211 is not loaded yet, e.g. when
+	// /etc/init.d/boot runs "wifi config" before kmodloader. Keep
+	// board.json as it is instead of writing it without any phy.
 	if (!phys)
-		return;
+		exit(0);
 
 	for (let phy in phys) {
 		if (!phy)
@@ -256,5 +259,8 @@ if (!is_equal(prev_board_data, board_data)) {
 		exit(1);
 	f.write(sprintf("%.J\n", board_data));
 	f.close();
+	// flush the data before the rename, otherwise a power cut can leave
+	// an empty board.json behind (e.g. on UBIFS)
+	system([ "fsync", new_file ]);
 	rename(new_file, board_file);
 }
