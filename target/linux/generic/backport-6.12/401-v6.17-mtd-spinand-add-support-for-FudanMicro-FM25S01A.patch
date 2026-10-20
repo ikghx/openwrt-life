@@ -8,6 +8,7 @@ Datasheet: http://eng.fmsh.com/nvm/FM25S01A_ds_eng.pdf
 
 Signed-off-by: Tianling Shen <cnsztl@gmail.com>
 Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
+Link: https://lore.kernel.org/linux-mtd/20250824170013.3328777-1-cnsztl@gmail.com
 ---
  drivers/mtd/nand/spi/Makefile |  2 +-
  drivers/mtd/nand/spi/core.c   |  1 +
@@ -26,7 +27,7 @@ Signed-off-by: Miquel Raynal <miquel.raynal@bootlin.com>
  obj-$(CONFIG_MTD_SPI_NAND) += spinand.o
 --- a/drivers/mtd/nand/spi/core.c
 +++ b/drivers/mtd/nand/spi/core.c
-@@ -1167,6 +1167,7 @@ static const struct spinand_manufacturer
+@@ -1185,6 +1185,7 @@ static const struct spinand_manufacturer
  	&alliancememory_spinand_manufacturer,
  	&ato_spinand_manufacturer,
  	&esmt_c8_spinand_manufacturer,
