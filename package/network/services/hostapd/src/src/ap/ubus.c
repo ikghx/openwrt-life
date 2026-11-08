@@ -316,9 +316,9 @@ hostapd_bss_get_clients(struct ubus_context *ctx, struct ubus_object *obj,
 			blobmsg_add_u32(&b, "tx", sta_driver_data.tx_packets);
 			blobmsg_close_table(&b, r);
 			r = blobmsg_open_table(&b, "rate");
-			/* Driver rates are already in kbit/s. */
-			blobmsg_add_u32(&b, "rx", sta_driver_data.current_rx_rate);
-			blobmsg_add_u32(&b, "tx", sta_driver_data.current_tx_rate);
+			/* Rate in kbits */
+			blobmsg_add_u32(&b, "rx", sta_driver_data.current_rx_rate * 100);
+			blobmsg_add_u32(&b, "tx", sta_driver_data.current_tx_rate * 100);
 			blobmsg_close_table(&b, r);
 			blobmsg_add_u32(&b, "signal", sta_driver_data.signal);
 		}
@@ -1309,7 +1309,7 @@ hostapd_rrm_lm_req(struct ubus_context *ctx, struct ubus_object *obj,
 
 	wpabuf_put_u8(buf, WLAN_ACTION_RADIO_MEASUREMENT);
 	wpabuf_put_u8(buf, WLAN_RRM_LINK_MEASUREMENT_REQUEST);
-	wpabuf_put_u8(buf, 1);
+	wpabuf_put_u8(buf, UBUS_LMR_TOKEN);
 	/* TX-Power used */
 	wpabuf_put_u8(buf, txp_used);
 	/* Max TX Power */
@@ -1326,7 +1326,7 @@ hostapd_rrm_lm_req(struct ubus_context *ctx, struct ubus_object *obj,
 }
 
 
-void hostapd_ubus_handle_link_measurement(struct hostapd_data *hapd, const u8 *data, size_t len)
+int hostapd_ubus_handle_link_measurement(struct hostapd_data *hapd, const u8 *data, size_t len)
 {
 	const struct ieee80211_mgmt *mgmt = (const struct ieee80211_mgmt *) data;
 	const u8 *pos, *end;
@@ -1337,10 +1337,11 @@ void hostapd_ubus_handle_link_measurement(struct hostapd_data *hapd, const u8 *d
 	pos = mgmt->u.action.u.rrm.variable;
 
 	if (end - pos < 8)
-		return;
+		return false; /* We will not handle this LMR, passing to upstream handler. */
 
-	if (!hapd->ubus.obj.has_subscribers)
-		return;
+	if (!hapd->ubus.obj.has_subscribers || token != UBUS_LMR_TOKEN
+	    || (hapd->link_mesr_req_active && token == hapd->link_measurement_req_token))
+		return false;
 
 	blob_buf_init(&b, 0);
 	blobmsg_add_macaddr(&b, "address", mgmt->sa);
@@ -1351,6 +1352,7 @@ void hostapd_ubus_handle_link_measurement(struct hostapd_data *hapd, const u8 *d
 	blobmsg_add_u16(&b, "rsni", pos[7]);
 
 	ubus_notify(ctx, &hapd->ubus.obj, "link-measurement-report", b.head, -1);
+	return true;
 }
 
 

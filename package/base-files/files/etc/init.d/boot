@@ -30,7 +30,8 @@ boot() {
 	mkdir -p -m 0700 /tmp/.uci
 	mkdir -p /tmp/resolv.conf.d
 	touch /tmp/resolv.conf.d/resolv.conf.auto
-	ln -s /tmp/resolv.conf.d/resolv.conf.auto /tmp/resolv.conf
+	ln -sf resolv.conf.auto /tmp/resolv.conf.d/resolv.conf
+	ln -sf /tmp/resolv.conf.d/resolv.conf /tmp/resolv.conf
 
 	local common=nosuid,nodev,noexec,noatime
 	[ -d /sys/kernel/debug ] \

@@ -319,23 +319,21 @@ update_alternatives() {
 			pkg_target=${pkg_target%:*};
 			pkg_src=${pkg_alt##*:};
 
-			if [ -e "$root/$target" ]; then
-				for alts in $root/lib/apk/packages/*.alternatives; do
-					for alt in $(cat $alts); do
-						prio=${alt%%:*};
-						target=${alt#*:};
-						target=${target%:*};
-						src=${alt##*:};
+			for alts in $root/lib/apk/packages/*.alternatives; do
+				for alt in $(cat $alts); do
+					prio=${alt%%:*};
+					target=${alt#*:};
+					target=${target%:*};
+					src=${alt##*:};
 
-						if [ "$target" = "$pkg_target" ] &&
-						   [ "$src" != "$pkg_src" ] &&
-						   [ "$best_prio" -lt "$prio" ]; then
-							best_prio=$prio;
-							best_src=$src;
-						fi
-					done
+					if [ "$target" = "$pkg_target" ] &&
+					   [ "$src" != "$pkg_src" ] &&
+					   [ "$best_prio" -lt "$prio" ]; then
+						best_prio=$prio;
+						best_src=$src;
+					fi
 				done
-			fi
+			done
 			case "$action" in
 				install)
 					if [ "$best_prio" -lt "$pkg_prio" ]; then
@@ -345,8 +343,14 @@ update_alternatives() {
 				;;
 				remove)
 					if [ "$best_prio" -lt "$pkg_prio" ]; then
-						ln -sf "$best_src" "$root/$pkg_target"
-						echo "add alternative: $pkg_target -> $best_src"
+						if [ "$best_prio" -eq 0 ] &&
+						   ! grep -qxF "$pkg_target" $root/lib/apk/packages/busybox*.list 2>/dev/null; then
+							rm -f "$root/$pkg_target"
+							echo "remove alternative: $pkg_target"
+						else
+							ln -sf "$best_src" "$root/$pkg_target"
+							echo "add alternative: $pkg_target -> $best_src"
+						fi
 					fi
 				;;
 			esac
