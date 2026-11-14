@@ -1,3 +1,4 @@
+From ce1991cd6466e12fc3c018e5729572b52d4e20fd Mon Sep 17 00:00:00 2001
 From: Andrew LaMarche <andrewjlamarche@gmail.com>
 Date: Mon, 31 Mar 2025 13:00:00 +0000
 Subject: [PATCH] octeon: force pcs reset

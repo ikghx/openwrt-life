@@ -1,4 +1,6 @@
+From 9300eda00fa91fda22cea56677db5dfa2371ddcb Mon Sep 17 00:00:00 2001
 From: Christian Lamparter <chunkeey@gmail.com>
+Date: Wed, 22 Aug 2018 06:20:13 +0200
 Subject: [PATCH] ath79: gmac: add parsers for rxd(v)- and tx(d|en)-delay for
 
     ath79: gmac: add parsers for rxd(v)- and tx(d|en)-delay for AR9344

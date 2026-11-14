@@ -1,3 +1,4 @@
+From 577ac8ce8464855cf26644197f57e32cb39c4ff9 Mon Sep 17 00:00:00 2001
 From: Roman Kuzmitskii <damex.pp@icloud.com>
 Date: Sun, 01 Nov 2020 19:00:00 +0000
 Subject: [PATCH] staging: octeon: sgmii to honor disabled dt node status

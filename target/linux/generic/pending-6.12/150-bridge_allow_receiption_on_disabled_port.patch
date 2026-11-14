@@ -1,4 +1,6 @@
+From 93cb862260ffc77ce73630ae26b952e9d44efcc2 Mon Sep 17 00:00:00 2001
 From: Stephen Hemminger <stephen@networkplumber.org>
+Date: Mon, 15 Jul 2013 12:25:58 +0000
 Subject: bridge: allow receiption on disabled port
 
 When an ethernet device is enslaved to a bridge, and the bridge STP

@@ -278,7 +278,7 @@ function config_init(uci)
 						continue;
 
 					dev = devices[radio] = {
-						name,
+						name: radio,
 						config,
 
 						vif: [],

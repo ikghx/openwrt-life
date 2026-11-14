@@ -1,3 +1,8 @@
+From 6e58e645018ec6d429cc410bf81fce0f147c9885 Mon Sep 17 00:00:00 2001
+From: Jakob Haufe <sur5r@sur5r.net>
+Date: Wed, 18 Jun 2025 12:34:20 +0200
+Subject: [PATCH] MIPS: octeon: add device specific DTS pruning for Ubiquiti boards
+
 commit eb6c3ba1d42fd087708f568ca220ff557f22104e
 Author: Jakob Haufe <sur5r@sur5r.net>
 Date:   Tue Jun 17 13:58:19 2025 +0200
@@ -14,7 +19,7 @@ Date:   Tue Jun 17 13:58:19 2025 +0200
     Related: https://github.com/openwrt/openwrt/issues/13762
     
     Signed-off-by: Jakob Haufe <sur5r@sur5r.net>
-
+---
 --- a/arch/mips/cavium-octeon/octeon-platform.c
 +++ b/arch/mips/cavium-octeon/octeon-platform.c
 @@ -1134,6 +1134,41 @@ end_led:

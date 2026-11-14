@@ -9,12 +9,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=ppp
-PKG_VERSION:=2.5.4
-PKG_RELEASE:=7
+PKG_VERSION:=2.5.5
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://download.samba.org/pub/ppp
-PKG_HASH:=379a630a40d858a1347f6592d671791dde12101697a743ef9900012f3765be31
+PKG_HASH:=0ebbcfef906d16cfbb9cbdd19c0d92aa3df2fd8fdd29731f614c58d16a279aa5
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-4-Clause
@@ -38,7 +38,6 @@ CONFIGURE_ARGS += \
 	--enable-microsoft-extensions \
 	--enable-plugins \
 	--with-static-pcap \
-	--without-atm \
 	--without-openssl \
 	--without-pam \
 	--without-pcap
@@ -55,7 +54,6 @@ $(call Package/ppp/Default)
   TITLE:=PPP daemon
   USERID:=ppp=454:ppp=454
   VARIANT:=default
-  CONFLICTS:=ppp-multilink
 endef
 
 define Package/ppp-multilink
@@ -64,7 +62,6 @@ $(call Package/ppp/Default)
   TITLE:=PPP daemon (with multilink support)
   USERID:=ppp=454:ppp=454
   VARIANT:=multilink
-  CONFLICTS:=ppp
 endef
 
 define Package/ppp/description

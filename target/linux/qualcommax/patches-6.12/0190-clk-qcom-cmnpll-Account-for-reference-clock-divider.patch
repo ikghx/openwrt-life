@@ -1,3 +1,4 @@
+From 404b81e0f763cb32db89d45aa88eac1fff5977b1 Mon Sep 17 00:00:00 2001
 From: Luo Jie <jie.luo@oss.qualcomm.com>
 Date: Tue, 06 Jan 2026 21:35:10 -0800
 Subject: [PATCH v2 1/5] clk: qcom: cmnpll: Account for reference clock divider

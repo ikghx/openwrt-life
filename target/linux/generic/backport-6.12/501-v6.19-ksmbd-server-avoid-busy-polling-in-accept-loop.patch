@@ -84,7 +84,7 @@ Signed-off-by: Steve French <stfrench@microsoft.com>
  
  		if (!server_conf.max_ip_connections)
  			goto skip_max_ip_conns_limit;
-@@ -479,10 +457,6 @@ static void tcp_destroy_socket(struct so
+@@ -485,10 +463,6 @@ static void tcp_destroy_socket(struct so
  	if (!ksmbd_socket)
  		return;
  
@@ -95,7 +95,7 @@ Signed-off-by: Steve French <stfrench@microsoft.com>
  	ret = kernel_sock_shutdown(ksmbd_socket, SHUT_RDWR);
  	if (ret)
  		pr_err("Failed to shutdown socket: %d\n", ret);
-@@ -553,9 +527,6 @@ static int create_socket(struct interfac
+@@ -559,9 +533,6 @@ static int create_socket(struct interfac
  		goto out_error;
  	}
  
@@ -105,7 +105,7 @@ Signed-off-by: Steve French <stfrench@microsoft.com>
  	ret = kernel_listen(ksmbd_socket, KSMBD_SOCKET_BACKLOG);
  	if (ret) {
  		pr_err("Port listen() error: %d\n", ret);
-@@ -625,12 +596,11 @@ static int ksmbd_netdev_event(struct not
+@@ -640,12 +611,11 @@ static int ksmbd_netdev_event(struct not
  		if (iface && iface->state == IFACE_STATE_CONFIGURED) {
  			ksmbd_debug(CONN, "netdev-down event: netdev(%s) is going down\n",
  					iface->name);
@@ -120,7 +120,7 @@ Signed-off-by: Steve French <stfrench@microsoft.com>
  
  			iface->state = IFACE_STATE_DOWN;
  			break;
-@@ -693,7 +663,6 @@ static struct interface *alloc_iface(cha
+@@ -708,7 +678,6 @@ static struct interface *alloc_iface(cha
  	iface->name = ifname;
  	iface->state = IFACE_STATE_DOWN;
  	list_add(&iface->entry, &iface_list);

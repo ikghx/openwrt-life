@@ -1,3 +1,4 @@
+From 34d9172655af4e71f9b06229cbd5a716d359ac23 Mon Sep 17 00:00:00 2001
 From: George Moussalem <george.moussalem@outlook.com>
 Subject: [PATCH] pinctrl: qcom: IPQ5018: update pwm groups
 Date: Wed, 27 Nov 2024 09:14:11 +0400
@@ -31,8 +32,8 @@ Signed-off-by: George Moussalem <george.moussalem@outlook.com>
  };
  
  static const char * const pwm3_groups[] = {
--	"gpio45",
-+	"gpio45", "gpio30",
+-	"gpio45", "gpio13",
++	"gpio45", "gpio13", "gpio30",
  };
  
  static const char * const qdss_cti_trig_in_b1_groups[] = {
