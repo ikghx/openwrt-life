@@ -80,8 +80,7 @@ define Build/wac5xx-netgear-tar
 	md5sum $@.tmp/wac5xx-ubifs-root.img > $@.tmp/wac5xx-ubifs-root.md5sum
 	echo "WAC505 WAC510" > $@.tmp/metadata.txt
 	echo "WAC505_V9.9.9.9" > $@.tmp/version
-	$(TAR) -C $@.tmp/ -cf $@ --sort=name --numeric-owner --owner=0 --group=0 --mode=go-w \
-		$(if $(SOURCE_DATE_EPOCH),--mtime="@$(SOURCE_DATE_EPOCH)") .
+	tar -C $@.tmp/ -cf $@ .
 	rm -rf $@.tmp
 endef
 
@@ -172,6 +171,7 @@ define Device/aruba_ap-303
 	$(call Device/aruba_glenmorangie)
 	DEVICE_MODEL := AP-303
 	DEVICE_DTS_CONFIG := Glenmorangie@1
+	DEVICE_PACKAGES := ipq-wifi-aruba_ap-303
 endef
 TARGET_DEVICES += aruba_ap-303
 
@@ -179,13 +179,14 @@ define Device/aruba_ap-303h
 	$(call Device/aruba_glenmorangie)
 	DEVICE_MODEL := AP-303H
 	DEVICE_DTS_CONFIG := Aberlour@1
+	DEVICE_PACKAGES := ipq-wifi-aruba_ap-303h
 endef
 TARGET_DEVICES += aruba_ap-303h
 
 define Device/aruba_ap-365
 	$(call Device/aruba_glenmorangie)
 	DEVICE_MODEL := AP-365
-	DEVICE_PACKAGES := kmod-hwmon-ad7418
+	DEVICE_PACKAGES := kmod-hwmon-ad7418 ipq-wifi-aruba_ap-365
 	DEVICE_DTS_CONFIG := Bunker@1
 endef
 TARGET_DEVICES += aruba_ap-365
