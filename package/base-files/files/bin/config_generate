@@ -51,7 +51,6 @@ generate_static_network() {
 		add_list network.loopback.ipaddr='127.0.0.1/8'
 		delete network.globals
 		set network.globals='globals'
-		set network.globals.packet_steering='1'
 	EOF
 	duid="$(/usr/libexec/duid-generate)"
 	[ -n "$duid" ] && {
